@@ -263,10 +263,10 @@
 
   <script>
     // Constants
-    const WEBHOOK_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/ddc1264c-85be-4b63-98a6-267103685117";
-    const FORM1_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/b2817307-6647-4e68-ae35-88118dfa657c";
-    const FORM2_LOOKUP_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/e067ccfb-f59b-43f0-b779-b9d1286549f9";
-    const FORM2_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/2e394d3e-da1a-4577-9063-359a70518527";
+    const WEBHOOK_URL = "https://phongdqakrd.app.n8n.cloud/webhook/ddc1264c-85be-4b63-98a6-267103685117";
+    const FORM1_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
+    const FORM2_LOOKUP_URL = "https://phongdqakrd.app.n8n.cloud/webhook/e067ccfb-f59b-43f0-b779-b9d1286549f9";
+    const FORM2_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/2e394d3e-da1a-4577-9063-359a70518527";
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -528,7 +528,7 @@
           addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','Hạn đáp ứng']));
           addTd(tr, getV(item,['purpose','mucdich','muc_dich','Mục đích đánh giá','muc dich danh gia','mucdichdanhgia']));
           addTd(tr, getV(item,['note','ghi_chu','ghichu']));
-          addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
+          addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','specialTest']));
           addTd(tr, getV(item,['reportform','form_bao_cao','form_bao_cao_danh_gia']));
           F1_ALL_ROWS.push(tr);
         });
@@ -727,6 +727,7 @@
   </script>
 </body>
 </html>
+
 
 
 
