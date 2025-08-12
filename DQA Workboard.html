@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Cổng Tác Vụ DQA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-blue': '#5aa9ff',
+            'sidebar': '#0f172a',
+            'sidebar-hover': '#1e293b',
+            'muted': '#f8fafc'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .spinner{border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
+    .header-container::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");opacity:.4}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .modal.open{display:flex}
+    .toast{position:fixed;right:16px;bottom:16px;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
+    .toast.show{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body class="bg-muted min-h-screen flex text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
+  <!-- Sidebar -->
+  <aside class="w-64 min-h-screen bg-sidebar text-white flex flex-col py-8 px-4 shadow-lg">
+    <h1 class="text-xl font-bold tracking-wide pb-6 border-b border-blue-200 mb-4">Cổng Tác Vụ DQA</h1>
+    <nav class="flex flex-col gap-2 mt-2">
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form1">Form 1 · Tra cứu tác vụ</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form2">Form 2 · Trả form báo cáo</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form3">Form 3 · Giao việc</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi</button>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 py-10 flex flex-col items-center min-h-screen overflow-y-auto">
+    <div class="header-container relative w-full max-w-6xl rounded-xl overflow-hidden mb-8">
+      <div class="relative z-10 p-8 md:p-10">
+        <div class="flex items-center space-x-2 mb-3">
+          <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white" style="background-color: rgba(255,255,255,0.15); backdrop-filter: blur(5px);">Phòng DQA</div>
+        </div>
+        <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">Bảng điều phối công việc</h2>
+        <p class="text-blue-100 text-sm md:text-base">Tra cứu, trả form, trả báo cáo và giao việc.</p>
+      </div>
+    </div>
+
+    <!-- Form 1 -->
+    <section id="form1" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 1 · Tra cứu tác vụ</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tên</label>
+          <div class="flex gap-2">
+            <select id="f1-name" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="">— Chọn người —</option>
+            </select>
+            <button id="f1-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
+          </div>
+          <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để gửi yêu cầu và hiển thị tác vụ</p>
+        </div>
+      </div>
+      <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+        <table class="min-w-[1600px] w-full text-sm">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2 min-w-[160px]">Trả báo cáo</th>
+              <th class="px-3 py-2 min-w-[140px]">Tình trạng</th>
+              <th class="px-3 py-2 min-w-[140px]">Mã</th>
+              <th class="px-3 py-2 min-w-[260px]">Tên tác vụ</th>
+              <th class="px-3 py-2 min-w-[160px]">Người yêu cầu</th>
+              <th class="px-3 py-2 min-w-[140px]">Ngày yêu cầu</th>
+              <th class="px-3 py-2 min-w-[140px]">Hạn mong muốn</th>
+              <th class="px-3 py-2 min-w-[140px]">Hạn đáp ứng</th>
+              <th class="px-3 py-2 min-w-[260px]">Mục đích đánh giá</th>
+              <th class="px-3 py-2 min-w-[240px]">Note</th>
+              <th class="px-3 py-2 min-w-[240px]">Yêu cầu test đặc biệt</th>
+              <th class="px-3 py-2 min-w-[260px]">Form báo cáo đánh giá</th>
+            </tr>
+          </thead>
+          <tbody id="f1-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="f1-pager" class="mt-2 flex items-center justify-between" style="display:none">
+        <div class="text-sm text-gray-600">
+          <span id="f1-page-info">Trang 1/1 (0 dòng)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Hiển thị</label>
+          <select id="f1-size" class="border border-blue-300 rounded-lg bg-slate-100 p-1 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+          <button id="f1-prev" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Trước</button>
+          <button id="f1-next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form 2 -->
+    <section id="form2" class="w-full max-w-7xl bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 2 · Trả form báo cáo</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tên</label>
+          <div class="flex gap-2">
+            <select id="f2-name" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="">— Chọn người —</option>
+            </select>
+            <button id="f2-search" class="px-3 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
+          </div>
+          <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để hiển thị tác vụ cần trả form.</p>
+        </div>
+      </div>
+      <div class="mt-4 overflow-x-auto border border-gray-200 rounded-lg">
+        <table class="min-w-[900px] w-full text-sm">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2">Ngày yêu cầu</th>
+              <th class="px-3 py-2">Hạn mong muốn</th>
+              <th class="px-3 py-2">Hạn đáp ứng</th>
+              <th class="px-3 py-2">Mã</th>
+              <th class="px-3 py-2">Tên tác vụ</th>
+              <th class="px-3 py-2 min-w-[120px]">Nút Trả form</th>
+            </tr>
+          </thead>
+          <tbody id="f2-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Form 3 -->
+    <section id="form3" class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 3 · Giao việc</h2>
+      </div>
+      <form id="assign-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Người yêu cầu <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+            <input id="rq-by" required type="text" placeholder="Nhập tên người yêu cầu" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian yêu cầu</label>
+            <input id="rq-time" readonly type="text" class="w-full border border-blue-300 rounded-lg bg-gray-200 p-2 text-gray-600"/>
+            <p class="text-gray-500 text-xs mt-1">Cố định theo thời gian hệ thống</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Công chuẩn <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+            <input id="man-hour" required type="number" step="0.01" min="0" inputmode="decimal" placeholder="VD: 2.50" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+            <p class="text-gray-500 text-xs mt-1">Cho phép nhập 2 chữ số sau dấu thập phân</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Đầu ra công việc <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+            <input id="output" required type="text" placeholder="Mô tả đầu ra" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+            <input id="deadline" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mã Odoo/Jira</label>
+            <input id="odoo-jira" type="text" placeholder="VD: ODOO-123 hoặc JIRA-456" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm</label>
+            <input id="attach" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+          </div>
+        </div>
+        <div class="pt-2 flex items-center gap-3">
+          <button type="submit" class="px-5 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105 transition">Giao việc</button>
+          <span class="text-xs text-gray-500">Dữ liệu sẽ được gửi lên webhook kèm thời gian gửi.</span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Form 4 -->
+  <section id="form4" class="w-full max-w-5xl bg-white p-6 rounded-lg shadow-md hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Chọn trạng thái</label>
+        <div class="flex gap-2">
+          <select id="f4-filter" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="Tổng tác vụ">Tổng tác vụ</option>
+            <option value="Doing">Doing</option>
+          </select>
+          <button id="f4-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Chọn kiểu tổng hợp và nhấn Tra cứu để gửi yêu cầu</p>
+      </div>
+    </div>
+    <div class="mt-4 overflow-x-auto border border-gray-200 rounded-lg">
+      <table class="min-w-[600px] w-full text-sm">
+        <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+          <tr class="text-left text-gray-700">
+            <th class="px-3 py-2">Nhân viên</th>
+            <th class="px-3 py-2">Số tác vụ</th>
+            <th class="px-3 py-2">Công chuẩn nhận</th>
+          </tr>
+        </thead>
+        <tbody id="f4-body" class="divide-y divide-gray-100">
+          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="upload-title">
+    <div class="w-full max-w-lg bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200">
+        <h3 id="upload-title" class="text-base font-semibold text-gray-800">Gửi báo cáo</h3>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="flex flex-wrap gap-2 text-sm">
+          <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200">Người nộp: <b class="ml-1" id="uploader-name"></b></span>
+          <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200">Mã: <b class="ml-1" id="uploader-code"></b></span>
+          <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200">Tác vụ: <b class="ml-1" id="uploader-task"></b></span>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tệp báo cáo</label>
+          <input id="upload-file" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+          <p class="text-xs text-gray-500 mt-1">Tệp sẽ gửi kèm timestamp tại thời điểm gửi.</p>
+        </div>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+        <button id="btn-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
+        <button id="btn-send" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Gửi báo cáo</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Constants
+    const WEBHOOK_URL = "https://phongdqakrd.app.n8n.cloud/webhook/ddc1264c-85be-4b63-98a6-267103685117";
+    const FORM1_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
+    const FORM2_LOOKUP_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/e067ccfb-f59b-43f0-b779-b9d1286549f9";
+    const FORM2_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook-test/2e394d3e-da1a-4577-9063-359a70518527";
+
+    // Sidebar navigation
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const sections = ['form1','form2','form3','form4'].map(id=>document.getElementById(id));
+    function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
+    navBtns.forEach((btn)=>{
+      btn.onclick=()=>{
+        navBtns.forEach(b=>b.classList.remove('bg-primary-blue','font-bold'));
+        btn.classList.add('bg-primary-blue','font-bold');
+        showSection(btn.getAttribute('data-target'));
+      }
+    });
+    // Default
+    navBtns[0].classList.add('bg-primary-blue','font-bold');
+    showSection(navBtns[0].getAttribute('data-target'));
+
+    // Names
+    const FORM1_NAMES = [
+      "Bùi Đặng Quốc Huy","Đào Tuấn Kỳ","Đỗ Quang Long","Đỗ Thế Cường","Hà Mỹ Linh","Lại Quốc Lộc",
+      "Lê Ngọc Ánh","Lê Thị Thanh Nhàn","Lê Thị Thảo","Lê Văn Sơn","Nguyễn Hữu Thịnh","Nguyễn Thị Hiền",
+      "Phạm Thành Trung Kiên","Phạm Thị Minh","Thái Thị Giang","Trần Hiếu Nghĩa","Vũ Thị Hằng","Vũ Thị Thanh Hiền"
+    ];
+    const FORM2_NAMES = [
+      "Đỗ Thế Cường","Lê Ngọc Ánh","Vũ Thị Thanh Hiền","Lê Thị Thảo","Lê Văn Sơn",
+      "Phạm Thị Minh","Đỗ Quang Long","Lại Quốc Lộc","Nguyễn Thị Hiền"
+    ];
+
+    // Dữ liệu tác vụ (khởi tạo rỗng; sẽ nối nguồn thật sau)
+    const demoTasksForm1 = {};
+    const demoTasksForm2 = {};
+
+    // Fill selects
+    function fillSelect(sel, arr){ arr.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); }); }
+    fillSelect(document.getElementById('f1-name'), FORM1_NAMES);
+    fillSelect(document.getElementById('f2-name'), FORM2_NAMES);
+
+    // Toast
+    const toastEl = document.getElementById('toast');
+    function showToast(msg,type='info'){
+      toastEl.textContent = msg;
+      toastEl.style.background = type==='success' ? '#137a39' : (type==='error' ? '#b42318' : '#0b1324');
+      toastEl.classList.add('show');
+      setTimeout(()=>toastEl.classList.remove('show'), 2600);
+    }
+
+    // Upload modal
+    const modal = document.getElementById('upload-modal');
+    const fileInput = document.getElementById('upload-file');
+    const uploaderName = document.getElementById('uploader-name');
+    const uploaderCode = document.getElementById('uploader-code');
+    const uploaderTask = document.getElementById('uploader-task');
+    let uploadContext = null;
+    function openUploadModal(ctx){
+      uploadContext = ctx || {};
+      uploaderName.textContent = ctx?.name || '';
+      uploaderCode.textContent = ctx?.code || '';
+      uploaderTask.textContent = ctx?.taskName || '';
+      // Hide Người nộp pill for Form 2 per request
+      try {
+        const namePill = uploaderName && uploaderName.parentElement && uploaderName.parentElement.parentElement ? uploaderName.parentElement.parentElement : null;
+        if (namePill) namePill.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
+      } catch(_) {}
+      fileInput.value = '';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+    }
+    function closeUploadModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+    document.getElementById('btn-cancel').onclick = closeUploadModal;
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeUploadModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeUploadModal(); });
+
+    document.getElementById('btn-send').onclick = async ()=>{
+      if(!fileInput.files || fileInput.files.length===0){ showToast('Vui lòng chọn tệp báo cáo.','error'); return; }
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      fd.append('file_name', fileInput.files[0].name || '');
+      fd.append('timestamp', new Date().toISOString());
+      if(uploadContext){
+        fd.append('nguoi_nop', uploadContext.name||'');
+        fd.append('ma_tac_vu', uploadContext.code||'');
+        fd.append('ten_tac_vu', uploadContext.taskName||'');
+        fd.append('form', uploadContext.form||'');
+      }
+      const targetUpload = (uploadContext && uploadContext.form === 'Form 2') ? FORM2_UPLOAD_URL : WEBHOOK_URL;
+      try{ await fetch(targetUpload,{method:'POST',body:fd, mode: 'no-cors'}); showToast('Đã gửi báo cáo.','success'); closeUploadModal(); }
+      catch(e){ console.error(e); showToast('Gửi thất bại.','error'); }
+    };
+
+    // Helpers for tables
+    function addTd(tr, text){ const td=document.createElement('td'); td.className='px-3 py-2 align-top'; td.textContent=text; tr.appendChild(td); }
+
+    // Form 1: fetch via webhook with query for headers/fields
+    let F1_ALL_ROWS = [];
+    let F1_PAGE = 1;
+    let F1_SIZE = 10;
+    function applyForm1Paging(){
+      const body = document.getElementById('f1-body');
+      const pager = document.getElementById('f1-pager');
+      const total = F1_ALL_ROWS.length;
+      if(total === 0){
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Không có tác vụ</td></tr>';
+        pager.style.display = 'none';
+        return;
+      }
+      pager.style.display = '';
+      const maxPage = Math.max(1, Math.ceil(total / F1_SIZE));
+      if(F1_PAGE > maxPage) F1_PAGE = maxPage;
+      const start = (F1_PAGE - 1) * F1_SIZE;
+      const end = Math.min(total, start + F1_SIZE);
+      const slice = F1_ALL_ROWS.slice(start, end);
+      const pageInfo = document.getElementById('f1-page-info');
+      if(pageInfo) pageInfo.textContent = `Trang ${F1_PAGE}/${maxPage} (${total} dòng)`;
+      const prev = document.getElementById('f1-prev');
+      const next = document.getElementById('f1-next');
+      if(prev) prev.disabled = (F1_PAGE <= 1);
+      if(next) next.disabled = (F1_PAGE >= maxPage);
+      // render rows
+      body.innerHTML = '';
+      slice.forEach(tr => body.appendChild(tr));
+    }
+
+    async function renderForm1(){
+      const name = (document.getElementById('f1-name').value || '').trim();
+      const body = document.getElementById('f1-body');
+      if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Vui lòng chọn tên</td></tr>'; return; }
+      body.innerHTML = "<tr><td colspan='12' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      try{
+        const headerMapF1 = {
+          header_btn: 'Nút nhập gửi báo cáo',
+          header_requester: 'Người yêu cầu',
+          header_requestDate: 'Ngày yêu cầu',
+          header_wishDue: 'Hạn mong muốn',
+          header_actualDue: 'Hạn đáp ứng',
+          header_code: 'Mã',
+          header_taskName: 'Tên tác vụ',
+          header_purpose: 'Mục đích đánh giá',
+          header_note: 'Note',
+          header_specialTest: 'Yêu cầu test đặc biệt',
+          header_reportForm: 'Form báo cáo đánh giá',
+          header_status: 'Trạng thái',
+          field_requester: 'requester',
+          field_requestDate: 'requestDate',
+          field_wishDue: 'wishDue',
+          field_actualDue: 'actualDue',
+          field_code: 'code',
+          field_taskName: 'taskName',
+          field_purpose: 'purpose',
+          field_note: 'note',
+          field_specialTest: 'specialTest',
+          field_reportForm: 'reportForm',
+          field_status: 'status'
+        };
+        const params = new URLSearchParams({
+          ...headerMapF1,
+          action: 'form1_lookup',
+          person_name: name,
+          timestamp: new Date().toISOString()
+        });
+        const testUrl = `${WEBHOOK_URL}?${params.toString()}`;
+        async function fetchJson(url){
+          const r = await fetch(url, { method: 'GET' });
+          const text = await r.text();
+          if(!r.ok) throw new Error(text || `HTTP ${r.status}`);
+          let parsed = null; try{ parsed = JSON.parse(text); }catch{ parsed = null; }
+          return { parsed, raw: text };
+        }
+        let data = null; let firstErr = null;
+        try{
+          const { parsed, raw } = await fetchJson(testUrl);
+          if (parsed && parsed.code === 0 && /could not be started/i.test(String(parsed.message||''))) {
+            throw new Error('WEBHOOK_TEST_INACTIVE');
+          }
+          data = parsed ?? raw;
+        } catch (e) {
+          firstErr = e;
+          // Fallback sang production webhook khi test webhook chưa bật lắng nghe
+          const prodUrl = testUrl.replace('/webhook-test/', '/webhook/');
+          const { parsed, raw } = await fetchJson(prodUrl);
+          data = parsed ?? raw;
+        }
+        function pickRows(json){
+          if (!json) return [];
+          if (Array.isArray(json)) return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
+          // Deep search first array of objects
+          try{
+            const queue = [json];
+            const seen = new Set();
+            while(queue.length){
+              const cur = queue.shift();
+              if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
+              seen.add(cur);
+              for (const v of Object.values(cur)){
+                if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v;
+                if (v && typeof v === 'object') queue.push(v);
+              }
+            }
+          }catch(_){ }
+          return [];
+        }
+        const rows = pickRows(data);
+        if(!rows.length){ body.innerHTML = "<tr><td colspan='12' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
+        const getV = (obj, keys)=>{
+          const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+          for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+          return '';
+        };
+        F1_ALL_ROWS = [];
+        rows.forEach(item=>{
+          const tr=document.createElement('tr');
+          const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
+          const code = getV(item,['code','ma','taskcode','mã']);
+          const tname = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          // Tạo input file ẩn cho mỗi hàng + nút Trả báo cáo
+          const inputId = `f1-upload-${Math.random().toString(36).slice(2)}`;
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.id = inputId;
+          fileInput.className = 'hidden';
+          const labelBtn = document.createElement('label');
+          labelBtn.htmlFor = inputId;
+          labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
+          labelBtn.textContent = 'Trả báo cáo';
+          fileInput.addEventListener('change', async ()=>{
+            if(!fileInput.files || fileInput.files.length===0) return;
+            const fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+            fd.append('file_name', fileInput.files[0].name || '');
+            fd.append('timestamp', new Date().toISOString());
+            fd.append('nguoi_nop', name || '');
+            fd.append('ma_tac_vu', code || '');
+            fd.append('ten_tac_vu', tname || '');
+            fd.append('form', 'Form 1 - Trả báo cáo');
+            try{
+              // Dùng no-cors để tránh preflight CORS khiến server không nhận được request
+              await fetch(FORM1_UPLOAD_URL, { method:'POST', body: fd, mode: 'no-cors' });
+              // Fallback thử endpoint production nếu cần
+              // await fetch(FORM1_UPLOAD_URL.replace('/webhook-test/','/webhook/'), { method:'POST', body: fd, mode: 'no-cors' });
+              showToast('Đã gửi báo cáo.', 'success');
+            }
+            catch(e){ console.error(e); showToast('Gửi thất bại.', 'error'); }
+            finally{ fileInput.value = ''; }
+          });
+          tdBtn.appendChild(fileInput);
+          tdBtn.appendChild(labelBtn);
+          tr.appendChild(tdBtn);
+          // Tình trạng, Mã, Tên tác vụ, Người yêu cầu, Ngày yêu cầu, Hạn mong muốn, Hạn đáp ứng, Mục đích đánh giá, Note, Yêu cầu test đặc biệt, Form báo cáo đánh giá
+          const statusText = getV(item,['status','trangthai','trang_thai','trạng thái']);
+          const tdStatus=document.createElement('td'); tdStatus.className='px-3 py-2';
+          const s=(statusText||'').toLowerCase();
+          const badge=document.createElement('span'); badge.className='px-2 py-1 rounded text-xs ' + (s.includes('hoàn')||s.includes('done')?'bg-green-100 text-green-800': s.includes('chờ')||s.includes('pending')?'bg-yellow-100 text-yellow-800':'bg-blue-100 text-blue-800');
+          badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
+          addTd(tr, code);
+          addTd(tr, tname);
+          addTd(tr, getV(item,['requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']));
+          addTd(tr, getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']));
+          addTd(tr, getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue']));
+          addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
+          addTd(tr, getV(item,['purpose','mucdich','muc_dich']));
+          addTd(tr, getV(item,['note','ghi_chu','ghichu']));
+          addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
+          addTd(tr, getV(item,['reportform','form_bao_cao','form_bao_cao_danh_gia']));
+          F1_ALL_ROWS.push(tr);
+        });
+        applyForm1Paging();
+      }catch(err){
+        body.innerHTML = `<tr><td colspan='12' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+      }
+    }
+    document.getElementById('f1-name').onchange = ()=>{};
+    const f1SearchBtn = document.getElementById('f1-search');
+    if (f1SearchBtn) { f1SearchBtn.onclick = (e)=>{ e.preventDefault(); renderForm1(); }; }
+    // Pagination events
+    const f1Prev = document.getElementById('f1-prev');
+    const f1Next = document.getElementById('f1-next');
+    const f1Size = document.getElementById('f1-size');
+    if (f1Prev) f1Prev.onclick = (e)=>{ e.preventDefault(); if(F1_PAGE>1){ F1_PAGE--; applyForm1Paging(); } };
+    if (f1Next) f1Next.onclick = (e)=>{ e.preventDefault(); F1_PAGE++; applyForm1Paging(); };
+    if (f1Size) f1Size.onchange = (e)=>{ F1_SIZE = parseInt(e.target.value||'10',10)||10; F1_PAGE=1; applyForm1Paging(); };
+
+    // Form 2 rendering
+    async function renderForm2(){
+      const name = (document.getElementById('f2-name').value || '').trim();
+      const body = document.getElementById('f2-body');
+      if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Vui lòng chọn tên</td></tr>'; return; }
+      body.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      try{
+        const headerMapF2 = {
+          header_requestDate: 'Ngày yêu cầu',
+          header_wishDue: 'Hạn mong muốn',
+          header_actualDue: 'Hạn đáp ứng',
+          header_code: 'Mã',
+          header_taskName: 'Tên tác vụ',
+          field_requestDate: 'requestDate',
+          field_wishDue: 'wishDue',
+          field_actualDue: 'actualDue',
+          field_code: 'code',
+          field_taskName: 'taskName'
+        };
+        const params = new URLSearchParams({
+          ...headerMapF2,
+          action: 'form2_lookup',
+          person_name: name,
+          timestamp: new Date().toISOString()
+        });
+        const url = `${FORM2_LOOKUP_URL}?${params.toString()}`;
+        const resp = await fetch(url, { method: 'GET' });
+        const text = await resp.text();
+        if(!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+        let data = null; try{ data = JSON.parse(text);}catch{ data = null; }
+        function pickRows(json){
+          if (!json) return [];
+          if (Array.isArray(json)) return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
+          try{
+            const queue=[json]; const seen=new Set();
+            while(queue.length){ const cur=queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for(const v of Object.values(cur)){ if(Array.isArray(v)&&v.length&&typeof v[0]==='object') return v; if(v&&typeof v==='object') queue.push(v);} }
+          }catch(_){ }
+          return [];
+        }
+        const rows = pickRows(data);
+        if(!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Không có tác vụ.</td></tr>'; return; }
+        const getV = (obj, keys)=>{
+          const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+          for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+          return '';
+        };
+        body.innerHTML='';
+        rows.forEach(item=>{
+          const tr=document.createElement('tr');
+          const requestDate = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
+          const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
+          const code = getV(item,['code','ma','taskcode','mã']);
+          const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          addTd(tr, requestDate);
+          addTd(tr, wishDue);
+          addTd(tr, actualDue);
+          addTd(tr, code);
+          addTd(tr, taskName);
+          const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
+          const btn=document.createElement('button'); btn.className='px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105'; btn.textContent='Trả form';
+          btn.onclick=()=>openUploadModal({form:'Form 2', name, code, taskName});
+          tdBtn.appendChild(btn); tr.appendChild(tdBtn);
+          body.appendChild(tr);
+        });
+      }catch(err){
+        body.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+      }
+    }
+    document.getElementById('f2-name').onchange = ()=>{};
+    const f2SearchBtn = document.getElementById('f2-search');
+    if (f2SearchBtn) { f2SearchBtn.onclick = (e)=>{ e.preventDefault(); renderForm2(); }; }
+    // Clear button removed per request
+
+    // Form 3 logic
+    function setRqTime(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); document.getElementById('rq-time').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+    setRqTime();
+    document.getElementById('assign-form').onsubmit = async (e)=>{
+      e.preventDefault();
+      const requester = document.getElementById('rq-by').value.trim();
+      const rqTime = document.getElementById('rq-time').value;
+      const manHourRaw = document.getElementById('man-hour').value;
+      const output = document.getElementById('output').value.trim();
+      const deadline = document.getElementById('deadline').value;
+      const odooJira = document.getElementById('odoo-jira').value.trim();
+      if(!requester || !output || !manHourRaw){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
+      if(!/^\d+(\.\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân.','error'); return; }
+      const fd = new FormData();
+      fd.append('form','Form 3 - Giao việc');
+      fd.append('nguoi_yeu_cau', requester);
+      fd.append('thoi_gian_yeu_cau', rqTime);
+      fd.append('cong_chuan', manHourRaw);
+      fd.append('dau_ra_cong_viec', output);
+      fd.append('deadline', deadline||'');
+      if(odooJira) fd.append('ma_odoo_jira', odooJira);
+      fd.append('timestamp', new Date().toISOString());
+      const file = document.getElementById('attach').files?.[0];
+      if(file){ fd.append('file', file); fd.append('file_name', file.name || ''); }
+      try{ await fetch(WEBHOOK_URL,{method:'POST',body:fd}); showToast('Đã giao việc và gửi dữ liệu.','success'); e.target.reset(); setRqTime(); }
+      catch(err){ console.error(err); showToast('Gửi thất bại.','error'); }
+    };
+
+    // Form 4 logic: POST tới webhook để lấy dữ liệu tổng hợp
+    async function renderForm4(){
+      const modeVal = document.getElementById('f4-filter').value;
+      const mode = modeVal === 'Doing' ? 'doing' : 'total';
+      const body = document.getElementById('f4-body');
+      body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      try{
+        // Mapping tương ứng với header từng cột và key dữ liệu mong muốn từ backend
+        const headerMap = {
+          header_employee: 'Nhân viên',
+          header_task_count: 'Số tác vụ',
+          header_man_hour: 'Công chuẩn nhận',
+          field_employee: 'employee',
+          field_task_count: 'taskcount',
+          field_man_hour: 'manhour'
+        };
+        const urlParams = new URLSearchParams(headerMap);
+        const url = `${WEBHOOK_URL}?${urlParams.toString()}`;
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'workboard_stats',
+            mode,
+            filter_label: modeVal,
+            tong_tac_vu: mode === 'total' ? 1 : 0,
+            doing: mode === 'doing' ? 1 : 0,
+            "Tổng tác vụ": mode === 'total' ? 1 : 0,
+            "Doing": mode === 'doing' ? 1 : 0,
+            // Lặp lại mapping trong body để backend dễ đọc
+            ...headerMap,
+            timestamp: new Date().toISOString() 
+          })
+        });
+        if(!resp.ok){
+          const t = await resp.text();
+          throw new Error(t || `HTTP ${resp.status}`);
+        }
+        let data = null;
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('application/json')) data = await resp.json();
+        else { try { data = JSON.parse(await resp.text()); } catch { data = null; } }
+        const rows = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : Array.isArray(data?.rows) ? data.rows : [];
+        if(!rows.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
+        const getV = (obj, keys)=>{
+          const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+          for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+          return '';
+        };
+        const html = rows.map(r=>{
+          const emp = getV(r,['employee','nhanvien','nhan_vien','user','name']) || '-';
+          const countRaw = getV(r,['taskcount','count','sotacvu','so_tac_vu']) || 0;
+          const manRaw = getV(r,['manhour','congchuan','cong_chuan','hours','totalhours']) || 0;
+          const count = Number(countRaw) || 0;
+          const man = Number(manRaw) || 0;
+          return `<tr><td class=\"px-3 py-2\">${emp}</td><td class=\"px-3 py-2\">${count}</td><td class=\"px-3 py-2\">${man.toFixed(2)}</td></tr>`;
+        }).join('');
+        body.innerHTML = html;
+      }catch(err){
+        body.innerHTML = `<tr><td colspan='3' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
+      }
+    }
+    const f4 = document.getElementById('f4-filter');
+    if (f4) { f4.onchange = ()=>{}; }
+    const f4Search = document.getElementById('f4-search');
+    if (f4Search) { f4Search.onclick = (e)=>{ e.preventDefault(); renderForm4(); }; }
+    // Re-render when mở Form 4
+    navBtns.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(btn.getAttribute('data-target')==='form4') renderForm4();
+      })
+    });
+  </script>
+</body>
+</html>
+
