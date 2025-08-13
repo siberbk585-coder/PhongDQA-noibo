@@ -83,6 +83,7 @@
               <th class="px-3 py-2 min-w-[140px]">Mã</th>
               <th class="px-3 py-2 min-w-[260px]">Tên tác vụ</th>
               <th class="px-3 py-2 min-w-[160px]">Người yêu cầu</th>
+              <th class="px-3 py-2 min-w-[120px]">Công chuẩn</th>
               <th class="px-3 py-2 min-w-[140px]">Ngày yêu cầu</th>
               <th class="px-3 py-2 min-w-[140px]">Hạn mong muốn</th>
               <th class="px-3 py-2 min-w-[140px]">Hạn đáp ứng</th>
@@ -90,10 +91,11 @@
               <th class="px-3 py-2 min-w-[240px]">Note</th>
               <th class="px-3 py-2 min-w-[240px]">Yêu cầu test đặc biệt</th>
               <th class="px-3 py-2 min-w-[260px]">Form báo cáo đánh giá</th>
+              <th class="px-3 py-2 min-w-[220px]">Tên file đính kèm</th>
             </tr>
           </thead>
           <tbody id="f1-body" class="divide-y divide-gray-100">
-            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Chưa có dữ liệu</td></tr>
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -111,6 +113,15 @@
           <button id="f1-prev" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Trước</button>
           <button id="f1-next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
         </div>
+      </div>
+
+      <!-- Điểm lưu trữ file đính kèm -->
+      <div class="mt-4">
+        <a id="f1-storage-link" href="https://drive.google.com/drive/u/0/folders/1iVSNn6Ddv6jEun6lyMvOMcan2fpnFSpU" target="_blank" rel="noopener" title="Nhấn để mở và tự động copy liên kết"
+           class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">
+          Điểm lưu trữ file đính kèm
+        </a>
+        <p class="text-xs text-gray-500 mt-1">Nhấn để mở và copy liên kết.</p>
       </div>
     </section>
 
@@ -153,7 +164,7 @@
     <!-- Form 3 -->
     <section id="form3" class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md hidden">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-blue-800">Form 3 · Giao việc</h2>
+        <h2 class="text-xl font-semibold text-blue-800">Form 3 · Giao việc (Unfinished)</h2>
       </div>
       <form id="assign-form" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -203,7 +214,7 @@
   <!-- Form 4 -->
   <section id="form4" class="w-full max-w-5xl bg-white p-6 rounded-lg shadow-md hidden">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
+      <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi (Unfinished)</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
@@ -251,6 +262,10 @@
           <input id="upload-file" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
           <p class="text-xs text-gray-500 mt-1">Tệp sẽ gửi kèm timestamp tại thời điểm gửi.</p>
         </div>
+        <div id="bps-option" class="flex items-center gap-2">
+          <input id="upload-bps" type="checkbox" class="h-4 w-4" checked>
+          <label for="upload-bps" class="text-sm text-gray-700 select-none">Trả báo cáo BPS</label>
+        </div>
       </div>
       <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
         <button id="btn-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
@@ -289,10 +304,7 @@
       "Lê Ngọc Ánh","Lê Thị Thanh Nhàn","Lê Thị Thảo","Lê Văn Sơn","Nguyễn Hữu Thịnh","Nguyễn Thị Hiền",
       "Phạm Thành Trung Kiên","Phạm Thị Minh","Thái Thị Giang","Trần Hiếu Nghĩa","Vũ Thị Hằng","Vũ Thị Thanh Hiền"
     ];
-    const FORM2_NAMES = [
-      "Đỗ Thế Cường","Lê Ngọc Ánh","Vũ Thị Thanh Hiền","Lê Thị Thảo","Lê Văn Sơn",
-      "Phạm Thị Minh","Đỗ Quang Long","Lại Quốc Lộc","Nguyễn Thị Hiền"
-    ];
+    const FORM2_NAMES = FORM1_NAMES;
 
     // Dữ liệu tác vụ (khởi tạo rỗng; sẽ nối nguồn thật sau)
     const demoTasksForm1 = {};
@@ -319,6 +331,8 @@
     const uploaderCode = document.getElementById('uploader-code');
     const uploaderTask = document.getElementById('uploader-task');
     let uploadContext = null;
+    let isModalSubmitting = false;
+    let lastOpenTrigger = null;
     function openUploadModal(ctx){
       uploadContext = ctx || {};
       uploaderName.textContent = ctx?.name || '';
@@ -328,18 +342,43 @@
       try {
         const namePill = uploaderName && uploaderName.parentElement && uploaderName.parentElement.parentElement ? uploaderName.parentElement.parentElement : null;
         if (namePill) namePill.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
+        const bpsOption = document.getElementById('bps-option');
+        const bpsCheckbox = document.getElementById('upload-bps');
+        if (bpsOption) bpsOption.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
+        if (bpsCheckbox) bpsCheckbox.checked = (ctx && ctx.form === 'Form 1') ? true : false;
       } catch(_) {}
       fileInput.value = '';
       modal.classList.add('open');
       modal.setAttribute('aria-hidden','false');
     }
-    function closeUploadModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+    function closeUploadModal(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      // Re-enable last trigger and reset submit button state
+      if (lastOpenTrigger) {
+        try {
+          lastOpenTrigger.disabled = false;
+          if (lastOpenTrigger.classList) lastOpenTrigger.classList.remove('opacity-50','pointer-events-none');
+        } catch(_) {}
+        lastOpenTrigger = null;
+      }
+      const sendBtn = document.getElementById('btn-send');
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Gửi báo cáo';
+      }
+      isModalSubmitting = false;
+    }
     document.getElementById('btn-cancel').onclick = closeUploadModal;
     modal.addEventListener('click', (e)=>{ if(e.target===modal) closeUploadModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeUploadModal(); });
 
     document.getElementById('btn-send').onclick = async ()=>{
+      if (isModalSubmitting) return;
       if(!fileInput.files || fileInput.files.length===0){ showToast('Vui lòng chọn tệp báo cáo.','error'); return; }
+      const btn = document.getElementById('btn-send');
+      isModalSubmitting = true;
+      if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
       const fd = new FormData();
       fd.append('file', fileInput.files[0]);
       fd.append('file_name', fileInput.files[0].name || '');
@@ -350,9 +389,20 @@
         fd.append('ten_tac_vu', uploadContext.taskName||'');
         fd.append('form', uploadContext.form||'');
       }
-      const targetUpload = (uploadContext && uploadContext.form === 'Form 2') ? FORM2_UPLOAD_URL : WEBHOOK_URL;
-      try{ await fetch(targetUpload,{method:'POST',body:fd, mode: 'no-cors'}); showToast('Đã gửi báo cáo.','success'); closeUploadModal(); }
-      catch(e){ console.error(e); showToast('Gửi thất bại.','error'); }
+      const bpsCheckbox = document.getElementById('upload-bps');
+      if (bpsCheckbox) { fd.append('is_bps', bpsCheckbox.checked ? '1' : '0'); }
+      const targetUpload = (uploadContext && uploadContext.form === 'Form 2') ? FORM2_UPLOAD_URL : FORM1_UPLOAD_URL;
+      try{
+        await fetch(targetUpload,{method:'POST',body:fd, mode: 'no-cors'});
+        showToast('Đã gửi báo cáo.','success');
+        closeUploadModal();
+      }
+      catch(e){
+        console.error(e);
+        showToast('Gửi thất bại.','error');
+        isModalSubmitting = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'Gửi báo cáo'; }
+      }
     };
 
     // Helpers for tables
@@ -394,7 +444,7 @@
       if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Vui lòng chọn tên</td></tr>'; return; }
       body.innerHTML = "<tr><td colspan='12' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       try{
-        const headerMapF1 = {
+          const headerMapF1 = {
           header_btn: 'Nút nhập gửi báo cáo',
           header_requester: 'Người yêu cầu',
           header_requestDate: 'Ngày yêu cầu',
@@ -402,22 +452,26 @@
           header_actualDue: 'Hạn đáp ứng',
           header_code: 'Mã',
           header_taskName: 'Tên tác vụ',
+            header_manHour: 'Công chuẩn',
           header_purpose: 'Mục đích đánh giá',
           header_note: 'Note',
           header_specialTest: 'Yêu cầu test đặc biệt',
           header_reportForm: 'Form báo cáo đánh giá',
           header_status: 'Trạng thái',
+          header_attachmentFileName: 'Tên file đính kèm',
           field_requester: 'requester',
           field_requestDate: 'requestDate',
           field_wishDue: 'wishDue',
           field_actualDue: 'actualDue',
           field_code: 'code',
           field_taskName: 'taskName',
+            field_manHour: 'manHour',
           field_purpose: 'purpose',
           field_note: 'note',
           field_specialTest: 'specialTest',
           field_reportForm: 'reportForm',
-          field_status: 'status'
+          field_status: 'status',
+          field_attachmentFileName: 'attachmentFileName'
         };
         const params = new URLSearchParams({
           ...headerMapF1,
@@ -469,7 +523,7 @@
           return [];
         }
         const rows = pickRows(data);
-        if(!rows.length){ body.innerHTML = "<tr><td colspan='12' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
+        if(!rows.length){ body.innerHTML = "<tr><td colspan='14' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
         const getV = (obj, keys)=>{
           const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
           for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
@@ -504,28 +558,17 @@
           } else {
             labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
             labelBtn.textContent = 'Trả báo cáo';
+            // Mở modal như Form 2 khi nhấn ở Form 1 (chống double-click)
+            labelBtn.onclick = (e)=>{
+              e.preventDefault();
+              if (labelBtn.disabled) return;
+              labelBtn.disabled = true;
+              labelBtn.classList.add('opacity-50','pointer-events-none');
+              lastOpenTrigger = labelBtn;
+              openUploadModal({ form: 'Form 1', name, code, taskName: tname });
+            };
           }
-          fileInput.addEventListener('change', async ()=>{
-            if(!fileInput.files || fileInput.files.length===0) return;
-            const fd = new FormData();
-            fd.append('file', fileInput.files[0]);
-            fd.append('file_name', fileInput.files[0].name || '');
-            fd.append('timestamp', new Date().toISOString());
-            fd.append('nguoi_nop', name || '');
-            fd.append('ma_tac_vu', code || '');
-            fd.append('ten_tac_vu', tname || '');
-            fd.append('form', 'Form 1 - Trả báo cáo');
-            try{
-              // Dùng no-cors để tránh preflight CORS khiến server không nhận được request
-              await fetch(FORM1_UPLOAD_URL, { method:'POST', body: fd, mode: 'no-cors' });
-              // Fallback thử endpoint production nếu cần
-              // await fetch(FORM1_UPLOAD_URL.replace('/webhook-test/','/webhook/'), { method:'POST', body: fd, mode: 'no-cors' });
-              showToast('Đã gửi báo cáo.', 'success');
-            }
-            catch(e){ console.error(e); showToast('Gửi thất bại.', 'error'); }
-            finally{ fileInput.value = ''; }
-          });
-          tdBtn.appendChild(fileInput);
+          // Với cách mở modal, không cần input file ẩn cho Form 1 nữa
           tdBtn.appendChild(labelBtn);
           tr.appendChild(tdBtn);
           // Tình trạng, Mã, Tên tác vụ, Người yêu cầu, Ngày yêu cầu, Hạn mong muốn, Hạn đáp ứng, Mục đích đánh giá, Note, Yêu cầu test đặc biệt, Form báo cáo đánh giá
@@ -540,6 +583,10 @@
           addTd(tr, code);
           addTd(tr, tname);
           addTd(tr, getV(item,['requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']));
+          // Công chuẩn (giữa Tên tác vụ và Ngày yêu cầu)
+          addTd(tr, getV(item,[
+            'manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn'
+          ]));
           addTd(tr, getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']));
           addTd(tr, getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
           addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
@@ -547,6 +594,10 @@
           addTd(tr, getV(item,['note','ghi_chu','ghichu']));
           addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
           addTd(tr, getV(item,['reportform','form_bao_cao','form_bao_cao_danh_gia']));
+          // Tên file đính kèm (nếu backend cung cấp)
+          addTd(tr, getV(item,[
+            'attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file'
+          ]));
           F1_ALL_ROWS.push(tr);
         });
         applyForm1Paging();
@@ -556,7 +607,23 @@
     }
     document.getElementById('f1-name').onchange = ()=>{};
     const f1SearchBtn = document.getElementById('f1-search');
-    if (f1SearchBtn) { f1SearchBtn.onclick = (e)=>{ e.preventDefault(); renderForm1(); }; }
+    if (f1SearchBtn) {
+      let f1Busy = false;
+      f1SearchBtn.onclick = async (e)=>{
+        e.preventDefault();
+        if (f1Busy) return;
+        f1Busy = true;
+        f1SearchBtn.disabled = true;
+        const prev = f1SearchBtn.textContent;
+        f1SearchBtn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+        try { await renderForm1(); }
+        finally {
+          f1Busy = false;
+          f1SearchBtn.disabled = false;
+          f1SearchBtn.textContent = prev;
+        }
+      };
+    }
     // Pagination events
     const f1Prev = document.getElementById('f1-prev');
     const f1Next = document.getElementById('f1-next');
@@ -628,7 +695,14 @@
           addTd(tr, taskName);
           const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
           const btn=document.createElement('button'); btn.className='px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105'; btn.textContent='Trả form';
-          btn.onclick=()=>openUploadModal({form:'Form 2', name, code, taskName});
+          btn.onclick=(e)=>{
+            e.preventDefault();
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.classList.add('opacity-50','pointer-events-none');
+            lastOpenTrigger = btn;
+            openUploadModal({form:'Form 2', name, code, taskName});
+          };
           tdBtn.appendChild(btn); tr.appendChild(tdBtn);
           body.appendChild(tr);
         });
@@ -638,7 +712,23 @@
     }
     document.getElementById('f2-name').onchange = ()=>{};
     const f2SearchBtn = document.getElementById('f2-search');
-    if (f2SearchBtn) { f2SearchBtn.onclick = (e)=>{ e.preventDefault(); renderForm2(); }; }
+    if (f2SearchBtn) {
+      let f2Busy = false;
+      f2SearchBtn.onclick = async (e)=>{
+        e.preventDefault();
+        if (f2Busy) return;
+        f2Busy = true;
+        f2SearchBtn.disabled = true;
+        const prev = f2SearchBtn.textContent;
+        f2SearchBtn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+        try { await renderForm2(); }
+        finally {
+          f2Busy = false;
+          f2SearchBtn.disabled = false;
+          f2SearchBtn.textContent = prev;
+        }
+      };
+    }
     // Clear button removed per request
 
     // Form 3 logic
@@ -735,6 +825,15 @@
     if (f4) { f4.onchange = ()=>{}; }
     const f4Search = document.getElementById('f4-search');
     if (f4Search) { f4Search.onclick = (e)=>{ e.preventDefault(); renderForm4(); }; }
+    // Copy on click and open link for storage (Form 1)
+    const f1StorageLink = document.getElementById('f1-storage-link');
+    if (f1StorageLink) {
+      f1StorageLink.addEventListener('click', async ()=>{
+        const url = f1StorageLink.getAttribute('href') || '';
+        try { await navigator.clipboard.writeText(url); showToast('Đã copy liên kết.','success'); }
+        catch(_) { /* ignore copy error to not block open */ }
+      });
+    }
     // Re-render when mở Form 4
     navBtns.forEach(btn=>{
       btn.addEventListener('click',()=>{
