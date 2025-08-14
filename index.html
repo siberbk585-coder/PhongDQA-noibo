@@ -28,6 +28,11 @@
     .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
     .header-container::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");opacity:.4}
     .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .section-title{display:flex;align-items:center;gap:8px}
+    .section-title .badge{background:rgba(90,169,255,.15);color:#1e40af;border:1px solid rgba(90,169,255,.35);padding:2px 8px;border-radius:9999px;font-size:12px;font-weight:600}
+    .submit-btn{background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);box-shadow:0 4px 6px rgba(37,99,235,.1),0 1px 3px rgba(37,99,235,.08);transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease,filter .2s ease;border-radius:9999px;position:relative}
+    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 7px 14px rgba(37,99,235,.12),0 3px 6px rgba(37,99,235,.08);filter:brightness(1.03)}
+    .submit-btn:active{transform:translateY(0);opacity:.95}
     .modal.open{display:flex}
     .toast{position:fixed;right:16px;bottom:16px;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
     .toast.show{opacity:1;transform:translateY(0)}
@@ -164,7 +169,10 @@
     <!-- Form 3 -->
     <section id="form3" class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md hidden">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-blue-800">Form 3 · Giao việc (Unfinished)</h2>
+        <div class="section-title">
+          <h2 class="text-xl font-semibold text-blue-800">Form 3 · Giao việc</h2>
+          <span class="badge">DQA nội bộ</span>
+        </div>
       </div>
       <form id="assign-form" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -176,6 +184,20 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian yêu cầu</label>
             <input id="rq-time" readonly type="text" class="w-full border border-blue-300 rounded-lg bg-gray-200 p-2 text-gray-600"/>
             <p class="text-gray-500 text-xs mt-1">Cố định theo thời gian hệ thống</p>
+          </div>
+        </div>
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tên tác vụ <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+          <input id="task-name" required type="text" placeholder="Nhập tên tác vụ" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+        </div>
+      </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Người được giao <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+            <select id="f3-assignee" required class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="">— Chọn người —</option>
+            </select>
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -201,11 +223,11 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm</label>
             <input id="attach" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+            <div id="f3-upload-list" class="mt-2 text-sm"></div>
           </div>
         </div>
         <div class="pt-2 flex items-center gap-3">
-          <button type="submit" class="px-5 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105 transition">Giao việc</button>
-          <span class="text-xs text-gray-500">Dữ liệu sẽ được gửi lên webhook kèm thời gian gửi.</span>
+          <button type="submit" class="submit-btn px-6 py-2 text-white font-semibold transition">Giao việc</button>
         </div>
       </form>
     </section>
@@ -214,32 +236,22 @@
   <!-- Form 4 -->
   <section id="form4" class="w-full max-w-5xl bg-white p-6 rounded-lg shadow-md hidden">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi (Unfinished)</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Chọn trạng thái</label>
-        <div class="flex gap-2">
-          <select id="f4-filter" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
-            <option value="Tổng tác vụ">Tổng tác vụ</option>
-            <option value="Doing">Doing</option>
-          </select>
-          <button id="f4-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
-        </div>
-        <p class="text-xs text-gray-500 mt-1">Chọn kiểu tổng hợp và nhấn Tra cứu để gửi yêu cầu</p>
+      <div class="section-title">
+        <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng Doing</h2>
+        <span class="badge">Doing</span>
       </div>
+      <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
     </div>
-    <div class="mt-4 overflow-x-auto border border-gray-200 rounded-lg">
-      <table class="min-w-[600px] w-full text-sm">
+    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+      <table class="min-w-[480px] w-full text-sm">
         <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
           <tr class="text-left text-gray-700">
             <th class="px-3 py-2">Nhân viên</th>
-            <th class="px-3 py-2">Số tác vụ</th>
-            <th class="px-3 py-2">Công chuẩn nhận</th>
+            <th class="px-3 py-2">Công chuẩn hiện tại</th>
           </tr>
         </thead>
         <tbody id="f4-body" class="divide-y divide-gray-100">
-          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="2">Chưa có dữ liệu</td></tr>
         </tbody>
       </table>
     </div>
@@ -282,6 +294,9 @@
     const FORM1_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
     const FORM2_LOOKUP_URL = "https://phongdqakrd.app.n8n.cloud/webhook/e067ccfb-f59b-43f0-b779-b9d1286549f9";
     const FORM2_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/2e394d3e-da1a-4577-9063-359a70518527";
+    // Endpoints for Form 3 (match index.html)
+    const SHEETDB_API_URL = "https://sheetdb.io/api/v1/n9g1hj5bhqymg";
+    const UPLOAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCijAALPkXShSLSUELoVhtEGDGMUwe4ZPl_jqE-xi7le_WGN5s0IOv0o5FVYpZaNmc/exec";
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -314,6 +329,8 @@
     function fillSelect(sel, arr){ arr.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); }); }
     fillSelect(document.getElementById('f1-name'), FORM1_NAMES);
     fillSelect(document.getElementById('f2-name'), FORM2_NAMES);
+    const f3AssigneeSel = document.getElementById('f3-assignee');
+    if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM1_NAMES);
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -734,97 +751,198 @@
     // Form 3 logic
     function setRqTime(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); document.getElementById('rq-time').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
     setRqTime();
+
+    // Form 3: upload to Google Drive via Apps Script (as in index.html)
+    (function setupForm3Upload(){
+      const fileInput = document.getElementById('attach');
+      const list = document.getElementById('f3-upload-list');
+      if (!fileInput || !list) return;
+      list.innerHTML = '';
+      fileInput.addEventListener('change', async function(){
+        if (!this.files || this.files.length === 0) return;
+        const file = this.files[0];
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2 bg-blue-50 rounded";
+        row.innerHTML = `<span>📄<span class="ml-2">${file.name}</span></span><span class="spinner"></span>`;
+        list.innerHTML = '';
+        list.appendChild(row);
+        try{
+          const url = await new Promise((resolve, reject)=>{
+            const reader = new FileReader();
+            reader.onload = async ()=>{
+              try{
+                const base64 = reader.result.split(',')[1];
+                const form = new URLSearchParams();
+                form.append('filedata', base64);
+                form.append('filename', file.name);
+                form.append('mimetype', file.type);
+                const resp = await fetch(UPLOAD_SCRIPT_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: form.toString()
+                });
+                if(!resp.ok) throw new Error('Upload failed');
+                const raw = await resp.text();
+                let parsedUrl = '';
+                try{
+                  const j = JSON.parse(raw);
+                  parsedUrl = j.url || j.fileUrl || j.public_url || j.link || (j.data && j.data[0] && j.data[0].url) || '';
+                }catch(_){
+                  const match = (raw || '').match(/https?:\/\/[^\s"']+/);
+                  parsedUrl = match ? match[0] : '';
+                }
+                resolve(parsedUrl || '#');
+              }catch(err){ reject(err); }
+            };
+            reader.onerror = ()=>reject(new Error('File read error'));
+            reader.readAsDataURL(file);
+          });
+          row.innerHTML = `
+            <span>📄<span class="ml-2">${file.name}</span></span>
+            <span class="flex items-center gap-3">
+              <span class="text-green-700 bg-green-100 px-2 py-0.5 rounded text-xs">Đã tải lên</span>
+              <a href="${url}" target="_blank" class="text-primary-blue underline">Xem</a>
+            </span>
+          `;
+        }catch(err){
+          const spinnerEl = row.querySelector('.spinner');
+          if (spinnerEl) spinnerEl.outerHTML = `<span class="text-red-600">Thất bại</span>`;
+          setTimeout(()=>{ try{ list.removeChild(row);}catch(_){} }, 2000);
+        }
+        this.value = '';
+      });
+    })();
+
+    // Submit Form 3 to SheetDB with required mapping
     document.getElementById('assign-form').onsubmit = async (e)=>{
       e.preventDefault();
       const requester = document.getElementById('rq-by').value.trim();
+      const taskName = (document.getElementById('task-name')?.value || '').trim();
       const rqTime = document.getElementById('rq-time').value;
       const manHourRaw = document.getElementById('man-hour').value;
       const output = document.getElementById('output').value.trim();
+      const assignee = (document.getElementById('f3-assignee').value || '').trim();
       const deadline = document.getElementById('deadline').value;
       const odooJira = document.getElementById('odoo-jira').value.trim();
-      if(!requester || !output || !manHourRaw){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
-      if(!/^\d+(\.\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân.','error'); return; }
-      const fd = new FormData();
-      fd.append('form','Form 3 - Giao việc');
-      fd.append('nguoi_yeu_cau', requester);
-      fd.append('thoi_gian_yeu_cau', rqTime);
-      fd.append('cong_chuan', manHourRaw);
-      fd.append('dau_ra_cong_viec', output);
-      fd.append('deadline', deadline||'');
-      if(odooJira) fd.append('ma_odoo_jira', odooJira);
-      fd.append('timestamp', new Date().toISOString());
-      const file = document.getElementById('attach').files?.[0];
-      if(file){ fd.append('file', file); fd.append('file_name', file.name || ''); }
-      try{ await fetch(WEBHOOK_URL,{method:'POST',body:fd}); showToast('Đã giao việc và gửi dữ liệu.','success'); e.target.reset(); setRqTime(); }
-      catch(err){ console.error(err); showToast('Gửi thất bại.','error'); }
-    };
 
-    // Form 4 logic: POST tới webhook để lấy dữ liệu tổng hợp
-    async function renderForm4(){
-      const modeVal = document.getElementById('f4-filter').value;
-      const mode = modeVal === 'Doing' ? 'doing' : 'total';
-      const body = document.getElementById('f4-body');
-      body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      if(!requester || !taskName || !output || !manHourRaw || !assignee){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
+      if(!/^\d+(\.\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân.','error'); return; }
+
+      const btn = e.target.querySelector('button[type="submit"]');
+      const prev = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
+
+      const mapped = {
+        requesterName: requester,
+        requestDate: (rqTime || '').slice(0, 10),
+        itemName: taskName,
+        Score: String(manHourRaw || '').trim(),
+        changeReq: output,
+        Assignee: assignee,
+        desiredDate: String(deadline || '').trim(),
+        Odoojira: odooJira,
+        deptRequest: 'DQA'
+      };
+      const body = { data: [mapped] };
+
       try{
-        // Mapping tương ứng với header từng cột và key dữ liệu mong muốn từ backend
-        const headerMap = {
-          header_employee: 'Nhân viên',
-          header_task_count: 'Số tác vụ',
-          header_man_hour: 'Công chuẩn nhận',
-          field_employee: 'employee',
-          field_task_count: 'taskcount',
-          field_man_hour: 'manhour'
-        };
-        const urlParams = new URLSearchParams(headerMap);
-        const url = `${WEBHOOK_URL}?${urlParams.toString()}`;
-        const resp = await fetch(url, {
+        const resp = await fetch(SHEETDB_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'workboard_stats',
-            mode,
-            filter_label: modeVal,
-            tong_tac_vu: mode === 'total' ? 1 : 0,
-            doing: mode === 'doing' ? 1 : 0,
-            "Tổng tác vụ": mode === 'total' ? 1 : 0,
-            "Doing": mode === 'doing' ? 1 : 0,
-            // Lặp lại mapping trong body để backend dễ đọc
-            ...headerMap,
-            timestamp: new Date().toISOString() 
-          })
+          body: JSON.stringify(body)
         });
-        if(!resp.ok){
+        if (!resp.ok) {
           const t = await resp.text();
           throw new Error(t || `HTTP ${resp.status}`);
         }
-        let data = null;
-        const ct = resp.headers.get('content-type') || '';
-        if (ct.includes('application/json')) data = await resp.json();
-        else { try { data = JSON.parse(await resp.text()); } catch { data = null; } }
-        const rows = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : Array.isArray(data?.rows) ? data.rows : [];
-        if(!rows.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
+        showToast('Đã giao việc và gửi dữ liệu.','success');
+        e.target.reset();
+        setRqTime();
+      }catch(err){
+        console.error(err);
+        showToast('Gửi thất bại.','error');
+      }finally{
+        if (btn) { btn.disabled = false; btn.textContent = prev || 'Giao việc'; }
+      }
+    };
+
+    // Form 4 logic: GET Doing data and render two columns
+    async function renderForm4(){
+      const body = document.getElementById('f4-body');
+      body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      try{
+        const urlTest = 'https://phongdqakrd.app.n8n.cloud/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
+        const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
+        const params = new URLSearchParams();
+        params.append('status', 'Doing');
+        // Query mapping for 2 output columns
+        params.append('header_employee', 'Nhân viên');
+        params.append('header_current_manhour', 'Công chuẩn hiện tại');
+        params.append('field_employee', 'employee');
+        params.append('field_current_manhour', 'manhour');
+        params.append('_ts', Date.now().toString());
+        // Debug: log the exact URL being requested
+        try { console.log('Form4 GET (test):', `${urlTest}?${params.toString()}`); } catch(_) {}
+
+        async function fetchJson(url){
+          const r = await fetch(url, { method: 'GET' });
+          const text = await r.text();
+          let parsed = null; try { parsed = JSON.parse(text); } catch { parsed = null; }
+          return { ok: r.ok, ct: r.headers.get('content-type')||'', parsed, raw: text, status: r.status };
+        }
+
+        let first = await fetchJson(`${urlTest}?${params.toString()}`);
+        // Fallback to production webhook if test not active or server error like n8n "Can't determine which item to use"
+        if (!first.ok || /could not be started/i.test(String(first.parsed?.message||'')) || /Can’t determine which item to use|Can't determine which item to use/i.test(first.raw||'')){
+          try { console.warn('Form4 GET fallback -> prod'); } catch(_){ }
+          first = await fetchJson(`${urlProd}?${params.toString()}`);
+        }
+        if(!first.ok){
+          throw new Error(first.raw || `HTTP ${first.status}`);
+        }
+        const data = Array.isArray(first.parsed) || first.parsed ? first.parsed : (first.raw ? JSON.parse(first.raw) : null);
+        function pickRowsDeep(json){
+          if (!json) return [];
+          if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k]) && json[k].length && typeof json[k][0] === 'object') return json[k]; }
+          try{
+            const queue=[json]; const seen=new Set();
+            while(queue.length){
+              const cur = queue.shift();
+              if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
+              seen.add(cur);
+              for (const v of Object.values(cur)){
+                if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v;
+                if (v && typeof v === 'object') queue.push(v);
+              }
+            }
+          }catch(_){ }
+          return [];
+        }
+        const rows = pickRowsDeep(data);
+        if(!rows.length){ body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
         const getV = (obj, keys)=>{
           const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
           for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
           return '';
         };
-        const html = rows.map(r=>{
-          const emp = getV(r,['employee','nhanvien','nhan_vien','user','name']) || '-';
-          const countRaw = getV(r,['taskcount','count','sotacvu','so_tac_vu']) || 0;
-          const manRaw = getV(r,['manhour','congchuan','cong_chuan','hours','totalhours']) || 0;
-          const count = Number(countRaw) || 0;
-          const man = Number(manRaw) || 0;
-          return `<tr><td class=\"px-3 py-2\">${emp}</td><td class=\"px-3 py-2\">${count}</td><td class=\"px-3 py-2\">${man.toFixed(2)}</td></tr>`;
-        }).join('');
+        const normalized = rows.map(r=>{
+          const name = getV(r,['field_employee','employee','nhanvien','nhan_vien','user','name','nhân viên']).toString().trim();
+          const manRaw = getV(r,['field_current_manhour','manhour','current_manhour','congchuan','cong_chuan','hours','công chuẩn hiện tại']);
+          const man = Number(manRaw);
+          return { name: name || '-', manhour: isNaN(man) ? 0 : man };
+        }).filter(x=>x.name && x.name !== '-');
+        if (!normalized.length) { body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
+        const normalizedSorted = normalized.slice().sort((a,b)=> b.manhour - a.manhour);
+        const html = normalizedSorted.map(x=>
+          `<tr><td class=\"px-3 py-2\">${x.name}</td><td class=\"px-3 py-2\">${x.manhour.toFixed(2)}</td></tr>`
+        ).join('');
         body.innerHTML = html;
       }catch(err){
-        body.innerHTML = `<tr><td colspan='3' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='2' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
       }
     }
-    const f4 = document.getElementById('f4-filter');
-    if (f4) { f4.onchange = ()=>{}; }
-    const f4Search = document.getElementById('f4-search');
-    if (f4Search) { f4Search.onclick = (e)=>{ e.preventDefault(); renderForm4(); }; }
     // Copy on click and open link for storage (Form 1)
     const f1StorageLink = document.getElementById('f1-storage-link');
     if (f1StorageLink) {
@@ -834,15 +952,15 @@
         catch(_) { /* ignore copy error to not block open */ }
       });
     }
-    // Re-render when mở Form 4
-    navBtns.forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        if(btn.getAttribute('data-target')==='form4') renderForm4();
-      })
-    });
+    // Trigger fetch only when nhấn Tra cứu ở Form 4
+    const f4Btn = document.getElementById('f4-search');
+    if (f4Btn) {
+      f4Btn.addEventListener('click', (e)=>{ e.preventDefault(); renderForm4(); });
+    }
   </script>
 </body>
 </html>
+
 
 
 
