@@ -235,24 +235,50 @@
   </main>
 
   <!-- Form 4 -->
-  <section id="form4" class="w-full max-w-5xl bg-white p-6 rounded-lg shadow-md hidden">
+  <section id="form4" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
     <div class="flex items-center justify-between mb-4">
       <div class="section-title">
-        <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng Doing</h2>
-        <span class="badge">Doing</span>
+        <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
       </div>
-      <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-700">Trạng thái</label>
+        <select id="f4-status" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+          <option value="Doing" selected>Doing</option>
+          <option value="All">Tất cả tác vụ</option>
+        </select>
+        <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+      </div>
     </div>
-    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+    <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
       <table class="min-w-[480px] w-full text-sm">
         <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
           <tr class="text-left text-gray-700">
-            <th class="px-3 py-2">Nhân viên</th>
+            <th class="px-3 py-2 relative">
+              <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">
+                Nhân viên <span class="text-xs">▾</span>
+              </button>
+              <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
+                <div class="flex items-center gap-2 mb-2">
+                  <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                  <div class="flex items-center gap-3">
+                    <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
+                    <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
+                  </div>
+                  <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
+                </div>
+                <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
+                  <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
+                </div>
+              </div>
+            </th>
             <th class="px-3 py-2">Công chuẩn hiện tại</th>
+            <th class="px-3 py-2">Số tác vụ</th>
           </tr>
         </thead>
         <tbody id="f4-body" class="divide-y divide-gray-100">
-          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="2">Chưa có dữ liệu</td></tr>
+          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
         </tbody>
       </table>
     </div>
@@ -286,6 +312,37 @@
       <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
         <button id="btn-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
         <button id="btn-send" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Gửi báo cáo</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="detail-title">
+    <div class="w-full max-w-5xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+        <h3 id="detail-title" class="text-base font-semibold text-gray-800">Nhiệm vụ của <span id="detail-name" class="text-primary-blue"></span></h3>
+        <button id="detail-close" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
+      </div>
+      <div class="p-4">
+        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+          <table class="min-w-[900px] w-full text-sm">
+            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+              <tr class="text-left text-gray-700">
+                <th class="px-3 py-2">Mã</th>
+                <th class="px-3 py-2">Tên tác vụ</th>
+                <th class="px-3 py-2">Trạng thái</th>
+                <th class="px-3 py-2">Công chuẩn</th>
+                <th class="px-3 py-2">Ngày yêu cầu</th>
+                <th class="px-3 py-2">Hạn mong muốn</th>
+                <th class="px-3 py-2">Hạn đáp ứng</th>
+                <th class="px-3 py-2">Ngày hoàn thành</th>
+              </tr>
+            </thead>
+            <tbody id="detail-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Chưa có dữ liệu</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-2" id="detail-note"></p>
       </div>
     </div>
   </div>
@@ -336,6 +393,8 @@
     fillSelect(document.getElementById('f2-name'), FORM2_NAMES);
     const f3AssigneeSel = document.getElementById('f3-assignee');
     if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM1_NAMES);
+    const f4PeopleSel = document.getElementById('f4-people');
+    if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -871,18 +930,138 @@
       }
     };
 
+    // ===== Form 4: filter popover & selection =====
+    let F4_SELECTED_NAMES = new Set();
+    let F4_ALL_NAMES = [];
+
+    function f4BuildFilterList(names){
+      const list = document.getElementById('f4-filter-list');
+      if (!list) return;
+      list.innerHTML = '';
+      const uniq = Array.from(new Set(names)).sort((a,b)=> a.localeCompare(b,'vi'));
+      uniq.forEach(n=>{
+        const safe = n.replace(/"/g,'&quot;');
+        const checked = (F4_SELECTED_NAMES.size===0) || F4_SELECTED_NAMES.has(n);
+        const row = document.createElement('label');
+        row.className = 'flex items-center gap-2';
+        row.setAttribute('data-name', n);
+        row.innerHTML = `<input type="checkbox" value="${safe}" class="f4-filter-item h-4 w-4" ${checked?'checked':''}/><span>${safe}</span>`;
+        list.appendChild(row);
+      });
+    }
+    function f4SyncSelectionFromUI(){
+      const list = document.getElementById('f4-filter-list');
+      if (!list) return;
+      const boxes = list.querySelectorAll('input.f4-filter-item');
+      const picked = [];
+      boxes.forEach(b=>{ if (b.checked) picked.push(b.value); });
+      if (picked.length === boxes.length || picked.length === 0) {
+        F4_SELECTED_NAMES.clear();
+      } else {
+        F4_SELECTED_NAMES = new Set(picked);
+      }
+    }
+    (function f4InitFilterPopover(){
+      const btn = document.getElementById('f4-filter-toggle');
+      const pop = document.getElementById('f4-filter-pop');
+      const list = document.getElementById('f4-filter-list');
+      const search = document.getElementById('f4-filter-search');
+      const selAll = document.getElementById('f4-filter-select-all');
+      const clear = document.getElementById('f4-filter-clear');
+      const applyBtn = document.getElementById('f4-filter-apply');
+      if (!btn || !pop) return;
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); pop.classList.toggle('hidden'); if(!pop.classList.contains('hidden')){ try{ search&&search.focus(); }catch(_){} }});
+      document.addEventListener('click', (e)=>{ if (!pop || pop.classList.contains('hidden')) return; if (btn.contains(e.target) || pop.contains(e.target)) return; pop.classList.add('hidden'); });
+      if (list) list.addEventListener('change', (e)=>{ /* không auto render khi tick */ });
+      if (search) search.addEventListener('input', (e)=>{
+        const q = (e.target.value||'').toLowerCase().trim();
+        pop.querySelectorAll('label[data-name]').forEach(el=>{
+          const nm = (el.getAttribute('data-name')||'').toLowerCase();
+          el.style.display = nm.includes(q) ? '' : 'none';
+        });
+      });
+      if (selAll) selAll.addEventListener('click',(e)=>{ e.preventDefault(); pop.querySelectorAll('input.f4-filter-item').forEach(cb=> cb.checked=true); });
+      if (clear) clear.addEventListener('click',(e)=>{ e.preventDefault(); pop.querySelectorAll('input.f4-filter-item').forEach(cb=> cb.checked=false); });
+      if (applyBtn) applyBtn.addEventListener('click',(e)=>{ e.preventDefault(); f4SyncSelectionFromUI(); pop.classList.add('hidden'); renderForm4(); });
+    })();
+
+    // Helper: đếm số tác vụ theo người với filter trạng thái
+    async function f4FetchTaskCount(name, statusVal){
+      const headerMapF1 = {
+        header_code: 'Mã',
+        header_taskName: 'Tên tác vụ',
+        header_status: 'Trạng thái',
+        field_code: 'code',
+        field_taskName: 'taskName',
+        field_status: 'status'
+      };
+      const params = new URLSearchParams({
+        ...headerMapF1,
+        action: 'form1_lookup',
+        person_name: name,
+        timestamp: new Date().toISOString()
+      });
+      async function fetchJson(url){
+        const r = await fetch(url, { method: 'GET' });
+        const text = await r.text();
+        let parsed = null; try{ parsed = JSON.parse(text); }catch{ parsed = null; }
+        return { ok: r.ok, parsed, raw: text, status: r.status };
+      }
+      function pickRows(json){
+        if (!json) return [];
+        if (Array.isArray(json)) return json;
+        const candidates = ['data','rows','result','records','items','list'];
+        for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
+        try{
+          const queue=[json]; const seen=new Set();
+          while(queue.length){
+            const cur=queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur);
+            for (const v of Object.values(cur)){
+              if (Array.isArray(v) && v.length && typeof v[0]==='object') return v;
+              if (v && typeof v==='object') queue.push(v);
+            }
+          }
+        }catch(_){}
+        return [];
+      }
+      function getV(obj, keys){
+        const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+        for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+        return '';
+      }
+      try{
+        const testUrl = `${WEBHOOK_URL}?${params.toString()}`;
+        let first = await fetchJson(testUrl);
+        if (!first.ok || (first.parsed && first.parsed.code === 0 && /could not be started/i.test(String(first.parsed.message||'')))){
+          const prodUrl = testUrl.replace('/webhook-test/', '/webhook/');
+          first = await fetchJson(prodUrl);
+        }
+        if (!first.ok) return 0;
+        let rows = pickRows(first.parsed ?? (first.raw ? JSON.parse(first.raw) : null));
+        if (statusVal === 'Doing'){
+          rows = rows.filter(item=>{
+            const s = String(getV(item,['status','trangthai','trang_thai','trạng thái'])||'').toLowerCase();
+            return s.includes('doing') || s.includes('đang');
+          });
+        }
+        return rows.length;
+      }catch(_){ return 0; }
+    }
+
     // Form 4 logic: GET Doing data and render two columns
     async function renderForm4(){
       const body = document.getElementById('f4-body');
       const chartWrap = document.getElementById('f4-chart-container');
       if (chartWrap) chartWrap.style.display = 'none';
       if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
-      body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       try{
         const urlTest = 'https://phongdqakrd.app.n8n.cloud/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
         const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
         const params = new URLSearchParams();
-        params.append('status', 'Doing');
+        const statusSel = document.getElementById('f4-status');
+        const statusVal = (statusSel && statusSel.value) ? statusSel.value : 'Doing';
+        params.append('status', statusVal);
         // Query mapping for 2 output columns
         params.append('header_employee', 'Nhân viên');
         params.append('header_current_manhour', 'Công chuẩn hiện tại');
@@ -901,7 +1080,7 @@
 
         let first = await fetchJson(`${urlTest}?${params.toString()}`);
         // Fallback to production webhook if test not active or server error like n8n "Can't determine which item to use"
-        if (!first.ok || /could not be started/i.test(String(first.parsed?.message||'')) || /Can’t determine which item to use|Can't determine which item to use/i.test(first.raw||'')){
+        if (!first.ok || /could not be started/i.test(String(first.parsed?.message||'')) || /Can't determine which item to use|Can't determine which item to use/i.test(first.raw||'')){
           try { console.warn('Form4 GET fallback -> prod'); } catch(_){ }
           first = await fetchJson(`${urlProd}?${params.toString()}`);
         }
@@ -929,7 +1108,7 @@
           return [];
         }
         const rows = pickRowsDeep(data);
-        if(!rows.length){ body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
+        if(!rows.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
         const getV = (obj, keys)=>{
           const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
           for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
@@ -941,12 +1120,37 @@
           const man = Number(manRaw);
           return { name: name || '-', manhour: isNaN(man) ? 0 : man };
         }).filter(x=>x.name && x.name !== '-');
-        if (!normalized.length) { body.innerHTML = "<tr><td colspan='2' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
-        const normalizedSorted = normalized.slice().sort((a,b)=> b.manhour - a.manhour);
+        // Cập nhật danh sách người trong popover
+        F4_ALL_NAMES = Array.from(new Set(normalized.map(x=>x.name)));
+        f4BuildFilterList(F4_ALL_NAMES);
+        // Lọc theo các tên đã chọn (Set rỗng = tất cả)
+        const selectedNames = Array.from(F4_SELECTED_NAMES);
+        const filtered = selectedNames.length ? normalized.filter(x => F4_SELECTED_NAMES.has(x.name)) : normalized;
+        if (!filtered.length) { body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
+        const normalizedSorted = filtered.slice().sort((a,b)=> b.manhour - a.manhour);
         const html = normalizedSorted.map(x=>
-          `<tr><td class=\"px-3 py-2\">${x.name}</td><td class=\"px-3 py-2\">${x.manhour.toFixed(2)}</td></tr>`
+          `<tr>
+             <td class="px-3 py-2">
+               <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
+             </td>
+             <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
+             <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}"><span class="spinner"></span></span></td>
+           </tr>`
         ).join('');
         body.innerHTML = html;
+        // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
+        const statusForCount = statusVal;
+        const names = normalizedSorted.map(x=>x.name);
+        const findCountEl = (n)=>{
+          const all = body.querySelectorAll('.emp-count');
+          for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; }
+          return null;
+        };
+        Promise.allSettled(names.map(async n=>{
+          const c = await f4FetchTaskCount(n, statusForCount);
+          const el = findCountEl(n);
+          if (el) el.textContent = String(c);
+        })).catch(()=>{});
         // Render bar chart
         const labels = normalizedSorted.map(x=> x.name);
         const values = normalizedSorted.map(x=> x.manhour);
@@ -993,11 +1197,161 @@
           });
         }
       }catch(err){
-        body.innerHTML = `<tr><td colspan='2' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='3' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
         if (chartWrap) chartWrap.style.display = 'none';
         if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
       }
     }
+    // ===== Form 4: Modal chi tiết theo nhân viên =====
+    const detailModal = document.getElementById('detail-modal');
+    const detailBody = document.getElementById('detail-body');
+    const detailNameEl = document.getElementById('detail-name');
+    const detailNote = document.getElementById('detail-note');
+    const detailClose = document.getElementById('detail-close');
+
+    function openDetailModal(empName, filter){
+      if (!detailModal) return;
+      detailNameEl.textContent = empName || '';
+      detailBody.innerHTML = `<tr><td colspan="8" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
+      detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
+      detailModal.classList.add('open');
+      detailModal.setAttribute('aria-hidden','false');
+      renderDetailTasks(empName, filter).catch(()=>{});
+    }
+    function closeDetailModal(){
+      if (!detailModal) return;
+      detailModal.classList.remove('open');
+      detailModal.setAttribute('aria-hidden','true');
+    }
+    if (detailClose) detailClose.onclick = closeDetailModal;
+    if (detailModal) detailModal.addEventListener('click', (e)=>{ if(e.target===detailModal) closeDetailModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && detailModal && detailModal.classList.contains('open')) closeDetailModal(); });
+
+    async function renderDetailTasks(name, filter){
+      const headerMapF1 = {
+        header_requester: 'Người yêu cầu',
+        header_requestDate: 'Ngày yêu cầu',
+        header_wishDue: 'Hạn mong muốn',
+        header_actualDue: 'Hạn đáp ứng',
+        header_code: 'Mã',
+        header_taskName: 'Tên tác vụ',
+        header_manHour: 'Công chuẩn',
+        header_status: 'Trạng thái',
+        field_requester: 'requester',
+        field_requestDate: 'requestDate',
+        field_wishDue: 'wishDue',
+        field_actualDue: 'actualDue',
+        field_code: 'code',
+        field_taskName: 'taskName',
+        field_manHour: 'manHour',
+        field_status: 'status'
+      };
+      const params = new URLSearchParams({
+        ...headerMapF1,
+        action: 'form1_lookup',
+        person_name: name,
+        timestamp: new Date().toISOString()
+      });
+      function getV(obj, keys){
+        const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+        for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+        return '';
+      }
+      async function fetchJson(url){
+        const r = await fetch(url, { method: 'GET' });
+        const text = await r.text();
+        let parsed = null; try{ parsed = JSON.parse(text); }catch{ parsed = null; }
+        return { ok: r.ok, parsed, raw: text, status: r.status };
+      }
+      try{
+        const testUrl = `${WEBHOOK_URL}?${params.toString()}`;
+        let first = await fetchJson(testUrl);
+        if (!first.ok || (first.parsed && first.parsed.code === 0 && /could not be started/i.test(String(first.parsed.message||'')))){
+          const prodUrl = testUrl.replace('/webhook-test/', '/webhook/');
+          first = await fetchJson(prodUrl);
+        }
+        if (!first.ok) throw new Error(first.raw || `HTTP ${first.status}`);
+        const data = first.parsed ?? (first.raw ? JSON.parse(first.raw) : null);
+        function pickRows(json){
+          if (!json) return [];
+          if (Array.isArray(json)) return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
+          try{
+            const queue=[json]; const seen=new Set();
+            while(queue.length){
+              const cur=queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur);
+              for (const v of Object.values(cur)){
+                if (Array.isArray(v) && v.length && typeof v[0]==='object') return v;
+                if (v && typeof v==='object') queue.push(v);
+              }
+            }
+          }catch(_){}
+          return [];
+        }
+        let rows = pickRows(data);
+        if (filter === 'Doing'){
+          rows = rows.filter(item=>{
+            const statusText = String(getV(item,['status','trangthai','trang_thai','trạng thái'])||'');
+            const s = statusText.toLowerCase();
+            const isDoing = s.includes('doing') || s.includes('đang');
+            return isDoing;
+          });
+        }
+        if (!rows.length){
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Không có tác vụ${filter==='Doing'?' Doing':''}.</td></tr>`;
+          return;
+        }
+        // Helper parse date (hỗ trợ YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, có/không giờ)
+        function toDate(v){
+          if(!v) return null;
+          const s = String(v).trim();
+          let m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+          if (m) {
+            const d = +m[1], mo = +m[2], y = m[3].length===2 ? +('20'+m[3]) : +m[3];
+            const dt = new Date(y, mo-1, d); return isNaN(dt) ? null : dt;
+          }
+          m = s.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+          if (m) {
+            const dt = new Date(+m[1], +m[2]-1, +m[3]); return isNaN(dt) ? null : dt;
+          }
+          const dt = new Date(s);
+          return isNaN(dt) ? null : dt;
+        }
+
+        const html = rows.map(item=>{
+          const code = getV(item,['code','ma','taskcode','mã']);
+          const tname = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          const status = getV(item,['status','trangthai','trang_thai','trạng thái']);
+          const man = getV(item,['manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn']);
+          const rq = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          const wish = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
+          const act = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
+          const done = getV(item,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh','completion','done_date','ngày hoàn thành']);
+
+          const dueForCompare = act || wish || '';
+          const isLate = (()=>{ const d1 = toDate(done), d2 = toDate(dueForCompare); return d1 && d2 ? (d1.getTime() > d2.getTime()) : false; })();
+          const trClass = isLate ? 'bg-yellow-100' : '';
+
+          return `
+            <tr class="${trClass}">
+              <td class="px-3 py-2">${code}</td>
+              <td class="px-3 py-2">${tname}</td>
+              <td class="px-3 py-2">${status}</td>
+              <td class="px-3 py-2">${man}</td>
+              <td class="px-3 py-2">${rq}</td>
+              <td class="px-3 py-2">${wish}</td>
+              <td class="px-3 py-2">${act}</td>
+              <td class="px-3 py-2">${done}</td>
+            </tr>
+          `;
+        }).join('');
+        detailBody.innerHTML = html;
+      }catch(err){
+        detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+      }
+    }
+
     // Copy on click and open link for storage (Form 1)
     const f1StorageLink = document.getElementById('f1-storage-link');
     if (f1StorageLink) {
@@ -1011,6 +1365,22 @@
     const f4Btn = document.getElementById('f4-search');
     if (f4Btn) {
       f4Btn.addEventListener('click', (e)=>{ e.preventDefault(); renderForm4(); });
+    }
+    // Tự động render khi đổi trạng thái
+    const f4StatusSel = document.getElementById('f4-status');
+    if (f4StatusSel) f4StatusSel.addEventListener('change', ()=> renderForm4());
+    const f4PeopleSel2 = document.getElementById('f4-people');
+    if (f4PeopleSel2) f4PeopleSel2.addEventListener('change', ()=> renderForm4());
+    // Click tên nhân viên để xem chi tiết
+    const f4Body = document.getElementById('f4-body');
+    if (f4Body) {
+      f4Body.addEventListener('click', (e)=>{
+        const btn = e.target.closest('[data-emp]');
+        if (!btn) return;
+        const name = btn.getAttribute('data-emp') || '';
+        const filter = (document.getElementById('f4-status')?.value === 'Doing') ? 'Doing' : 'All';
+        if (name) openDetailModal(name, filter);
+      });
     }
   </script>
 </body>
