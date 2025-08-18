@@ -351,12 +351,12 @@
 
   <script>
     // Constants
-    const WEBHOOK_URL = "https://phongdqakrd.app.n8n.cloud/webhook/ddc1264c-85be-4b63-98a6-267103685117";
-    const FORM1_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
-    const FORM2_LOOKUP_URL = "https://phongdqakrd.app.n8n.cloud/webhook/e067ccfb-f59b-43f0-b779-b9d1286549f9";
-    const FORM2_UPLOAD_URL = "https://phongdqakrd.app.n8n.cloud/webhook/2e394d3e-da1a-4577-9063-359a70518527";
+    const WEBHOOK_URL = "https://iatzhxxuk.tino.page/webhook/ddc1264c-85be-4b63-98a6-267103685117";
+    const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
+    const FORM2_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/e067ccfb-f59b-43f0-b779-b9d1286549f9";
+    const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/2e394d3e-da1a-4577-9063-359a70518527";
     // Endpoints for Form 3 (match index.html)
-    const SHEETDB_API_URL = "https://sheetdb.io/api/v1/n9g1hj5bhqymg";
+    const SHEETDB_API_URL = "https://sheetdb.io/api/v1/fpen5sf74dln0";
     const UPLOAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCijAALPkXShSLSUELoVhtEGDGMUwe4ZPl_jqE-xi7le_WGN5s0IOv0o5FVYpZaNmc/exec";
     let F4_CHART = null;
 
@@ -1056,7 +1056,7 @@
       if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
       body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       try{
-        const urlTest = 'https://phongdqakrd.app.n8n.cloud/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
+        const urlTest = 'https://iatzhxxuk.tino.page/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
         const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
         const params = new URLSearchParams();
         const statusSel = document.getElementById('f4-status');
@@ -1067,6 +1067,8 @@
         params.append('header_current_manhour', 'Công chuẩn hiện tại');
         params.append('field_employee', 'employee');
         params.append('field_current_manhour', 'manhour');
+        params.append('header_task_count', 'Số tác vụ');
+        params.append('field_task_count', 'taskCount');
         params.append('_ts', Date.now().toString());
         // Debug: log the exact URL being requested
         try { console.log('Form4 GET (test):', `${urlTest}?${params.toString()}`); } catch(_) {}
@@ -1118,7 +1120,9 @@
           const name = getV(r,['field_employee','employee','nhanvien','nhan_vien','user','name','nhân viên']).toString().trim();
           const manRaw = getV(r,['field_current_manhour','manhour','current_manhour','congchuan','cong_chuan','hours','công chuẩn hiện tại']);
           const man = Number(manRaw);
-          return { name: name || '-', manhour: isNaN(man) ? 0 : man };
+          const countRaw = getV(r,['field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ']);
+          const count = Number(countRaw);
+          return { name: name || '-', manhour: isNaN(man) ? 0 : man, count: isNaN(count) ? null : count };
         }).filter(x=>x.name && x.name !== '-');
         // Cập nhật danh sách người trong popover
         F4_ALL_NAMES = Array.from(new Set(normalized.map(x=>x.name)));
@@ -1134,23 +1138,27 @@
                <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
              </td>
              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
-             <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}"><span class="spinner"></span></span></td>
+             <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}">${(x.count==null)?'<span class="spinner"></span>':String(x.count)}</span></td>
            </tr>`
         ).join('');
         body.innerHTML = html;
         // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
         const statusForCount = statusVal;
-        const names = normalizedSorted.map(x=>x.name);
+        const names = normalizedSorted.filter(x=> x.count == null).map(x=>x.name);
         const findCountEl = (n)=>{
           const all = body.querySelectorAll('.emp-count');
           for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; }
           return null;
         };
-        Promise.allSettled(names.map(async n=>{
+        const promises = names.map(async n=>{
           const c = await f4FetchTaskCount(n, statusForCount);
           const el = findCountEl(n);
-          if (el) el.textContent = String(c);
-        })).catch(()=>{});
+          if (el) {
+            el.textContent = String(c);
+            try { const tr = el.closest('tr'); if (tr) tr.setAttribute('data-task-count', String(c)); } catch(_) {}
+          }
+        });
+        Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
         // Render bar chart
         const labels = normalizedSorted.map(x=> x.name);
         const values = normalizedSorted.map(x=> x.manhour);
@@ -1369,6 +1377,8 @@
     // Tự động render khi đổi trạng thái
     const f4StatusSel = document.getElementById('f4-status');
     if (f4StatusSel) f4StatusSel.addEventListener('change', ()=> renderForm4());
+    const f4CountFilterInput = document.getElementById('f4-count-filter');
+    if (f4CountFilterInput) f4CountFilterInput.addEventListener('input', ()=> f4ApplyCountFilter());
     const f4PeopleSel2 = document.getElementById('f4-people');
     if (f4PeopleSel2) f4PeopleSel2.addEventListener('change', ()=> renderForm4());
     // Click tên nhân viên để xem chi tiết
@@ -1380,6 +1390,28 @@
         const name = btn.getAttribute('data-emp') || '';
         const filter = (document.getElementById('f4-status')?.value === 'Doing') ? 'Doing' : 'All';
         if (name) openDetailModal(name, filter);
+      });
+    }
+
+    // Form 4: filter rows by "số tác vụ" (>= input)
+    function f4ApplyCountFilter(){
+      const input = document.getElementById('f4-count-filter');
+      const body = document.getElementById('f4-body');
+      if (!input || !body) return;
+      const raw = (input.value || '').trim();
+      const threshold = raw === '' ? NaN : parseInt(raw, 10);
+      const rows = body.querySelectorAll('tr');
+      rows.forEach(tr=>{
+        const cEl = tr.querySelector('.emp-count');
+        if (!cEl) return;
+        const val = parseInt((cEl.textContent || '').trim(), 10);
+        if (isNaN(threshold)) {
+          tr.style.display = '';
+        } else if (isNaN(val)) {
+          tr.style.display = '';
+        } else {
+          tr.style.display = (val >= threshold) ? '' : 'none';
+        }
       });
     }
   </script>
