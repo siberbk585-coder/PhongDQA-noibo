@@ -48,6 +48,7 @@
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form2">Form 2 · Trả form báo cáo</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form3">Form 3 · Giao việc</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi </button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form5">Form 5 · Ý tưởng cải tiến</button>
     </nav>
   </aside>
 
@@ -58,8 +59,8 @@
         <div class="flex items-center space-x-2 mb-3">
           <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white" style="background-color: rgba(255,255,255,0.15); backdrop-filter: blur(5px);">Phòng DQA</div>
         </div>
-        <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">Bảng điều phối công việc</h2>
-        <p class="text-blue-100 text-sm md:text-base">Tra cứu, trả form, trả báo cáo và giao việc.</p>
+        <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">Cổng tác vụ DQA - Nội bộ</h2>
+        <p class="text-blue-100 text-sm md:text-base">Vui lòng không chia sẻ link cổng tác vụ với người ngoài bộ phận.</p>
       </div>
     </div>
 
@@ -232,60 +233,98 @@
         </div>
       </form>
     </section>
-  </main>
 
-  <!-- Form 4 -->
-  <section id="form4" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
-    <div class="flex items-center justify-between mb-4">
-      <div class="section-title">
-        <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
+    <!-- Form 4 -->
+    <section id="form4" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="section-title">
+          <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-700">Trạng thái</label>
+          <select id="f4-status" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="Doing" selected>Doing</option>
+            <option value="All">Tất cả tác vụ</option>
+          </select>
+          <label class="text-sm text-gray-700">Từ ngày</label>
+          <input id="f4-from" type="date" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          <label class="text-sm text-gray-700">Đến ngày</label>
+          <input id="f4-to" type="date" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-gray-700">Trạng thái</label>
-        <select id="f4-status" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
-          <option value="Doing" selected>Doing</option>
-          <option value="All">Tất cả tác vụ</option>
-        </select>
-        <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
-      </div>
-    </div>
-    <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
-      <table class="min-w-[480px] w-full text-sm">
-        <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-          <tr class="text-left text-gray-700">
-            <th class="px-3 py-2 relative">
-              <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">
-                Nhân viên <span class="text-xs">▾</span>
-              </button>
-              <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
-                <div class="flex items-center gap-2 mb-2">
-                  <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-                </div>
-                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
-                  <div class="flex items-center gap-3">
-                    <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
-                    <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
+      <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+        <table class="min-w-[480px] w-full text-sm">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2 relative">
+                <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">
+                  Nhân viên <span class="text-xs">▾</span>
+                </button>
+                <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
+                  <div class="flex items-center gap-2 mb-2">
+                    <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
                   </div>
-                  <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                    <div class="flex items-center gap-3">
+                      <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
+                      <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
+                    </div>
+                    <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
+                  </div>
+                  <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
+                    <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
+                  </div>
                 </div>
-                <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
-                  <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
-                </div>
-              </div>
-            </th>
-            <th class="px-3 py-2">Công chuẩn hiện tại</th>
-            <th class="px-3 py-2">Số tác vụ</th>
-          </tr>
-        </thead>
-        <tbody id="f4-body" class="divide-y divide-gray-100">
-          <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div id="f4-chart-container" class="mt-4 h-80" style="display:none">
-      <canvas id="f4-chart"></canvas>
-    </div>
-  </section>
+              </th>
+              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2">Số tác vụ</th>
+            </tr>
+          </thead>
+          <tbody id="f4-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="f4-chart-container" class="mt-4 h-80" style="display:none">
+        <canvas id="f4-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- Form 5 -->
+    <section id="form5" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 5 · Ý tưởng cải tiến</h2>
+        <div class="flex items-center gap-2">
+          <button id="f5-open-submit" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Nộp ý tưởng</button>
+          <button id="f5-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+        </div>
+      </div>
+
+      <div class="mt-6 -mx-6">
+        <div class="overflow-x-auto border border-gray-200 rounded-lg bg-white">
+          <table class="min-w-[2000px] w-full text-sm">
+            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+              <tr class="text-left text-gray-700">
+                <th class="px-3 py-2">Ngày nộp</th>
+                <th class="px-3 py-2">Nhân viên</th>
+                <th class="px-3 py-2">Tiêu đề ý tưởng</th>
+                <th class="px-3 py-2">Vấn đề nhận diện</th>
+                <th class="px-3 py-2">Giải pháp</th>
+              </tr>
+            </thead>
+            <tbody id="f5-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Chưa có dữ liệu</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="f5-count" class="mt-4 p-3 rounded-lg border border-blue-200 bg-blue-50/30 text-blue-800 cursor-pointer inline-flex items-center gap-2">
+        <span>Nhấn để xem số ý tưởng đã nộp</span>
+      </div>
+    </section>
+  </main>
 
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="upload-title">
@@ -347,6 +386,48 @@
     </div>
   </div>
 
+  <!-- Form 5 Submit Modal -->
+  <div id="f5-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f5-modal-title">
+    <div class="w-full max-w-3xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200">
+        <h3 id="f5-modal-title" class="text-base font-semibold text-gray-800">Nộp ý tưởng cải tiến</h3>
+      </div>
+      <div class="p-4 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
+            <input id="f5-date" type="date" readonly class="w-full border border-blue-300 rounded-lg bg-gray-200 p-2 text-gray-600"/>
+            <p class="text-gray-500 text-xs mt-1">Cố định theo ngày nhập</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nhân viên</label>
+            <select id="f5-employee" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="">— Chọn người —</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề ý tưởng</label>
+            <input id="f5-title" type="text" placeholder="Nhập tiêu đề" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Vấn đề nhận diện</label>
+            <textarea id="f5-problem" rows="3" placeholder="Mô tả vấn đề" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Giải pháp</label>
+            <textarea id="f5-solution" rows="3" placeholder="Mô tả giải pháp" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+        <button id="f5-btn-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
+        <button id="f5-btn-send" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Gửi ý tưởng</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -358,17 +439,23 @@
     // Endpoints for Form 3 (match index.html)
     const SHEETDB_API_URL = "https://sheetdb.io/api/v1/fpen5sf74dln0";
     const UPLOAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCijAALPkXShSLSUELoVhtEGDGMUwe4ZPl_jqE-xi7le_WGN5s0IOv0o5FVYpZaNmc/exec";
+    // Endpoints for Form 5 (submit & list)
+    const FORM5_SUBMIT_URL = "https://iatzhxxuk.tino.page/webhook/8e42168f-cb7b-44da-ae44-571f1e072d53";
+    const FORM5_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
     let F4_CHART = null;
+    let F5_LAST_COUNT = 0;
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = ['form1','form2','form3','form4'].map(id=>document.getElementById(id));
+    const sections = ['form1','form2','form3','form4','form5'].map(id=>document.getElementById(id));
     function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
     navBtns.forEach((btn)=>{
       btn.onclick=()=>{
         navBtns.forEach(b=>b.classList.remove('bg-primary-blue','font-bold'));
         btn.classList.add('bg-primary-blue','font-bold');
-        showSection(btn.getAttribute('data-target'));
+        const target = btn.getAttribute('data-target');
+        showSection(target);
+        if (target === 'form5') { try { renderForm5List(); } catch(_){} }
       }
     });
     // Default
@@ -395,6 +482,8 @@
     if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM1_NAMES);
     const f4PeopleSel = document.getElementById('f4-people');
     if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
+    const f5EmployeeSel = document.getElementById('f5-employee');
+    if (f5EmployeeSel) fillSelect(f5EmployeeSel, FORM1_NAMES);
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -815,6 +904,38 @@
     // Form 3 logic
     function setRqTime(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); document.getElementById('rq-time').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
     setRqTime();
+    // Default Form 4 month = current month
+    (function setDefaultF4Month(){
+      const m = document.getElementById('f4-month');
+      if (!m) return;
+      const d = new Date();
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      if (!m.value) m.value = `${yy}-${mm}`;
+    })();
+    // Default Form 4 date range = first day to last day of current month
+    (function setDefaultF4Range(){
+      const fromInput = document.getElementById('f4-from');
+      const toInput = document.getElementById('f4-to');
+      if (!fromInput && !toInput) return;
+      const now = new Date();
+      const year = now.getFullYear();
+      const monthIndex = now.getMonth(); // 0-11
+      const pad = (n)=> String(n).padStart(2, '0');
+      const firstDay = `${year}-${pad(monthIndex+1)}-01`;
+      const lastDate = new Date(year, monthIndex + 1, 0).getDate();
+      const lastDay = `${year}-${pad(monthIndex+1)}-${pad(lastDate)}`;
+      if (fromInput && !fromInput.value) fromInput.value = firstDay;
+      if (toInput && !toInput.value) toInput.value = lastDay;
+    })();
+    // Helper: set default date for Form 5 inputs
+    function setF5DateDefault(){
+      const el = document.getElementById('f5-date');
+      if (!el) return;
+      const d = new Date();
+      const pad = n=>String(n).padStart(2,'0');
+      el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
 
     // Form 3: upload to Google Drive via Apps Script (as in index.html)
     (function setupForm3Upload(){
@@ -986,7 +1107,7 @@
     })();
 
     // Helper: đếm số tác vụ theo người với filter trạng thái
-    async function f4FetchTaskCount(name, statusVal){
+    async function f4FetchTaskCount(name, statusVal, fromVal, toVal){
       const headerMapF1 = {
         header_code: 'Mã',
         header_taskName: 'Tên tác vụ',
@@ -1001,6 +1122,8 @@
         person_name: name,
         timestamp: new Date().toISOString()
       });
+      if (fromVal) params.append('from', fromVal);
+      if (toVal) params.append('to', toVal);
       async function fetchJson(url){
         const r = await fetch(url, { method: 'GET' });
         const text = await r.text();
@@ -1062,6 +1185,13 @@
         const statusSel = document.getElementById('f4-status');
         const statusVal = (statusSel && statusSel.value) ? statusSel.value : 'Doing';
         params.append('status', statusVal);
+        // Date range filter
+        const fromInput = document.getElementById('f4-from');
+        const toInput = document.getElementById('f4-to');
+        const fromVal = (fromInput && fromInput.value) ? fromInput.value : '';
+        const toVal = (toInput && toInput.value) ? toInput.value : '';
+        if (fromVal) params.append('from', fromVal);
+        if (toVal) params.append('to', toVal);
         // Query mapping for 2 output columns
         params.append('header_employee', 'Nhân viên');
         params.append('header_current_manhour', 'Công chuẩn hiện tại');
@@ -1151,7 +1281,7 @@
           return null;
         };
         const promises = names.map(async n=>{
-          const c = await f4FetchTaskCount(n, statusForCount);
+          const c = await f4FetchTaskCount(n, statusForCount, fromVal, toVal);
           const el = findCountEl(n);
           if (el) {
             el.textContent = String(c);
@@ -1217,14 +1347,14 @@
     const detailNote = document.getElementById('detail-note');
     const detailClose = document.getElementById('detail-close');
 
-    function openDetailModal(empName, filter){
+    function openDetailModal(empName, filter, from, to){
       if (!detailModal) return;
       detailNameEl.textContent = empName || '';
       detailBody.innerHTML = `<tr><td colspan="8" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
       detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
       detailModal.classList.add('open');
       detailModal.setAttribute('aria-hidden','false');
-      renderDetailTasks(empName, filter).catch(()=>{});
+      renderDetailTasks(empName, filter, from, to).catch(()=>{});
     }
     function closeDetailModal(){
       if (!detailModal) return;
@@ -1235,7 +1365,7 @@
     if (detailModal) detailModal.addEventListener('click', (e)=>{ if(e.target===detailModal) closeDetailModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && detailModal && detailModal.classList.contains('open')) closeDetailModal(); });
 
-    async function renderDetailTasks(name, filter){
+    async function renderDetailTasks(name, filter, from, to){
       const headerMapF1 = {
         header_requester: 'Người yêu cầu',
         header_requestDate: 'Ngày yêu cầu',
@@ -1260,6 +1390,8 @@
         person_name: name,
         timestamp: new Date().toISOString()
       });
+      if (from) params.append('from', from);
+      if (to) params.append('to', to);
       function getV(obj, keys){
         const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
         for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
@@ -1374,9 +1506,29 @@
     if (f4Btn) {
       f4Btn.addEventListener('click', (e)=>{ e.preventDefault(); renderForm4(); });
     }
+    // Trigger fetch only when nhấn Tra cứu ở Form 5
+    const f5Btn = document.getElementById('f5-search');
+    if (f5Btn) {
+      f5Btn.addEventListener('click', async (e)=>{
+        e.preventDefault();
+        if (f5Btn.disabled) return;
+        const prev = f5Btn.textContent;
+        f5Btn.disabled = true;
+        f5Btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+        try { await renderForm5List(); }
+        finally {
+          f5Btn.disabled = false;
+          f5Btn.textContent = prev || 'Tra cứu';
+        }
+      });
+    }
     // Tự động render khi đổi trạng thái
     const f4StatusSel = document.getElementById('f4-status');
     if (f4StatusSel) f4StatusSel.addEventListener('change', ()=> renderForm4());
+    const f4FromInput = document.getElementById('f4-from');
+    const f4ToInput = document.getElementById('f4-to');
+    if (f4FromInput) f4FromInput.addEventListener('change', ()=> renderForm4());
+    if (f4ToInput) f4ToInput.addEventListener('change', ()=> renderForm4());
     const f4CountFilterInput = document.getElementById('f4-count-filter');
     if (f4CountFilterInput) f4CountFilterInput.addEventListener('input', ()=> f4ApplyCountFilter());
     const f4PeopleSel2 = document.getElementById('f4-people');
@@ -1389,7 +1541,9 @@
         if (!btn) return;
         const name = btn.getAttribute('data-emp') || '';
         const filter = (document.getElementById('f4-status')?.value === 'Doing') ? 'Doing' : 'All';
-        if (name) openDetailModal(name, filter);
+        const fromVal = (document.getElementById('f4-from')?.value || '');
+        const toVal = (document.getElementById('f4-to')?.value || '');
+        if (name) openDetailModal(name, filter, fromVal, toVal);
       });
     }
 
@@ -1414,11 +1568,181 @@
         }
       });
     }
+
+    // ===== Form 5: submit and list ideas =====
+    async function renderForm5List(){
+      const body = document.getElementById('f5-body');
+      if (!body) return;
+      body.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      const headerMapF5 = {
+        header_submitDate: 'Ngày nộp',
+        header_employee: 'Nhân viên',
+        header_title: 'Tiêu đề ý tưởng',
+        header_problem: 'Vấn đề nhận diện',
+        header_solution: 'Giải pháp',
+        field_submitDate: 'submitDate',
+        field_employee: 'employee',
+        field_title: 'title',
+        field_problem: 'problem',
+        field_solution: 'solution'
+      };
+      const params = new URLSearchParams({ ...headerMapF5, action: 'form5_list', _ts: Date.now().toString() });
+      async function fetchJson(url){
+        const r = await fetch(url, { method: 'GET' });
+        const t = await r.text();
+        let parsed=null; try{ parsed=JSON.parse(t);}catch{}
+        return { ok:r.ok, parsed, raw:t, status:r.status };
+      }
+      function pickRows(json){
+        if (!json) return [];
+        if (Array.isArray(json)) return json;
+        const cands=['data','rows','result','records','items','list'];
+        for (const k of cands){ if (Array.isArray(json?.[k])) return json[k]; }
+        try{
+          const q=[json], seen=new Set();
+          while(q.length){
+            const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur);
+            for (const v of Object.values(cur)){ if (Array.isArray(v) && v.length && typeof v[0]==='object') return v; if (v && typeof v==='object') q.push(v); }
+          }
+        }catch(_){}
+        return [];
+      }
+      let first = await fetchJson(`${FORM5_LIST_URL}?${params.toString()}`);
+      if (!first.ok || (first.parsed && first.parsed.code===0 && /could not be started/i.test(String(first.parsed.message||'')))){
+        first = await fetchJson(`${FORM5_LIST_URL.replace('/webhook-test/','/webhook/')}?${params.toString()}`);
+      }
+      if (!first.ok){
+        body.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải: ${String(first.raw||first.status)}</td></tr>`;
+        return;
+      }
+      const rows = pickRows(first.parsed ?? (first.raw ? JSON.parse(first.raw) : null));
+      if (!rows.length){
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>';
+        F5_LAST_COUNT = 0;
+        return;
+      }
+      const getV = (obj, keys)=>{
+        const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{});
+        for (const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+        return '';
+      };
+      const html = rows.map((item)=>{
+        const date = getV(item,['submitdate','date','submit_date','ngaynop','ngay_nop']);
+        const emp = getV(item,['employee','nhanvien','nhan_vien','nhân viên']);
+        const title = getV(item,['title','tieude','tieu_de','tiêu đề ý tưởng']);
+        const prob = getV(item,['problem','van_de','vande','vấn đề nhận diện']);
+        const sol = getV(item,['solution','giai_phap','giaiphap','giải pháp']);
+        return `<tr>
+          <td class="px-3 py-2">${date}</td>
+          <td class="px-3 py-2">${emp}</td>
+          <td class="px-3 py-2">${title}</td>
+          <td class="px-3 py-2">${prob}</td>
+          <td class="px-3 py-2">${sol}</td>
+        </tr>`;
+      }).join('');
+      body.innerHTML = html;
+      F5_LAST_COUNT = rows.length;
+    }
+
+    (function setupForm5(){
+      const openBtn = document.getElementById('f5-open-submit');
+      const modal = document.getElementById('f5-modal');
+      const sendBtn = document.getElementById('f5-btn-send');
+      const cancelBtn = document.getElementById('f5-btn-cancel');
+      const countBox = document.getElementById('f5-count');
+
+      function openF5Modal(){
+        try { setF5DateDefault(); } catch(_){}
+        // reset inputs
+        try{ (document.getElementById('f5-title')||{}).value=''; }catch(_){ }
+        try{ (document.getElementById('f5-problem')||{}).value=''; }catch(_){ }
+        try{ (document.getElementById('f5-solution')||{}).value=''; }catch(_){ }
+        if (modal){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+      }
+      function closeF5Modal(){ if (modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); } }
+      if (openBtn) openBtn.addEventListener('click', (e)=>{ e.preventDefault(); openF5Modal(); });
+      if (cancelBtn) cancelBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeF5Modal(); });
+      if (modal) modal.addEventListener('click', (e)=>{ if(e.target===modal) closeF5Modal(); });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal && modal.classList.contains('open')) closeF5Modal(); });
+
+      async function submitF5(){
+        const date = (document.getElementById('f5-date')?.value||'').trim();
+        const emp = (document.getElementById('f5-employee')?.value||'').trim();
+        const title = (document.getElementById('f5-title')?.value||'').trim();
+        const prob = (document.getElementById('f5-problem')?.value||'').trim();
+        const sol = (document.getElementById('f5-solution')?.value||'').trim();
+        if (!date || !emp || !title || !prob || !sol){ showToast('Vui lòng điền đủ tất cả trường.','error'); return; }
+        const prev = sendBtn ? sendBtn.textContent : '';
+        if (sendBtn){ sendBtn.disabled = true; sendBtn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
+        // Build payload (send both submitDate and date for compatibility)
+        const toDMY = (v)=>{ try{ const [y,m,d] = String(v||'').split('-'); return `${d}/${m}/${y}`; }catch(_){ return String(v||''); } };
+        const p = new URLSearchParams({
+          submitDate: date,
+          date: date,
+          submit_date: date,
+          ngay_nop: date,
+          ngayNop: date,
+          ngayNopDMY: toDMY(date),
+          employee: emp,
+          title,
+          problem: prob,
+          solution: sol,
+          _ts: Date.now().toString()
+        });
+        async function tryPost(url){
+          try{
+            const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: p.toString() });
+            const t = await r.text().catch(()=>"");
+            return { ok: r.ok, raw: t };
+          }catch(err){ return { ok:false, raw: String(err||'') }; }
+        }
+        async function tryPostNoCors(url){
+          try{
+            await fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: p.toString() });
+            // opaque response cannot be inspected; treat as success if resolved
+            return { ok: true, raw: '' };
+          }catch(err){ return { ok:false, raw: String(err||'') }; }
+        }
+        async function tryGet(url){
+          try{
+            const r = await fetch(`${url}?${p.toString()}`, { method:'GET' });
+            const t = await r.text();
+            return { ok: r.ok, raw: t };
+          }catch(err){ return { ok:false, raw: String(err||'') }; }
+        }
+        try{
+          // 1) POST no-cors to test URL (avoid CORS false negatives)
+          let r = await tryPostNoCors(FORM5_SUBMIT_URL);
+          // 2) If above failed (network), try normal POST test URL
+          if (!r.ok) r = await tryPost(FORM5_SUBMIT_URL);
+          // 3) Fallback GET test URL
+          if (!r.ok || /could not be started/i.test(r.raw||'')) r = await tryGet(FORM5_SUBMIT_URL);
+          // 4) Fallback POST prod URL
+          if (!r.ok || /could not be started/i.test(r.raw||'')) r = await tryPost(FORM5_SUBMIT_URL.replace('/webhook-test/','/webhook/'));
+          // 5) Fallback GET prod URL
+          if (!r.ok || /could not be started/i.test(r.raw||'')) r = await tryGet(FORM5_SUBMIT_URL.replace('/webhook-test/','/webhook/'));
+          if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
+          showToast('Đã gửi ý tưởng.','success');
+          closeF5Modal();
+          // Làm mới bảng sau 3 giây để backend kịp ghi dữ liệu
+          setTimeout(()=>{ try{ renderForm5List(); }catch(_){} }, 3000);
+        }catch(err){
+          showToast('Gửi thất bại.','error');
+        }finally{
+          if (sendBtn){ sendBtn.disabled=false; sendBtn.textContent = prev || 'Gửi ý tưởng'; }
+        }
+      }
+      if (sendBtn) sendBtn.addEventListener('click', (e)=>{ e.preventDefault(); submitF5(); });
+
+      if (countBox){
+        countBox.addEventListener('click', ()=>{
+          countBox.innerHTML = `<span>📊</span><span>Số ý tưởng đã nộp: <b>${F5_LAST_COUNT}</b></span>`;
+        });
+      }
+    })();
   </script>
 </body>
 </html>
-
-
 
 
 
