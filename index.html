@@ -49,6 +49,7 @@
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form3">Form 3 · Giao việc</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi </button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form5">Form 5 · Ý tưởng cải tiến</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form6">Form 6 · Hướng dẫn sử dụng</button>
     </nav>
   </aside>
 
@@ -125,7 +126,7 @@
 
       <!-- Điểm lưu trữ file đính kèm -->
       <div class="mt-4">
-        <a id="f1-storage-link" href="https://drive.google.com/drive/u/0/folders/1iVSNn6Ddv6jEun6lyMvOMcan2fpnFSpU" target="_blank" rel="noopener" title="Nhấn để mở và tự động copy liên kết"
+        <a id="f1-storage-link" href="https://drive.google.com/drive/folders/1hFChHMjIC4ajY4GNX3dLoczWcZ3B9zzg?usp=sharing" target="_blank" rel="noopener" title="Nhấn để mở và tự động copy liên kết"
            class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">
           Điểm lưu trữ file đính kèm
         </a>
@@ -367,6 +368,19 @@
         <span>Nhấn để xem số ý tưởng đã nộp</span>
       </div>
     </section>
+    
+    <!-- Form 6 -->
+    <section id="form6" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 6 · Hướng dẫn sử dụng</h2>
+      </div>
+      <div class="rounded-lg border border-gray-200 overflow-hidden">
+        <iframe src="https://docs.google.com/document/d/17dkhMxqyy2YnSxukHC6y94BSFNfnDQ50/preview" class="w-full" style="height: 80vh;" allow="clipboard-write; fullscreen"></iframe>
+      </div>
+      <div class="mt-3 text-sm">
+        <a href="https://docs.google.com/document/d/17dkhMxqyy2YnSxukHC6y94BSFNfnDQ50/edit?usp=drive_link&ouid=101589232360066908244&rtpof=true&sd=true" target="_blank" rel="noopener" class="text-primary-blue hover:underline">Mở bản đầy đủ (hiện đề mục/thẻ)</a>
+      </div>
+    </section>
   </main>
 
   <!-- Upload Modal -->
@@ -517,7 +531,7 @@
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = ['form1','form2','form3','form4','form5'].map(id=>document.getElementById(id));
+    const sections = ['form1','form2','form3','form4','form5','form6'].map(id=>document.getElementById(id));
     function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
     navBtns.forEach((btn)=>{
       btn.onclick=()=>{
