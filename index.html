@@ -37,6 +37,11 @@
     .modal.open{display:flex}
     .toast{position:fixed;right:16px;bottom:16px;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
     .toast.show{opacity:1;transform:translateY(0)}
+    /* Form 5: zebra rows & vertical dividers */
+    .table-zebra tbody tr:nth-child(even){ background-color:#f8fafc; }
+    .cell-div{ border-left:1px solid #e5e7eb; }
+    .table-vdiv{ border-collapse: separate; border-spacing: 0; }
+    .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
   </style>
 </head>
 <body class="bg-muted min-h-screen flex text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
@@ -47,9 +52,10 @@
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form1">Form 1 · Tra cứu tác vụ</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form2">Form 2 · Trả form báo cáo</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form3">Form 3 · Giao việc</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi </button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form5">Form 5 · Ý tưởng cải tiến</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form6">Form 6 · Hướng dẫn sử dụng</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi (Doing)</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form5">Form 5 · Tất cả tác vụ</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form6">Form 6 · Ý tưởng cải tiến</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form7">Form 7 · Hướng dẫn sử dụng</button>
     </nav>
   </aside>
 
@@ -250,15 +256,9 @@
           <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-700">Trạng thái</label>
-          <select id="f4-status" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
-            <option value="Doing" selected>Doing</option>
-            <option value="All">Tất cả tác vụ</option>
-          </select>
-          <label class="text-sm text-gray-700">Từ ngày</label>
-          <input id="f4-from" type="date" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-          <label class="text-sm text-gray-700">Đến ngày</label>
-          <input id="f4-to" type="date" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          <input type="hidden" id="f4-status" value="Doing" />
+          <label class="text-sm text-gray-700">Tháng</label>
+          <input id="f4-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
           <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
         </div>
       </div>
@@ -267,10 +267,10 @@
         <button id="f4-btn-linh" class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">Nhóm Linh</button>
         <button id="f4-btn-hieu" class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">Nhóm Hiếu</button>
       </div>
-      <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+      <div id="f4-main-doing" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
         <table class="min-w-[480px] w-full text-sm">
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-            <tr class="text-left text-gray-700">
+            <tr id="f4-head-row-static" class="text-left text-gray-700">
               <th class="px-3 py-2 relative">
                 <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">
                   Nhân viên <span class="text-xs">▾</span>
@@ -293,10 +293,33 @@
               </th>
               <th class="px-3 py-2">Công chuẩn hiện tại</th>
               <th class="px-3 py-2">Số tác vụ</th>
+              
             </tr>
           </thead>
           <tbody id="f4-body" class="divide-y divide-gray-100">
             <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Form 4: All tasks table (separate structure) -->
+      <div id="f4-main-all" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg hidden">
+        <table class="min-w-[1100px] w-full text-sm">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2">Nhân viên</th>
+              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2">Số tác vụ</th>
+              <th class="px-3 py-2">Số DONE</th>
+              <th class="px-3 py-2">Vượt tiến độ</th>
+              <th class="px-3 py-2">Đúng tiến độ</th>
+              <th class="px-3 py-2">Chậm tiến độ</th>
+              <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
+              <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
+              <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
+            </tr>
+          </thead>
+          <tbody id="f4-body-all" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -337,10 +360,67 @@
       </div>
     </section>
 
-    <!-- Form 5 -->
+    <!-- Form 5 · Tất cả tác vụ -->
     <section id="form5" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-blue-800">Form 5 · Ý tưởng cải tiến</h2>
+        <h2 class="text-xl font-semibold text-blue-800">Form 5 · Tất cả tác vụ</h2>
+      </div>
+      <div class="mt-4 overflow-auto border border-gray-200 rounded-lg">
+        <div class="flex items-center gap-2 p-2">
+          <label class="text-sm text-gray-700">Tháng</label>
+          <input id="f5a-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          <button id="f5a-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+        </div>
+        <table class="min-w-[1100px] w-full text-sm table-zebra table-vdiv">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2">Nhân viên</th>
+              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2 cell-div">Công chuẩn cần nhận</th>
+              <th class="px-3 py-2">Số tác vụ trong tháng</th>
+              <th class="px-3 py-2">Số DONE</th>
+              <th class="px-3 py-2">Vượt tiến độ</th>
+              <th class="px-3 py-2">Đúng tiến độ</th>
+              <th class="px-3 py-2">Chậm tiến độ</th>
+              <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
+              <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
+              <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
+            </tr>
+          </thead>
+          <tbody id="f5a-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 text-sm text-gray-700 flex items-center gap-3">
+        <span>Biểu đồ theo PIC</span>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-gray-600">Chế độ</label>
+          <select id="f5a-mode" class="border border-blue-200 rounded bg-white text-sm px-2 py-1">
+            <option value="vertical">Cột dọc</option>
+            <option value="horizontal">Thanh ngang</option>
+          </select>
+        </div>
+        <button id="f5a-refresh" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Làm mới</button>
+      </div>
+      <div class="mt-2">
+        <div class="text-xs text-gray-600 mb-1">Tỷ lệ trạng thái</div>
+        <div id="f5a-chart-container" class="h-80" style="display:none">
+          <canvas id="f5a-chart"></canvas>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="text-xs text-gray-600 mb-1">Công chuẩn hiện tại</div>
+        <div id="f5a-chart-container-manhour" class="h-80" style="display:none">
+          <canvas id="f5a-chart-manhour"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form 6 -->
+    <section id="form6" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Form 6 · Ý tưởng cải tiến</h2>
         <div class="flex items-center gap-2">
           <button id="f5-open-submit" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Nộp ý tưởng</button>
           <button id="f5-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
@@ -371,10 +451,10 @@
       </div>
     </section>
     
-    <!-- Form 6 -->
-    <section id="form6" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+    <!-- Form 7 -->
+    <section id="form7" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-blue-800">Form 6 · Hướng dẫn sử dụng</h2>
+        <h2 class="text-xl font-semibold text-blue-800">Form 7 · Hướng dẫn sử dụng</h2>
       </div>
       <div class="rounded-lg border border-gray-200 overflow-hidden">
         <iframe src="https://docs.google.com/document/d/17dkhMxqyy2YnSxukHC6y94BSFNfnDQ50/preview" class="w-full" style="height: 80vh;" allow="clipboard-write; fullscreen"></iframe>
@@ -397,10 +477,22 @@
           <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200">Mã: <b class="ml-1" id="uploader-code"></b></span>
           <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200">Tác vụ: <b class="ml-1" id="uploader-task"></b></span>
         </div>
-        <div>
+        <div id="upload-form2-single">
           <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tệp báo cáo</label>
           <input id="upload-file" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
           <p class="text-xs text-gray-500 mt-1">Tệp sẽ gửi kèm timestamp tại thời điểm gửi.</p>
+        </div>
+        <div id="upload-form1-split" style="display:none">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Báo cáo PDF hoặc file nén (.zip/.rar/.7z)</label>
+            <input id="upload-file-pdfzip" type="file" accept=".pdf,.zip,.rar,.7z" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-indigo-600 file:text-white"/>
+            <p class="text-xs text-gray-500 mt-1">Chỉ nhận .pdf hoặc file nén.</p>
+          </div>
+          <div class="mt-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Báo cáo Excel (.xlsx) hoặc file nén (.zip/.rar/.7z)</label>
+            <input id="upload-file-xlsxzip" type="file" accept=".xlsx,.zip,.rar,.7z" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-emerald-600 file:text-white"/>
+            <p class="text-xs text-gray-500 mt-1">Chỉ nhận .xlsx hoặc file nén.</p>
+          </div>
         </div>
         <div id="bps-option" class="flex items-center gap-2">
           <input id="upload-bps" type="checkbox" class="h-4 w-4" checked>
@@ -492,18 +584,51 @@
   <script>
     // Constants
     const WEBHOOK_URL = "https://iatzhxxuk.tino.page/webhook/ddc1264c-85be-4b63-98a6-267103685117";
-    const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/b2817307-6647-4e68-ae35-88118dfa657c";
+    const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/b0bd7f2a-eed4-4fb5-8d39-f3fed54daf3e";
     const FORM2_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/e067ccfb-f59b-43f0-b779-b9d1286549f9";
     const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/2e394d3e-da1a-4577-9063-359a70518527";
     // Endpoint for Form 3 submission (single webhook; send form-data with optional files)
     const FORM3_ENDPOINT = "https://iatzhxxuk.tino.page/webhook/21b742a9-a6b0-4393-9325-bfa470db5917";
-    // Endpoints for Form 5 (submit & list)
-    const FORM5_SUBMIT_URL = "https://iatzhxxuk.tino.page/webhook/8e42168f-cb7b-44da-ae44-571f1e072d53";
-    const FORM5_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
+    // Endpoints for Form 6 (submit & list)
+    const FORM6_SUBMIT_URL = "https://iatzhxxuk.tino.page/webhook/8e42168f-cb7b-44da-ae44-571f1e072d53";
+    const FORM6_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
     let F4_CHART = null;
     let F5_LAST_COUNT = 0;
     let F4_PIVOT_BUSY = false;
     let F4_PIVOT_TMO = null;
+    // Form 5 (All tasks) chart globals
+    let F5A_CHART = null;
+    let F5A_LAST_ROWS = [];
+    let F5A_MODE = 'vertical';
+    let F5A_CHART_MAN = null;
+    let F5A_BASIS = 'rates';
+
+    // Date-time format helpers
+    function toDateSafe(value){
+      try{
+        if (value instanceof Date && !isNaN(value)) return value;
+        const parsed = (typeof parseDateFlexible === 'function') ? parseDateFlexible(value) : null;
+        if (parsed && !isNaN(parsed)) return parsed;
+        const d = new Date(value);
+        return isNaN(d) ? null : d;
+      }catch(_){ return null; }
+    }
+    function formatDdMmYyyy(value){
+      try{
+        const d = toDateSafe(value);
+        if (!d) return '';
+        const pad = n=> String(n).padStart(2,'0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+      }catch(_){ return ''; }
+    }
+    function formatDdMmYyyyHHmm(value){
+      try{
+        const d = toDateSafe(value);
+        if (!d) return '';
+        const pad = n=> String(n).padStart(2,'0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }catch(_){ return ''; }
+    }
 
     function f4SchedulePivot(delay = 80){
       try { if (F4_PIVOT_TMO) clearTimeout(F4_PIVOT_TMO); } catch(_) {}
@@ -533,7 +658,7 @@
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = ['form1','form2','form3','form4','form5','form6'].map(id=>document.getElementById(id));
+    const sections = ['form1','form2','form3','form4','form5','form6','form7'].map(id=>document.getElementById(id));
     function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
     navBtns.forEach((btn)=>{
       btn.onclick=()=>{
@@ -541,8 +666,9 @@
         btn.classList.add('bg-primary-blue','font-bold');
         const target = btn.getAttribute('data-target');
         showSection(target);
-        if (target === 'form5') { try { renderForm5List(); } catch(_){} }
+        if (target === 'form6') { try { renderForm5List(); } catch(_){} }
         if (target === 'form4') { try { renderForm4(); f4SchedulePivot(); } catch(_){} }
+        if (target === 'form5') { try { setTimeout(()=>{ try{ renderForm5All(); }catch(_){} }, 0); } catch(_){} }
       }
     });
     // Default
@@ -603,8 +729,19 @@
         const bpsCheckbox = document.getElementById('upload-bps');
         if (bpsOption) bpsOption.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
         if (bpsCheckbox) bpsCheckbox.checked = (ctx && ctx.form === 'Form 1') ? true : false;
+        const singleWrap = document.getElementById('upload-form2-single');
+        const splitWrap = document.getElementById('upload-form1-split');
+        if (ctx && ctx.form === 'Form 1'){
+          if (singleWrap) singleWrap.style.display = 'none';
+          if (splitWrap) splitWrap.style.display = '';
+        } else {
+          if (singleWrap) singleWrap.style.display = '';
+          if (splitWrap) splitWrap.style.display = 'none';
+        }
       } catch(_) {}
       fileInput.value = '';
+      try { document.getElementById('upload-file-pdfzip').value = ''; } catch(_){}
+      try { document.getElementById('upload-file-xlsxzip').value = ''; } catch(_){}
       modal.classList.add('open');
       modal.setAttribute('aria-hidden','false');
     }
@@ -632,14 +769,70 @@
 
     document.getElementById('btn-send').onclick = async ()=>{
       if (isModalSubmitting) return;
-      if(!fileInput.files || fileInput.files.length===0){ showToast('Vui lòng chọn tệp báo cáo.','error'); return; }
+      const isForm1 = (uploadContext && uploadContext.form === 'Form 1');
       const btn = document.getElementById('btn-send');
+      const bpsCheckbox = document.getElementById('upload-bps');
+      const bpsChecked = bpsCheckbox ? bpsCheckbox.checked : false;
+      function extOf(name){ const m = String(name||'').toLowerCase().match(/\.([a-z0-9]+)$/); return m?m[1]:''; }
+      let fd = new FormData();
+      if (isForm1) {
+        const pdfInput = document.getElementById('upload-file-pdfzip');
+        const xlsxInput = document.getElementById('upload-file-xlsxzip');
+        const okPdf = ['pdf','zip','rar','7z'];
+        const okXlsx = ['xlsx','zip','rar','7z'];
+        if (!pdfInput || !pdfInput.files || pdfInput.files.length===0){ showToast('Vui lòng chọn file PDF hoặc file nén.','error'); return; }
+        const fPdf = pdfInput.files[0];
+        const extPdf = extOf(fPdf.name);
+        if (okPdf.indexOf(extPdf)===-1){ showToast('File PDF/Nén không đúng định dạng.','error'); return; }
+        let fXlsx = null;
+        if (bpsChecked){
+          if (!xlsxInput || !xlsxInput.files || xlsxInput.files.length===0){ showToast('Vui lòng chọn file Excel hoặc file nén khi gửi BPS.','error'); return; }
+          fXlsx = xlsxInput.files[0];
+          const extX = extOf(fXlsx.name);
+          if (okXlsx.indexOf(extX)===-1){ showToast('File Excel/Nén không đúng định dạng.','error'); return; }
+        }
       isModalSubmitting = true;
       if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
-      const fd = new FormData();
+        // Append with original field names
+        fd.append('file_pdfzip', fPdf);
+        if (fXlsx) fd.append('file_xlsxzip', fXlsx);
+        // Extra compatibility: duplicate under common field names
+        try { fd.append('file', fPdf); } catch(_){ }
+        try { if (fXlsx) fd.append('file2', fXlsx); } catch(_){ }
+        try { fd.append('files[]', fPdf); } catch(_){ }
+        try { if (fXlsx) fd.append('files[]', fXlsx); } catch(_){ }
+        fd.append('upload_type', fXlsx ? 'combined' : 'pdf_only');
+        fd.append('file_name', fPdf.name || '');
+        if (fXlsx) fd.append('file_name_xlsx', fXlsx.name || '');
+        fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
+        if(uploadContext){
+          fd.append('nguoi_nop', uploadContext.name||'');
+          const taskIdVal = uploadContext.taskId || uploadContext.code || '';
+          fd.append('ma_tac_vu', taskIdVal);
+          fd.append('ten_tac_vu', uploadContext.taskName||'');
+          fd.append('form', uploadContext.form||'Form 1');
+        }
+        if (bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
+        try{
+          try { showToast(`Sẽ gửi ${fXlsx? '2 tệp' : '1 tệp'}: ${fPdf?.name||''}${fXlsx? (', '+(fXlsx.name||'')) : ''}`,'info'); } catch(_){}
+          await fetch(FORM1_UPLOAD_URL,{method:'POST',body:fd, mode: 'no-cors'});
+          showToast('Đã gửi báo cáo.','success');
+          closeUploadModal();
+        } catch(e){
+          console.error(e);
+          showToast('Gửi thất bại.','error');
+          isModalSubmitting = false;
+          if (btn) { btn.disabled = false; btn.textContent = 'Gửi báo cáo'; }
+        }
+        return;
+      }
+      // Form 2 (giữ nguyên logic upload 1 file)
+      if(!fileInput.files || fileInput.files.length===0){ showToast('Vui lòng chọn tệp báo cáo.','error'); return; }
+      isModalSubmitting = true;
+      if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
       fd.append('file', fileInput.files[0]);
       fd.append('file_name', fileInput.files[0].name || '');
-      fd.append('timestamp', new Date().toISOString());
+      fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
       if(uploadContext){
         fd.append('nguoi_nop', uploadContext.name||'');
         const taskIdVal = uploadContext.taskId || uploadContext.code || '';
@@ -647,21 +840,20 @@
         fd.append('ten_tac_vu', uploadContext.taskName||'');
         fd.append('form', uploadContext.form||'');
       }
-      const bpsCheckbox = document.getElementById('upload-bps');
-      if (bpsCheckbox) { fd.append('is_bps', bpsCheckbox.checked ? '1' : '0'); }
-      const targetUpload = (uploadContext && uploadContext.form === 'Form 2') ? FORM2_UPLOAD_URL : FORM1_UPLOAD_URL;
+      if (bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
       try{
-        await fetch(targetUpload,{method:'POST',body:fd, mode: 'no-cors'});
+        await fetch(FORM2_UPLOAD_URL,{method:'POST',body:fd, mode: 'no-cors'});
         showToast('Đã gửi báo cáo.','success');
         closeUploadModal();
-      }
-      catch(e){
+      } catch(e){
         console.error(e);
         showToast('Gửi thất bại.','error');
         isModalSubmitting = false;
         if (btn) { btn.disabled = false; btn.textContent = 'Gửi báo cáo'; }
       }
     };
+
+    
 
     // Helpers for tables
     function addTd(tr, text){ const td=document.createElement('td'); td.className='px-3 py-2 align-top'; td.textContent=text; tr.appendChild(td); }
@@ -835,19 +1027,25 @@
           const statusLower = (statusText||'').toLowerCase();
           const isDone = statusLower.includes('hoàn') || statusLower.includes('done');
           const isCancelled = statusLower.includes('cancel') || statusLower.includes('hủy') || statusLower.includes('huỷ');
+          const isPendingApproval = statusLower.includes('chờ phê duyệt') || statusLower.includes('cho phe duyet');
           const isEmptyStatus = statusLower.trim()==='';
-          const isLocked = isDone || isCancelled || isEmptyStatus;
-          // Overdue highlight for Doing rows: compare now with ActualDue, fallback WishDue
+          const isLocked = isDone || isCancelled || isPendingApproval || isEmptyStatus;
+          // Highlight for Doing rows: if due is today -> yellow, past due -> red
           const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
           const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const dueStr = actualDue || wishDue || '';
           const dueDate = parseDateFlexible(dueStr);
           if (isDoing && dueDate){
-            const now = new Date();
-            if (now.getTime() >= dueDate.getTime()){
-              try { tr.style.backgroundColor = '#fee2e2'; } catch(_) {}
-            }
+            const today = new Date();
+            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const dueDayStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+            const isSameDay = dueDayStart.getTime() === todayStart.getTime();
+            const isPast = dueDayStart.getTime() < todayStart.getTime();
+            try {
+              if (isSameDay) { tr.style.backgroundColor = '#fef3c7'; } // yellow-100
+              else if (isPast) { tr.style.backgroundColor = '#fee2e2'; } // red-200
+            } catch(_) {}
           }
           // Tạo input file ẩn cho mỗi hàng + nút Trả báo cáo
           const inputId = `f1-upload-${Math.random().toString(36).slice(2)}`;
@@ -860,8 +1058,8 @@
           if (isLocked) {
             fileInput.disabled = true;
             labelBtn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none';
-            labelBtn.textContent = isCancelled ? 'Đã hủy' : (isDone ? 'Đã hoàn thành' : 'Không thể gửi');
-            labelBtn.title = isCancelled ? 'Tác vụ đã hủy, không thể gửi báo cáo' : (isDone ? 'Tác vụ đã hoàn thành, không thể gửi báo cáo' : 'Trạng thái trống, không thể gửi báo cáo');
+            labelBtn.textContent = isCancelled ? 'Đã hủy' : (isDone ? 'Đã hoàn thành' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi'));
+            labelBtn.title = isCancelled ? 'Tác vụ đã hủy, không thể gửi báo cáo' : (isDone ? 'Tác vụ đã hoàn thành, không thể gửi báo cáo' : (isPendingApproval ? 'Tác vụ đang chờ phê duyệt, không thể gửi báo cáo' : 'Trạng thái trống, không thể gửi báo cáo'));
           } else {
             labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
             labelBtn.textContent = 'Trả báo cáo';
@@ -881,11 +1079,16 @@
           // Tình trạng, Mã, Tên tác vụ, Người yêu cầu, Người nhận mẫu, Công chuẩn, ...
           const tdStatus=document.createElement('td'); tdStatus.className='px-3 py-2';
           const s=(statusText||'').toLowerCase();
-          const badge=document.createElement('span'); badge.className='px-2 py-1 rounded text-xs ' + (s.includes('hoàn')||s.includes('done')
-            ? 'bg-green-100 text-green-800'
-            : (s.includes('cancel')||s.includes('hủy')||s.includes('huỷ')||s.includes('chờ')||s.includes('pending'))
-              ? 'bg-yellow-100 text-yellow-800'
-              : 'bg-blue-100 text-blue-800');
+          const badge=document.createElement('span');
+          let badgeClass = 'bg-blue-100 text-blue-800';
+          if (s.includes('chờ phê duyệt') || s.includes('cho phe duyet')) {
+            badgeClass = 'bg-orange-100 text-orange-800';
+          } else if (s.includes('hoàn') || s.includes('done')) {
+            badgeClass = 'bg-green-100 text-green-800';
+          } else if (s.includes('cancel') || s.includes('hủy') || s.includes('huỷ') || s.includes('chờ') || s.includes('pending')) {
+            badgeClass = 'bg-yellow-100 text-yellow-800';
+          }
+          badge.className='px-2 py-1 rounded text-xs ' + badgeClass;
           badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
           addTd(tr, code);
           addTd(tr, tname);
@@ -1059,7 +1262,7 @@
     // Clear button removed per request
 
     // Form 3 logic
-    function setRqTime(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); document.getElementById('rq-time').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+    function setRqTime(){ const d=new Date(); const el=document.getElementById('rq-time'); if (el) el.value = formatDdMmYyyyHHmm(d); }
     setRqTime();
     // Default Form 4 month = current month
     (function setDefaultF4Month(){
@@ -1069,21 +1272,6 @@
       const yy = d.getFullYear();
       const mm = String(d.getMonth()+1).padStart(2,'0');
       if (!m.value) m.value = `${yy}-${mm}`;
-    })();
-    // Default Form 4 date range = first day to last day of current month
-    (function setDefaultF4Range(){
-      const fromInput = document.getElementById('f4-from');
-      const toInput = document.getElementById('f4-to');
-      if (!fromInput && !toInput) return;
-      const now = new Date();
-      const year = now.getFullYear();
-      const monthIndex = now.getMonth(); // 0-11
-      const pad = (n)=> String(n).padStart(2, '0');
-      const firstDay = `${year}-${pad(monthIndex+1)}-01`;
-      const lastDate = new Date(year, monthIndex + 1, 0).getDate();
-      const lastDay = `${year}-${pad(monthIndex+1)}-${pad(lastDate)}`;
-      if (fromInput && !fromInput.value) fromInput.value = firstDay;
-      if (toInput && !toInput.value) toInput.value = lastDay;
     })();
     // Helper: set default date for Form 5 inputs
     function setF5DateDefault(){
@@ -1137,12 +1325,12 @@
       const mapped = {
         requesterName: requester,
         requesterEmail: requesterEmail,
-        requestDate: (rqTime || '').slice(0, 10),
+        requestDate: formatDdMmYyyyHHmm(rqTime || new Date()),
         itemName: taskName,
         Score: String(manHourRaw || '').trim(),
         changeReq: output,
         Assignee: assignee,
-        desiredDate: String(deadline || '').trim(),
+        desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
         Odoojira: odooJira,
         deptRequest: 'DQA'
       };
@@ -1336,19 +1524,31 @@
       const chartWrap = document.getElementById('f4-chart-container');
       if (chartWrap) chartWrap.style.display = 'none';
       if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
-      body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      const statusSelEl = document.getElementById('f4-status');
+      const statusValPreview = statusSelEl ? statusSelEl.value : 'Doing';
+      const colSpan = (statusValPreview === 'All') ? 10 : 3;
+      body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
       try{
         const urlTest = 'https://iatzhxxuk.tino.page/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
         const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
         const params = new URLSearchParams();
-        const statusSel = document.getElementById('f4-status');
-        const statusVal = (statusSel && statusSel.value) ? statusSel.value : 'Doing';
+        const statusEl = document.getElementById('f4-status');
+        const statusVal = (statusEl && statusEl.value) ? statusEl.value : 'Doing';
         params.append('status', statusVal);
-        // Date range filter
-        const fromInput = document.getElementById('f4-from');
-        const toInput = document.getElementById('f4-to');
-        const fromVal = (fromInput && fromInput.value) ? fromInput.value : '';
-        const toVal = (toInput && toInput.value) ? toInput.value : '';
+        // Date range filter -> from month
+        const monthInput = document.getElementById('f4-month');
+        const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+        let fromVal = '';
+        let toVal = '';
+        if (monthVal) {
+          try{
+            const [yy, mm] = monthVal.split('-');
+            const firstDay = `${yy}-${mm}-01`;
+            const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
+            const lastDay = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
+            fromVal = firstDay; toVal = lastDay;
+          }catch(_){ }
+        }
         if (fromVal) params.append('from', fromVal);
         if (toVal) params.append('to', toVal);
         // Query mapping for 2 output columns
@@ -1356,7 +1556,7 @@
         params.append('header_current_manhour', 'Công chuẩn hiện tại');
         params.append('field_employee', 'employee');
         params.append('field_current_manhour', 'manhour');
-        params.append('header_task_count', 'Số tác vụ');
+        params.append('header_task_count', 'Số tác vụ trong tháng');
         params.append('field_task_count', 'taskCount');
         params.append('_ts', Date.now().toString());
         // Debug: log the exact URL being requested
@@ -1428,15 +1628,115 @@
         const filtered = selectedNames.length ? merged.filter(x => F4_SELECTED_NAMES.has(x.name)) : merged;
         if (!filtered.length) { body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
         const normalizedSorted = filtered.slice().sort((a,b)=> b.manhour - a.manhour);
-        const html = normalizedSorted.map(x=>
-          `<tr>
+        // Nếu trạng thái là All, mở rộng cột theo yêu cầu và lấy dữ liệu server
+        const isAll = (statusVal === 'All');
+        async function fetchStatsFor(name){
+          try{
+            const qs = new URLSearchParams();
+            qs.append('action','form4_employee_stats');
+            qs.append('employee', name);
+            if (fromVal) qs.append('from', fromVal);
+            if (toVal) qs.append('to', toVal);
+            const r = await fetch(`${urlTest}?${qs.toString()}`);
+            const t = await r.text();
+            let j = null; try{ j = JSON.parse(t); }catch{}
+            const obj = (j && typeof j==='object') ? j : {};
+            const getN = (k)=>{ const v = obj[k]; const n = Number(v); return isNaN(n)?0:n; };
+            const done = getN('done');
+            const ahead = getN('ahead');
+            const ontime = getN('ontime');
+            const late = getN('late');
+            const rateOntime = getN('rate_ontime');
+            const rateLate = getN('rate_late');
+            const rateAhead = getN('rate_ahead');
+            return { done, ahead, ontime, late, rateOntime, rateLate, rateAhead };
+          }catch(_){ return { done:0,ahead:0,ontime:0,late:0,rateOntime:0,rateLate:0,rateAhead:0 }; }
+        }
+        // Cập nhật header động theo chế độ
+        (function updateHeader(){
+          const headRow = document.getElementById('f4-head-row');
+          if (!headRow) return;
+          const isAll = (statusVal === 'All');
+          try {
+            const mainTable = document.getElementById('f4-main-table');
+            if (mainTable) {
+              if (isAll) {
+                mainTable.classList.add('min-w-[1100px]');
+                mainTable.classList.remove('min-w-[480px]');
+              } else {
+                mainTable.classList.add('min-w-[480px]');
+                mainTable.classList.remove('min-w-[1100px]');
+              }
+            }
+          } catch(_) {}
+          headRow.innerHTML = `
+            <th class="px-3 py-2 relative">
+              <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">Nhân viên <span class="text-xs">▾</span></button>
+              <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
+                <div class="flex items-center gap-2 mb-2">
+                  <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                  <div class="flex items-center gap-3">
+                    <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
+                    <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
+                  </div>
+                  <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
+                </div>
+                <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
+                  <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
+                </div>
+              </div>
+            </th>
+            <th class="px-3 py-2">Công chuẩn hiện tại</th>
+            <th class="px-3 py-2">Số tác vụ</th>
+            ${isAll ? `
+              <th class="px-3 py-2">Số DONE</th>
+              <th class="px-3 py-2">Vượt tiến độ</th>
+              <th class="px-3 py-2">Đúng tiến độ</th>
+              <th class="px-3 py-2">Chậm tiến độ</th>
+              <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
+              <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
+              <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
+            `: ''}`;
+          // re-bind filter popover events
+          try { f4InitFilterPopover(); } catch(_) {}
+        })();
+
+        const html = await (async ()=>{
+          const rowsHtml = [];
+          for (const x of normalizedSorted){
+            if (!isAll){
+              rowsHtml.push(`
+                <tr>
              <td class="px-3 py-2">
                <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
              </td>
              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
              <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}">${(x.count==null)?'<span class="spinner"></span>':String(x.count)}</span></td>
-           </tr>`
-        ).join('');
+                </tr>`);
+              continue;
+            }
+            const st = await fetchStatsFor(x.name);
+            rowsHtml.push(`
+              <tr>
+                <td class="px-3 py-2">${x.name}</td>
+                <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
+                <td class="px-3 py-2">${(x.count==null)?'':String(x.count)}</td>
+                <td class="px-3 py-2">${(st.done ?? '')}</td>
+                <td class="px-3 py-2">${(st.ahead ?? '')}</td>
+                <td class="px-3 py-2">${(st.ontime ?? '')}</td>
+                <td class="px-3 py-2">${(st.late ?? '')}</td>
+                <td class="px-3 py-2">${isNaN(st.rateOntime)?'':(st.rateOntime.toFixed(0)+"%")}</td>
+                <td class="px-3 py-2">${isNaN(st.rateLate)?'':(st.rateLate.toFixed(0)+"%")}</td>
+                <td class="px-3 py-2">${isNaN(st.rateAhead)?'':(st.rateAhead.toFixed(0)+"%")}</td>
+              </tr>`);
+          }
+          return rowsHtml.join('');
+        })();
+        if (isAll) {
+          if (bodyAll) bodyAll.innerHTML = html;
+        } else {
         body.innerHTML = html;
         // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
         const statusForCount = statusVal;
@@ -1455,6 +1755,7 @@
           }
         });
         Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
+        }
         // Render bar chart
         const labels = normalizedSorted.map(x=> x.name);
         const values = normalizedSorted.map(x=> x.manhour);
@@ -1639,13 +1940,18 @@
           const dueForCompare = act || wish || '';
           const isLate = (()=>{ const d1 = toDate(done), d2 = toDate(dueForCompare); return d1 && d2 ? (d1.getTime() > d2.getTime()) : false; })();
           let trClass = isLate ? 'bg-yellow-100' : '';
-          // Overdue doing highlight (light red)
+          // Overdue doing highlight + today highlight (match Form 1)
           const sLower = (status||'').toLowerCase();
           const isDoing = sLower.includes('doing') || sLower.includes('đang');
           const dueDate = parseDateFlexible(dueForCompare);
           if (isDoing && dueDate){
-            const now = new Date();
-            if (now.getTime() >= dueDate.getTime()) trClass = 'bg-red-100';
+            const today = new Date();
+            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const dueDayStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+            const isSameDay = dueDayStart.getTime() === todayStart.getTime();
+            const isPast = dueDayStart.getTime() < todayStart.getTime();
+            if (isSameDay) trClass = 'bg-yellow-100';
+            else if (isPast) trClass = 'bg-red-100';
           }
 
           return `
@@ -1773,7 +2079,17 @@
       if (!rowsOut.length){
         body.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`;
       } else {
-        body.innerHTML = rowsOut.map(r=>`<tr class="bg-red-50">
+        const todayStart = (()=>{ const d=new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
+        function toDate(v){ try{ return parseDateFlexible(v||''); }catch(_){ return null; } }
+        body.innerHTML = rowsOut.map(r=>{
+          const due = toDate(r.actualDue || r.wishDue || '');
+          let trClass = 'bg-red-50';
+          if (due){
+            const dueStart = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+            if (dueStart.getTime() === todayStart.getTime()) trClass = 'bg-yellow-100';
+            else if (dueStart.getTime() < todayStart.getTime()) trClass = 'bg-red-100';
+          }
+          return `<tr class="${trClass}">
           <td class="px-3 py-2">${r.assignee}</td>
           <td class="px-3 py-2">${r.code}</td>
           <td class="px-3 py-2">${r.taskName}</td>
@@ -1781,7 +2097,8 @@
           <td class="px-3 py-2">${r.requestDate}</td>
           <td class="px-3 py-2">${r.wishDue}</td>
           <td class="px-3 py-2">${r.actualDue}</td>
-        </tr>`).join('');
+          </tr>`;
+        }).join('');
       }
       if (sumTotal) sumTotal.textContent = String(rowsOut.length);
       if (note) note.textContent = 'Danh sách tác vụ Doing bị quá hạn (theo Form 1).';
@@ -1798,7 +2115,7 @@
       // set initial visual state
       f4UpdateGroupButtonsUI();
     })();
-    // Trigger fetch only when nhấn Tra cứu ở Form 5
+    // Trigger fetch only when nhấn Tra cứu ở Form 6 (ý tưởng)
     const f5Btn = document.getElementById('f5-search');
     if (f5Btn) {
       f5Btn.addEventListener('click', async (e)=>{
@@ -1814,9 +2131,14 @@
         }
       });
     }
+    // Trigger fetch for Form 5 (All tasks)
+    const f5aBtn = document.getElementById('f5a-search');
+    if (f5aBtn) { f5aBtn.addEventListener('click', async (e)=>{ e.preventDefault(); try{ await renderForm5All(); }catch(_){ } }); }
+    // Auto render once when Form 5 first shows
+    try { setTimeout(()=>{ try{ renderForm5All(); }catch(_){ } }, 300); } catch(_) {}
     // Tự động render khi đổi trạng thái
-    const f4StatusSel = document.getElementById('f4-status');
-    if (f4StatusSel) f4StatusSel.addEventListener('change', ()=> renderForm4());
+    const f4StatusHidden = document.getElementById('f4-status');
+    if (f4StatusHidden) f4StatusHidden.value = 'Doing';
     const f4FromInput = document.getElementById('f4-from');
     const f4ToInput = document.getElementById('f4-to');
     if (f4FromInput) f4FromInput.addEventListener('change', ()=>{ renderForm4(); f4SchedulePivot(); });
@@ -1967,7 +2289,7 @@
         const prev = sendBtn ? sendBtn.textContent : '';
         if (sendBtn){ sendBtn.disabled = true; sendBtn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
         // Build payload (send both submitDate and date for compatibility)
-        const toDMY = (v)=>{ try{ const [y,m,d] = String(v||'').split('-'); return `${d}/${m}/${y}`; }catch(_){ return String(v||''); } };
+        const toDMY = (v)=>{ try{ return formatDdMmYyyy(v); }catch(_){ return String(v||''); } };
         const p = new URLSearchParams({
           submitDate: date,
           date: date,
@@ -2076,6 +2398,550 @@
       nameEl.addEventListener('input', syncRequesterEmail);
       nameEl.addEventListener('change', syncRequesterEmail);
       syncRequesterEmail();
+    })();
+
+    async function renderForm5All(){
+      const body = document.getElementById('f5a-body');
+      if (!body) return;
+      body.innerHTML = "<tr><td colspan='11' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      const chartWrap = document.getElementById('f5a-chart-container');
+      const chartCanvas = document.getElementById('f5a-chart');
+      const chartWrapMan = document.getElementById('f5a-chart-container-manhour');
+      const chartCanvasMan = document.getElementById('f5a-chart-manhour');
+      function destroyChart(){ try{ if (F5A_CHART) { F5A_CHART.destroy(); F5A_CHART = null; } }catch(_){}
+        try{ if (F5A_CHART_MAN) { F5A_CHART_MAN.destroy(); F5A_CHART_MAN = null; } }catch(_){}
+      }
+      function renderStackedChart(rows){
+        try{
+          try{ window.F5A_RENDER_CHART = (r)=>{ try{ renderStackedChart(r || F5A_LAST_ROWS || []); }catch(_){ } }; }catch(_){ }
+          if (!Array.isArray(rows) || !rows.length || !chartCanvas) { if(chartWrap) chartWrap.style.display='none'; destroyChart(); return; }
+          // Chọn chế độ dữ liệu: rates (cũ) hoặc manhour (mới)
+          const basisSel = document.getElementById('f5a-basis');
+          const basis = basisSel ? (basisSel.value || 'rates') : 'rates';
+          if (basis === 'manhour'){
+            const labels = rows.map(r=> r.name);
+            const isHorizontal = (F5A_MODE === 'horizontal');
+            if (chartWrap) {
+              chartWrap.style.display = '';
+              const baseH = 420;
+              chartWrap.style.height = isHorizontal ? Math.max(baseH, 28*labels.length + 100) + 'px' : baseH + 'px';
+            }
+            const ctx = chartCanvas.getContext('2d');
+            destroyChart();
+            const dataMan = rows.map(r=> Number(r.manhour)||0);
+            const valueLabelsPlugin = {
+              id: 'valueLabels',
+              afterDatasetsDraw(chart){
+                const { ctx } = chart;
+                const isHorizontal = chart.options.indexAxis === 'y';
+                const meta = chart.getDatasetMeta(0);
+                if (!meta || !meta.data) return;
+                ctx.save();
+                meta.data.forEach((bar, i)=>{
+                  const val = Number(chart.data.datasets[0].data?.[i]) || 0;
+                  if (val <= 0) return;
+                  const x = isHorizontal ? (bar.x + 12) : bar.x;
+                  const y = isHorizontal ? bar.y : (bar.y - 6);
+                  ctx.fillStyle = '#0b1324';
+                  ctx.font = 'bold 12px Inter, Arial';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'bottom';
+                  ctx.fillText(val.toFixed(2), x, y);
+                });
+                ctx.restore();
+              }
+            };
+            F5A_CHART = new Chart(ctx, {
+              type: 'bar',
+              data: { labels, datasets: [{ label: 'Công chuẩn hiện tại', data: dataMan, backgroundColor: 'rgba(90, 169, 255, 0.6)', borderColor: '#5aa9ff', borderWidth: 1 }] },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: isHorizontal ? 'y' : 'x',
+                scales: {
+                  x: { ticks: { autoSkip: false, maxRotation: isHorizontal?0:20, minRotation: 0, font: { size: 11 } }, grid: { display: false }, title: { display: true, text: isHorizontal? 'Công chuẩn' : 'Nhân viên' } },
+                  y: { beginAtZero: true, ticks: { precision:0 }, grid: { color: 'rgba(0,0,0,0.06)', borderDash:[4,3] }, title: { display: true, text: isHorizontal? 'Nhân viên' : 'Công chuẩn' } }
+                },
+                plugins: { legend: { display: false } }
+              },
+              plugins: [valueLabelsPlugin]
+            });
+            try { setTimeout(()=>{ chartWrap && chartWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100); } catch(_) {}
+            F5A_LAST_ROWS = rows;
+            const modeSel = document.getElementById('f5a-mode');
+            if (modeSel){ modeSel.value = F5A_MODE; modeSel.onchange = ()=>{ F5A_MODE = modeSel.value || 'vertical'; renderStackedChart(F5A_LAST_ROWS); }; }
+            if (basisSel){ basisSel.value = basis; basisSel.onchange = ()=> renderStackedChart(F5A_LAST_ROWS); }
+            try{ window.F5A_RENDER_CHART = (r)=>{ try{ renderStackedChart(r || F5A_LAST_ROWS || []); }catch(_){ } }; }catch(_){ }
+            return;
+          }
+          // Fallback tính tỷ lệ nếu chưa có % nhưng có số lượng
+          const normalized = rows.map(r=>{
+            const a = Number(r.rateAhead)||0, o = Number(r.rateOntime)||0, l = Number(r.rateLate)||0;
+            if ((a+o+l) > 0) return { ...r, rateAhead:a, rateOntime:o, rateLate:l };
+            const ca = Number(r.ahead)||0, co = Number(r.ontime)||0, cl = Number(r.late)||0;
+            const sum = ca + co + cl;
+            if (sum > 0) return { ...r, rateAhead: Math.round(ca*100/sum), rateOntime: Math.round(co*100/sum), rateLate: Math.round(cl*100/sum) };
+            return { ...r };
+          });
+          const labels = normalized.map(r=> r.name);
+          const counts   = normalized.map(r=> isNaN(r.count)?0:Number(r.count));
+          // Tính số lượng theo trạng thái, nếu thiếu thì suy ra từ % * tổng count
+          const cntOn  = normalized.map((r,i)=>{ const c=counts[i]; const v=Number(r.ontime)||Math.round((Number(r.rateOntime)||0)*c/100); return v; });
+          const cntLate= normalized.map((r,i)=>{ const c=counts[i]; const v=Number(r.late)||Math.round((Number(r.rateLate)||0)*c/100); return v; });
+          const cntAhead=normalized.map((r,i)=>{ const c=counts[i]; const v=Number(r.ahead)||Math.round((Number(r.rateAhead)||0)*c/100); return v; });
+          // Tính phần trăm để hiển thị nhãn
+          const pctOn   = normalized.map((r,i)=>{ const c=counts[i]||1; return Math.round((cntOn[i]||0)*100/c); });
+          const pctLate = normalized.map((r,i)=>{ const c=counts[i]||1; return Math.round((cntLate[i]||0)*100/c); });
+          const pctAhead= normalized.map((r,i)=>{ const c=counts[i]||1; return Math.round((cntAhead[i]||0)*100/c); });
+          const maxCount = Math.max(1, ...counts);
+          const isHorizontal = (F5A_MODE === 'horizontal');
+          if (chartWrap) { chartWrap.style.display = ''; chartWrap.style.height = (isHorizontal ? Math.max(440, 28*labels.length + 100) : 440) + 'px'; }
+          if (chartWrapMan) { chartWrapMan.style.display = ''; chartWrapMan.style.height = 420 + 'px'; }
+          const ctx = chartCanvas.getContext('2d');
+          destroyChart();
+          const stackedLabelsPlugin = {
+            id: 'stackedLabels',
+            afterDatasetsDraw(chart){
+              const { ctx, chartArea } = chart;
+              ctx.save();
+              const isHorizontal = chart.options.indexAxis === 'y';
+              chart.data.datasets.forEach((ds, dsIdx)=>{
+                const meta = chart.getDatasetMeta(dsIdx);
+                if (!meta || meta.hidden || !meta.data || (ds.type && ds.type !== 'bar')) return;
+                const inSameStack = (other)=> (other.stack || '') === (ds.stack || '');
+                meta.data.forEach((bar, i)=>{
+                  const val = Number(ds.data?.[i]) || 0;
+                  if (val <= 0) return;
+                  let total = 0;
+                  chart.data.datasets.forEach((ods, j)=>{
+                    const m = chart.getDatasetMeta(j);
+                    if (!m || m.hidden || (ods.type && ods.type !== 'bar')) return;
+                    if (!inSameStack(ods)) return;
+                    total += Number(ods.data?.[i]) || 0;
+                  });
+                  if (!total) return;
+                  const percent = Math.round((val * 100) / total);
+                  const x = bar.x !== undefined ? bar.x : (bar.tooltipPosition ? bar.tooltipPosition().x : 0);
+                  const y = bar.y !== undefined ? bar.y : (bar.tooltipPosition ? bar.tooltipPosition().y : 0);
+                  const base = bar.base !== undefined ? bar.base : (isHorizontal ? chart.scales.x.getPixelForValue(0) : chart.scales.y.getPixelForValue(0));
+                  const midX = isHorizontal ? (x + base) / 2 : x;
+                  const midY = isHorizontal ? y : (y + base) / 2;
+                  ctx.fillStyle = '#000000';
+                  ctx.font = 'bold 12px Inter, Arial';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(`${percent}%`, midX, Math.min(midY, chartArea.bottom - 4));
+                });
+              });
+              ctx.restore();
+            }
+          };
+          const stackTotalsPlugin = {
+            id: 'stackTotals',
+            afterDatasetsDraw(chart){
+              const { ctx } = chart;
+              const isHorizontal = chart.options.indexAxis === 'y';
+              const datasets = chart.data.datasets || [];
+              const labels = chart.data.labels || [];
+              ctx.save();
+              for (let i=0; i<labels.length; i++){
+                let total = 0;
+                let anchor = null;
+                datasets.forEach((ds, idx)=>{
+                  const meta = chart.getDatasetMeta(idx);
+                  if (!meta || meta.hidden || (ds.type && ds.type !== 'bar')) return;
+                  if ((ds.stack || '') !== 'rates') return;
+                  const val = Number(ds.data?.[i]) || 0;
+                  total += val;
+                  if (!anchor) anchor = meta.data?.[i] || null;
+                });
+                if (!anchor || !total) continue;
+                const scale = isHorizontal ? chart.scales.x : chart.scales.y;
+                const pos = scale.getPixelForValue(total);
+                const x = isHorizontal ? (pos + 12) : anchor.x;
+                const y = isHorizontal ? anchor.y : (pos - 6);
+                ctx.fillStyle = '#0b1324';
+                ctx.font = 'bold 12px Inter, Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(String(total), x, y);
+              }
+              ctx.restore();
+            }
+          };
+          const COLOR_ON = 'rgba(134,239,172,0.85)';      // green-300
+          const COLOR_LATE = 'rgba(254,202,202,0.9)';     // red-200
+          const COLOR_AHEAD = 'rgba(147,197,253,0.9)';    // blue-300
+          const BORDER_SEG = '#e5e7eb';                   // slate-200
+          const barT = isHorizontal ? 20 : 26;
+          const catPct = isHorizontal ? 0.75 : 0.9;
+          const barPct = isHorizontal ? 0.9 : 0.95;
+          F5A_CHART = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Vượt tiến độ', data: cntAhead, backgroundColor: COLOR_AHEAD, borderColor:BORDER_SEG, borderWidth:1, stack: 'rates', barThickness:barT, maxBarThickness:barT+8, categoryPercentage:catPct, barPercentage:barPct },
+                { label: 'Đúng tiến độ', data: cntOn, backgroundColor: COLOR_ON, borderColor:BORDER_SEG, borderWidth:1, stack: 'rates', barThickness:barT, maxBarThickness:barT+8, categoryPercentage:catPct, barPercentage:barPct },
+                { label: 'Chậm tiến độ', data: cntLate, backgroundColor: COLOR_LATE, borderColor:BORDER_SEG, borderWidth:1, stack: 'rates', barThickness:barT, maxBarThickness:barT+8, categoryPercentage:catPct, barPercentage:barPct }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: isHorizontal ? 'y' : 'x',
+              scales: {
+                x: { stacked: true, ticks: { autoSkip: false, maxRotation: isHorizontal?0:20, minRotation: 0, font: { size: 11 } }, grid: { display: false } },
+                y: { stacked: true, beginAtZero: true, suggestedMax: Math.ceil(maxCount*1.15), ticks: { precision:0 }, grid: { color: 'rgba(0,0,0,0.06)', borderDash:[4,3] }, title: { display: true, text: 'Số tác vụ' } }
+              },
+              plugins: {
+                stackedLabels: {},
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx)=>{
+                      const dsLabel = ctx.dataset.label || '';
+                      const value = ctx.parsed[isHorizontal?'x':'y'];
+                      const total = counts[ctx.dataIndex] || 0;
+                      const pct = total ? Math.round(value*100/total) : 0;
+                      return ` ${dsLabel}: ${value} (${pct}%)`;
+                    }
+                  }
+                }
+              },
+              plugins: [stackedLabelsPlugin, stackTotalsPlugin]
+            }
+          });
+          try { setTimeout(()=>{ chartWrap && chartWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100); } catch(_) {}
+          // lưu lại rows (giữ đủ thuộc tính, kể cả manhour) để đổi chế độ
+          F5A_LAST_ROWS = rows;
+          const modeSel = document.getElementById('f5a-mode');
+          if (modeSel){
+            modeSel.value = F5A_MODE;
+            modeSel.onchange = ()=>{ F5A_MODE = modeSel.value || 'vertical'; renderStackedChart(F5A_LAST_ROWS); };
+          }
+          // Render chart manhour song song
+          try {
+            const manRows = ((F5A_LAST_ROWS && Array.isArray(F5A_LAST_ROWS)) ? F5A_LAST_ROWS : normalized).slice().sort((a,b)=> Number(b.manhour||0) - Number(a.manhour||0));
+            const labels2 = manRows.map(r=> r.name);
+            const ctxMan = chartCanvasMan ? chartCanvasMan.getContext('2d') : null;
+            if (ctxMan){
+              const dataMan = manRows.map(r=> Number(r.manhour)||0);
+              try{ if (F5A_CHART_MAN) { F5A_CHART_MAN.destroy(); } }catch(_){ }
+              const valueLabelsPlugin2 = {
+                id: 'valueLabels2',
+                afterDatasetsDraw(chart){
+                  const { ctx } = chart; const meta = chart.getDatasetMeta(0); if (!meta||!meta.data) return;
+                  ctx.save(); meta.data.forEach((bar,i)=>{ const v=Number(chart.data.datasets[0].data?.[i])||0; if(v<=0) return; const x=bar.x; const y=(bar.y-6); ctx.fillStyle='#0b1324'; ctx.font='bold 12px Inter, Arial'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(v.toFixed(2), x, y); }); ctx.restore();
+                }
+              };
+              F5A_CHART_MAN = new Chart(ctxMan, {
+                type: 'bar',
+                data: { labels: labels2, datasets: [{ label: 'Công chuẩn hiện tại', data: dataMan, backgroundColor: 'rgba(90, 169, 255, 0.6)', borderColor: '#5aa9ff', borderWidth: 1 }] },
+                options: { responsive:true, maintainAspectRatio:false, indexAxis: 'x', scales: { x:{ ticks:{ autoSkip:false, maxRotation:20, minRotation:0, font:{ size:11 } }, grid:{ display:false }, title:{ display:true, text: 'Nhân viên' } }, y:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:'rgba(0,0,0,0.06)', borderDash:[4,3] }, title:{ display:true, text: 'Công chuẩn' } } }, plugins: { legend:{ display:false } } },
+                plugins: [valueLabelsPlugin2]
+              });
+            }
+          } catch(_) {}
+        }catch(_){ if(chartWrap) chartWrap.style.display='none'; }
+      }
+      try{
+        const urlTest = 'https://iatzhxxuk.tino.page/webhook/4744d882-be8d-4939-a516-9229ba7dc87a';
+        const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
+        const params = new URLSearchParams();
+        params.append('action', 'form5_all');
+        params.append('status', 'All');
+        const monthInput = document.getElementById('f5a-month');
+        const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+        const toNumeric = (v)=>{ const s=String(v??''); const n=parseFloat(s.replace(/[^0-9.+-]/g,'')); return isNaN(n)?0:n; };
+        let fromVal = '';
+        let toVal = '';
+        if (monthVal) {
+          try{
+            const [yy, mm] = monthVal.split('-');
+            const firstDay = `${yy}-${mm}-01`;
+            const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
+            const lastDay = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
+            fromVal = firstDay; toVal = lastDay;
+            params.append('month', monthVal);
+          }catch(_){ }
+        }
+        if (fromVal) params.append('from', fromVal);
+        if (toVal) params.append('to', toVal);
+        params.append('header_employee', 'Nhân viên');
+        params.append('header_current_manhour', 'Công chuẩn hiện tại');
+        params.append('field_employee', 'employee');
+        params.append('field_current_manhour', 'manhour');
+        params.append('header_task_count', 'Số tác vụ trong tháng');
+        params.append('field_task_count', 'taskCount');
+        params.append('_ts', Date.now().toString());
+        try { console.log('Form5 All GET (test):', `${urlTest}?${params.toString()}`); } catch(_) {}
+        async function fetchJson(url){
+          const r = await fetch(url, { method: 'GET' });
+          const text = await r.text();
+          let parsed = null; try { parsed = JSON.parse(text); } catch { parsed = null; }
+          return { ok: r.ok, parsed, raw: text, status: r.status };
+        }
+        // 1) Thử lấy dữ liệu tổng hợp có đủ cột từ server (form5_all_stats)
+        const paramsStats = new URLSearchParams(params);
+        paramsStats.set('action','form5_all_stats');
+        paramsStats.append('header_done','Số DONE');
+        paramsStats.append('header_ahead','Vượt tiến độ');
+        paramsStats.append('header_ontime','Đúng tiến độ');
+        paramsStats.append('header_late','Chậm tiến độ');
+        paramsStats.append('header_rate_ontime','Tỷ lệ đúng (%)');
+        paramsStats.append('header_rate_late','Tỷ lệ chậm (%)');
+        paramsStats.append('header_rate_ahead','Tỷ lệ vượt (%)');
+        paramsStats.append('field_done','done');
+        paramsStats.append('field_ahead','ahead');
+        paramsStats.append('field_ontime','ontime');
+        paramsStats.append('field_late','late');
+        paramsStats.append('field_rate_ontime','rate_ontime');
+        paramsStats.append('field_rate_late','rate_late');
+        paramsStats.append('field_rate_ahead','rate_ahead');
+        paramsStats.append('header_needManhour', 'Công chuẩn cần nhận');
+        paramsStats.append('field_needManhour', 'Need_manhour');
+        paramsStats.append('_ts', Date.now().toString());
+        try { console.log('Form5 All Stats GET (test):', `${urlTest}?${paramsStats.toString()}`); } catch(_) {}
+        let combined = await fetchJson(`${urlTest}?${paramsStats.toString()}`);
+        if (!combined.ok || /could not be started/i.test(String(combined.parsed?.message||''))){
+          combined = await fetchJson(`${urlProd}?${paramsStats.toString()}`);
+        }
+        function pickRowsDeep(json){
+          if (!json) return [];
+          if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k]) && json[k].length && typeof json[k][0] === 'object') return json[k]; }
+          try{
+            const queue=[json]; const seen=new Set();
+            while(queue.length){ const cur = queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for (const v of Object.values(cur)){ if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v; if (v && typeof v==='object') queue.push(v);} }
+          }catch(_){ }
+          return [];
+        }
+        if (combined.ok){
+          const dataStats = combined.parsed ?? (combined.raw ? JSON.parse(combined.raw) : null);
+          const rowsStats = pickRowsDeep(dataStats);
+          // Hỗ trợ dạng object-map: { "Tên": { ... }, ... }
+          let rowsStatsFlex = rowsStats;
+          if ((!rowsStatsFlex || rowsStatsFlex.length===0) && dataStats && typeof dataStats==='object' && !Array.isArray(dataStats)){
+            const entries = Object.entries(dataStats);
+            const valid = entries.filter(([,v])=> v && typeof v==='object' && !Array.isArray(v));
+            if (valid.length && valid.length === entries.length){
+              rowsStatsFlex = entries.map(([k,v])=> ({ name: k, ...v }));
+            }
+          }
+          const getV2 = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
+          if (rowsStatsFlex && rowsStatsFlex.length){
+            const rowsStatsFlexSorted = rowsStatsFlex.slice().sort((a,b)=>{
+              const ma = Number((()=>{ try{ return (a && (a.manhour ?? a.manhours ?? a.Manhour)); }catch(_){ return undefined; } })() ?? getV2(a,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+              const mb = Number((()=>{ try{ return (b && (b.manhour ?? b.manhours ?? b.Manhour)); }catch(_){ return undefined; } })() ?? getV2(b,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+              return (isNaN(mb)?0:mb) - (isNaN(ma)?0:ma);
+            });
+            const html = rowsStatsFlexSorted.map(item=>{
+              const name = getV2(item,['employee','nhanvien','nhân viên','họ tên','name']);
+              const man = Number(getV2(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+              const count = getV2(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']);
+              const done = getV2(item,['done','số done']);
+              const ahead = getV2(item,['ahead','vượt tiến độ']);
+              const ontime = getV2(item,['ontime','đúng tiến độ']);
+              const late = getV2(item,['late','chậm tiến độ']);
+              const rOn = Number(getV2(item,['rate_ontime','tỷ lệ đúng (%)']));
+              const rLate = Number(getV2(item,['rate_late','tỷ lệ chậm (%)']));
+              const rAhead = Number(getV2(item,['rate_ahead','tỷ lệ vượt (%)']));
+              const need = getV2(item,[
+                'công chuẩn cần nhận','cong chuan can nhan','need_manhour','needmanhour','need_manhours','needmanhours','need_mh','needmh','target_manhour','targetmanhour','need_manhour_month','need_in_month','planned_manhour'
+              ]);
+              return `
+                <tr>
+                  <td class="px-3 py-2">${name}</td>
+                  <td class="px-3 py-2">${isNaN(man)?'0.00':man.toFixed(2)}</td>
+                  <td class="px-3 py-2 cell-div">${need?String(need):''}</td>
+                  <td class="px-3 py-2">${(count ?? '')}</td>
+                  <td class="px-3 py-2">${(done ?? '')}</td>
+                  <td class="px-3 py-2">${(ahead ?? '')}</td>
+                  <td class="px-3 py-2">${(ontime ?? '')}</td>
+                  <td class="px-3 py-2">${(late ?? '')}</td>
+                  <td class="px-3 py-2">${isNaN(rAhead)?'':(rAhead.toFixed(0)+"%")}</td>
+                  <td class="px-3 py-2">${isNaN(rOn)?'':(rOn.toFixed(0)+"%")}</td>
+                  <td class="px-3 py-2">${isNaN(rLate)?'':(rLate.toFixed(0)+"%")}</td>
+                </tr>`;
+            }).join('');
+            body.innerHTML = html;
+            // build rows for chart
+            const chartRows = rowsStatsFlexSorted.map(item=>{
+              const name = getV2(item,['employee','nhanvien','nhân viên','họ tên','name']);
+              const rateAhead = toNumeric(getV2(item,['rate_ahead','tỷ lệ vượt (%)']));
+              const rateOntime = toNumeric(getV2(item,['rate_ontime','tỷ lệ đúng (%)']));
+              const rateLate = toNumeric(getV2(item,['rate_late','tỷ lệ chậm (%)']));
+              const countNum = toNumeric(getV2(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']));
+              const aheadCnt = toNumeric(getV2(item,['ahead']));
+              const onCnt = toNumeric(getV2(item,['ontime']));
+              const lateCnt = toNumeric(getV2(item,['late']));
+              const manVal = toNumeric(getV2(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+              return { name, rateAhead, rateOntime, rateLate, count: countNum, ahead: aheadCnt, ontime: onCnt, late: lateCnt, manhour: manVal };
+            });
+            renderStackedChart(chartRows);
+            return;
+          }
+        }
+        // 1b) Thử gọi endpoint không tham số action (chỉ truyền month/from/to)
+        {
+          const bareQs = new URLSearchParams();
+          if (monthVal) bareQs.append('month', monthVal);
+          if (fromVal) bareQs.append('from', fromVal);
+          if (toVal) bareQs.append('to', toVal);
+          let bare = await fetchJson(`${urlTest}${bareQs.toString()?`?${bareQs.toString()}`:''}`);
+          if (!bare.ok || /could not be started/i.test(String(bare.parsed?.message||''))){
+            bare = await fetchJson(`${urlProd}${bareQs.toString()?`?${bareQs.toString()}`:''}`);
+          }
+          if (bare.ok){
+            const dataBare = bare.parsed ?? (bare.raw ? JSON.parse(bare.raw) : null);
+            const rowsBare = pickRowsDeep(dataBare);
+            // Hỗ trợ object-map
+            let rowsBareFlex = rowsBare;
+            if ((!rowsBareFlex || rowsBareFlex.length===0) && dataBare && typeof dataBare==='object' && !Array.isArray(dataBare)){
+              const entries = Object.entries(dataBare);
+              const valid = entries.filter(([,v])=> v && typeof v==='object' && !Array.isArray(v));
+              if (valid.length && valid.length === entries.length){
+                rowsBareFlex = entries.map(([k,v])=> ({ name: k, ...v }));
+              }
+            }
+            const getV2b = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
+            if (rowsBareFlex && rowsBareFlex.length){
+              const rowsBareFlexSorted = rowsBareFlex.slice().sort((a,b)=>{
+                const ma = Number(getV2b(a,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+                const mb = Number(getV2b(b,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+                return (isNaN(mb)?0:mb) - (isNaN(ma)?0:ma);
+              });
+              const html = rowsBareFlexSorted.map(item=>{
+                const name = getV2b(item,['employee','nhanvien','nhân viên','họ tên','name']);
+                const man = Number(getV2b(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
+                const need = getV2b(item,[
+                  'công chuẩn cần nhận','cong chuan can nhan','need_manhour','needmanhour','need_manhours','needmanhours','need_mh','needmh','target_manhour','targetmanhour','need_manhour_month','need_in_month','planned_manhour'
+                ]);
+                const count = getV2b(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']);
+                const done = getV2b(item,['done','số done']);
+                const ahead = getV2b(item,['ahead','vượt tiến độ']);
+                const ontime = getV2b(item,['ontime','đúng tiến độ']);
+                const late = getV2b(item,['late','chậm tiến độ']);
+                const rOn = Number(getV2b(item,['rate_ontime','tỷ lệ đúng (%)']));
+                const rLate = Number(getV2b(item,['rate_late','tỷ lệ chậm (%)']));
+                const rAhead = Number(getV2b(item,['rate_ahead','tỷ lệ vượt (%)']));
+                return `
+                  <tr>
+                    <td class="px-3 py-2">${name}</td>
+                    <td class="px-3 py-2">${isNaN(man)?'0.00':man.toFixed(2)}</td>
+                    <td class="px-3 py-2 cell-div">${need?String(need):''}</td>
+                    <td class="px-3 py-2">${(count ?? '')}</td>
+                    <td class="px-3 py-2">${(done ?? '')}</td>
+                    <td class="px-3 py-2">${(ahead ?? '')}</td>
+                    <td class="px-3 py-2">${(ontime ?? '')}</td>
+                    <td class="px-3 py-2">${(late ?? '')}</td>
+                    <td class="px-3 py-2">${isNaN(rAhead)?'':(rAhead.toFixed(0)+"%")}</td>
+                    <td class="px-3 py-2">${isNaN(rOn)?'':(rOn.toFixed(0)+"%")}</td>
+                    <td class="px-3 py-2">${isNaN(rLate)?'':(rLate.toFixed(0)+"%")}</td>
+                  </tr>`;
+              }).join('');
+              body.innerHTML = html;
+              const chartRows = rowsBareFlexSorted.map(item=>({
+                name: getV2b(item,['employee','nhanvien','nhân viên','họ tên','name']),
+                rateAhead: toNumeric(getV2b(item,['rate_ahead','tỷ lệ vượt (%)'])),
+                rateOntime: toNumeric(getV2b(item,['rate_ontime','tỷ lệ đúng (%)'])),
+                rateLate: toNumeric(getV2b(item,['rate_late','tỷ lệ chậm (%)'])),
+                count: toNumeric(getV2b(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng'])),
+                ahead: toNumeric(getV2b(item,['ahead'])),
+                ontime: toNumeric(getV2b(item,['ontime'])),
+                late: toNumeric(getV2b(item,['late']))
+              }));
+              renderStackedChart(chartRows);
+              return;
+            }
+          }
+        }
+        // 2) Fallback: lấy danh sách và tự fetch thống kê từng người (giữ logic cũ)
+        let first = await fetchJson(`${urlTest}?${params.toString()}`);
+        if (!first.ok || /could not be started/i.test(String(first.parsed?.message||''))){
+          first = await fetchJson(`${urlProd}?${params.toString()}`);
+        }
+        if(!first.ok){ throw new Error(first.raw || `HTTP ${first.status}`); }
+        const data = first.parsed ?? (first.raw ? JSON.parse(first.raw) : null);
+        const rows = pickRowsDeep(data);
+        function getV(obj, keys){ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; }
+        const normalized = rows.map(r=>{
+          const name = getV(r,['field_employee','employee','nhanvien','nhan_vien','user','name','nhân viên']).toString().trim();
+          const manRaw = getV(r,['field_current_manhour','manhour','current_manhour','congchuan','cong_chuan','hours','công chuẩn hiện tại']);
+          const man = Number(manRaw);
+          const countRaw = getV(r,['field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ']);
+          const count = Number(countRaw);
+          return { name: name || '-', manhour: isNaN(man) ? 0 : man, count: isNaN(count) ? null : count };
+        }).filter(x=>x.name && x.name !== '-');
+        const baseNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES : [];
+        const unionNames = Array.from(new Set([ ...normalized.map(x=>x.name), ...baseNames ]));
+        const merged = unionNames.map(n=>{ const exist = normalized.find(x=>x.name===n); return exist ? exist : { name: n, manhour: 0, count: null }; });
+        const sorted = merged.slice().sort((a,b)=> b.manhour - a.manhour);
+        async function fetchStatsFor(name){
+          try{
+            const qs = new URLSearchParams();
+            qs.append('action','form4_employee_stats');
+            qs.append('employee', name);
+            if (fromVal) qs.append('from', fromVal);
+            if (toVal) qs.append('to', toVal);
+            const r = await fetch(`${urlTest}?${qs.toString()}`);
+            const t = await r.text();
+            let j = null; try{ j = JSON.parse(t); }catch{}
+            const obj = (j && typeof j==='object') ? j : {};
+            const getN = (k)=>{ const v = obj[k]; const n = Number(v); return isNaN(n)?0:n; };
+            return {
+              done: getN('done'), ahead: getN('ahead'), ontime: getN('ontime'), late: getN('late'),
+              rateOntime: getN('rate_ontime'), rateLate: getN('rate_late'), rateAhead: getN('rate_ahead')
+            };
+          }catch(_){ return { done:0,ahead:0,ontime:0,late:0,rateOntime:0,rateLate:0,rateAhead:0 }; }
+        }
+        const rowsHtml = [];
+        for (const x of sorted){
+          const st = await fetchStatsFor(x.name);
+          rowsHtml.push(`
+            <tr>
+              <td class="px-3 py-2">${x.name}</td>
+              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
+              <td class="px-3 py-2">${(x.count==null)?'':String(x.count)}</td>
+              <td class="px-3 py-2">${st.done}</td>
+              <td class="px-3 py-2">${st.ahead}</td>
+              <td class="px-3 py-2">${st.ontime}</td>
+              <td class="px-3 py-2">${st.late}</td>
+              <td class="px-3 py-2">${st.rateAhead.toFixed(0)}</td>
+              <td class="px-3 py-2">${st.rateOntime.toFixed(0)}</td>
+              <td class="px-3 py-2">${st.rateLate.toFixed(0)}</td>
+            </tr>`);
+        }
+        body.innerHTML = rowsHtml.join('');
+        // Chart from fallback stats
+        const chartRows = [];
+        for (const x of sorted){
+          const st = await fetchStatsFor(x.name);
+          chartRows.push({ name: x.name, rateAhead: toNumeric(st.rateAhead), rateOntime: toNumeric(st.rateOntime), rateLate: toNumeric(st.rateLate), count: Number(x.count||0), ahead: st.ahead, ontime: st.ontime, late: st.late });
+        }
+        renderStackedChart(chartRows);
+      }catch(err){
+        body.innerHTML = `<tr><td colspan='11' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+        if (chartWrap) chartWrap.style.display = 'none';
+      }
+    }
+    // Nút làm mới lựa chọn biểu đồ Form 5
+    (function initF5aRefresh(){
+      const btn = document.getElementById('f5a-refresh');
+      if (!btn) return;
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); try{ if (window.F5A_RENDER_CHART) { window.F5A_RENDER_CHART(); } else { try{ renderStackedChart(F5A_LAST_ROWS||[]); }catch(_){ } } }catch(_){ } });
+    })();
+    // Default Form 4 month = current month (đã có ở trên)
+    // Thêm default cho Form 5 (All tasks)
+    (function setDefaultF5aMonth(){
+      const m = document.getElementById('f5a-month');
+      if (!m) return;
+      const d = new Date();
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      if (!m.value) m.value = `${yy}-${mm}`;
     })();
   </script>
 </body>
