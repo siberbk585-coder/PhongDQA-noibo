@@ -42,6 +42,8 @@
     .cell-div{ border-left:1px solid #e5e7eb; }
     .table-vdiv{ border-collapse: separate; border-spacing: 0; }
     .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
+    /* Drag row highlight */
+    .drag-over{ background-color:#e0f2fe !important; }
   </style>
 </head>
 <body class="bg-muted min-h-screen flex text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
@@ -86,6 +88,12 @@
             <button id="f1-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
           </div>
           <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để gửi yêu cầu và hiển thị tác vụ</p>
+        </div>
+      </div>
+      <div class="mt-2 flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-700">Tháng</label>
+          <input id="f1-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
         </div>
       </div>
       <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
@@ -324,7 +332,7 @@
         </table>
       </div>
       <!-- Pivot Overdue View -->
-      <div id="f4-pivot-wrap" class="mt-4 overflow-auto border border-gray-200 rounded-lg">
+      <div id="f4-pivot-wrap" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
         <div class="flex items-center justify-between p-3">
           <div class="text-sm text-gray-700">Bản tổng hợp việc quá hạn theo trạng thái</div>
           <div class="flex items-center gap-2">
@@ -332,7 +340,7 @@
           </div>
         </div>
         <table id="f4-pivot-table" class="min-w-[760px] w-full text-sm">
-          <thead class="bg-gradient-to-r from-blue-100 to-blue-50">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
               <th class="px-3 py-2">Assignee</th>
               <th class="px-3 py-2">Mã</th>
@@ -365,7 +373,7 @@
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-blue-800">Form 5 · Tất cả tác vụ</h2>
       </div>
-      <div class="mt-4 overflow-auto border border-gray-200 rounded-lg">
+      <div class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
         <div class="flex items-center gap-2 p-2">
           <label class="text-sm text-gray-700">Tháng</label>
           <input id="f5a-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
@@ -427,8 +435,13 @@
         </div>
       </div>
 
+      <div class="flex items-center gap-2 p-2">
+        <label class="text-sm text-gray-700">Tháng nộp</label>
+        <input id="f6-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+      </div>
+
       <div class="mt-6 -mx-6">
-        <div class="overflow-x-auto border border-gray-200 rounded-lg bg-white">
+        <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg bg-white">
           <table class="min-w-[2000px] w-full text-sm">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
@@ -608,6 +621,8 @@
     let F5A_MODE = 'vertical';
     let F5A_CHART_MAN = null;
     let F5A_BASIS = 'rates';
+    // Form 6 (ideas) cache for month filter
+    let F6_LAST_ROWS = [];
 
     // Date-time format helpers
     function toDateSafe(value){
@@ -633,6 +648,15 @@
         if (!d) return '';
         const pad = n=> String(n).padStart(2,'0');
         return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }catch(_){ return ''; }
+    }
+
+    function formatYyyyMm(value){
+      try{
+        const d = toDateSafe(value);
+        if (!d) return '';
+        const pad = n=> String(n).padStart(2,'0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
       }catch(_){ return ''; }
     }
 
@@ -872,6 +896,21 @@
 
     // Helpers for tables
     function addTd(tr, text){ const td=document.createElement('td'); td.className='px-3 py-2 align-top'; td.textContent=text; tr.appendChild(td); }
+    // Enable drag-drop reordering on table body rows
+    function enableTableDrag(tbodyId){
+      try{
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        let dragging = null;
+        const onDragStart = (e)=>{ dragging = e.currentTarget; dragging.classList.add('opacity-50'); try{ e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain',''); }catch(_){ } };
+        const onDragEnd = ()=>{ try{ if (dragging) dragging.classList.remove('opacity-50'); }catch(_){ } dragging = null; try{ tbody.querySelectorAll('tr').forEach(r=> r.classList.remove('drag-over')); }catch(_){ } };
+        const onDragOver = (e)=>{ e.preventDefault(); const row = e.target && e.target.closest ? e.target.closest('tr') : null; if (!row || row === dragging) return; try{ tbody.querySelectorAll('tr').forEach(r=> r.classList.remove('drag-over')); row.classList.add('drag-over'); }catch(_){ } };
+        const onDrop = (e)=>{ e.preventDefault(); const row = e.target && e.target.closest ? e.target.closest('tr') : null; if (!row || !dragging || row===dragging) { onDragEnd(); return; } try{ tbody.insertBefore(dragging, row.nextSibling); }catch(_){ } onDragEnd(); };
+        tbody.querySelectorAll('tr').forEach(tr=>{ try{ tr.setAttribute('draggable','true'); tr.classList.add('cursor-move','select-none'); tr.removeEventListener('dragstart', onDragStart); tr.addEventListener('dragstart', onDragStart); tr.removeEventListener('dragend', onDragEnd); tr.addEventListener('dragend', onDragEnd); }catch(_){ } });
+        try{ tbody.removeEventListener('dragover', onDragOver); tbody.addEventListener('dragover', onDragOver); }catch(_){ }
+        try{ tbody.removeEventListener('drop', onDrop); tbody.addEventListener('drop', onDrop); }catch(_){ }
+      }catch(_){ }
+    }
     // Flexible date parser supporting multiple formats
     function parseDateFlexible(v){
       if(!v) return null;
@@ -900,6 +939,8 @@
     let F1_ALL_ROWS = [];
     let F1_PAGE = 1;
     let F1_SIZE = 20;
+    // Cache bản rỗng đã chuẩn hoá cho Form 1 để lọc theo tháng với Done/Cancel
+    let F1_LAST_ITEMS = [];
     function applyForm1Paging(){
       const body = document.getElementById('f1-body');
       const pager = document.getElementById('f1-pager');
@@ -924,6 +965,41 @@
       // render rows
       body.innerHTML = '';
       slice.forEach(tr => body.appendChild(tr));
+    }
+
+    function formatYyyyMmSafe(v){ try{ const d = toDateSafe(v); if(!d) return ''; const mm=String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${mm}`; }catch(_){ return ''; } }
+
+    function vnLower(s){
+      try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); }
+    }
+
+    function applyForm1MonthFilter(){
+      try{
+        const monthEl = document.getElementById('f1-month');
+        const monthVal = monthEl ? (monthEl.value||'').trim() : '';
+        const items = Array.isArray(F1_LAST_ITEMS) ? F1_LAST_ITEMS.slice() : [];
+        // Done & Cancel: lọc theo tháng (monthVal)
+        let partDoneCancel = items.filter(it=> it.isDone || it.isCancel);
+        if (monthVal) partDoneCancel = partDoneCancel.filter(it=> it.monthTagReq === monthVal);
+        // Doing, Chờ phê duyệt, Chờ phân công, Test bền: luôn hiển thị không phụ thuộc thời gian
+        let partTimeRestricted = items.filter(it=> {
+          const s = it.statusNorm || '';
+          return s.includes('doing') || s.includes('cho phe duyet') || s.includes('cho phan cong') || s.includes('test ben');
+        });
+        const filtered = partDoneCancel.concat(partTimeRestricted);
+        // Render lại tbody và phân trang
+        const body = document.getElementById('f1-body');
+        const pager = document.getElementById('f1-pager');
+        if (!filtered.length){
+          if (body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="17">Không có tác vụ</td></tr>';
+          if (pager) pager.style.display = 'none';
+          F1_ALL_ROWS = [];
+          return;
+        }
+        F1_ALL_ROWS = filtered.map(it=> it.rowEl).filter(Boolean);
+        F1_PAGE = 1;
+        applyForm1Paging();
+      }catch(_){ }
     }
 
     async function renderForm1(){
@@ -1031,6 +1107,7 @@
         };
         const rowsSorted = rows.slice().sort((a,b)=> statusWeight(a) - statusWeight(b));
         F1_ALL_ROWS = [];
+        F1_LAST_ITEMS = [];
         rowsSorted.forEach(item=>{
           const tr=document.createElement('tr');
           const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
@@ -1113,7 +1190,8 @@
           addTd(tr, getV(item,[
             'manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn'
           ]));
-          addTd(tr, getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']));
+          const requestDateStr = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          addTd(tr, requestDateStr);
           addTd(tr, getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
           addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
           addTd(tr, getV(item,['purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']));
@@ -1144,8 +1222,14 @@
           tr.appendChild(tdDl);
           addTd(tr, taskId);
           F1_ALL_ROWS.push(tr);
+          // Cache item cho lọc theo tháng của Ngày yêu cầu (chỉ áp dụng cho các trạng thái bị ràng buộc thời gian)
+          const statusNorm = vnLower(statusText);
+          const monthTagReq = formatYyyyMmSafe(requestDateStr);
+          F1_LAST_ITEMS.push({ rowEl: tr, statusNorm, monthTagReq, requestDateRaw: requestDateStr, isDone, isCancel: isCancelled });
         });
         applyForm1Paging();
+        // Áp dụng lọc tháng nếu đã chọn
+        try{ applyForm1MonthFilter(); }catch(_){ }
       }catch(err){
         body.innerHTML = `<tr><td colspan='17' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
       }
@@ -1176,6 +1260,16 @@
     if (f1Prev) f1Prev.onclick = (e)=>{ e.preventDefault(); if(F1_PAGE>1){ F1_PAGE--; applyForm1Paging(); } };
     if (f1Next) f1Next.onclick = (e)=>{ e.preventDefault(); F1_PAGE++; applyForm1Paging(); };
     if (f1Size) f1Size.onchange = (e)=>{ F1_SIZE = parseInt(e.target.value||'20',10)||20; F1_PAGE=1; applyForm1Paging(); };
+    // Default month and change handler for Form 1 filter (Done/Cancel)
+    (function initF1Month(){
+      const m = document.getElementById('f1-month');
+      if (!m) return;
+      const d = new Date();
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      if (!m.value) m.value = `${yy}-${mm}`;
+      if (!m._bound){ m.addEventListener('change', ()=> applyForm1MonthFilter()); m._bound = true; }
+    })();
 
     // Form 2 rendering
     async function renderForm2(){
@@ -1545,6 +1639,7 @@
     // Form 4 logic: GET Doing data and render two columns
     async function renderForm4(){
       const body = document.getElementById('f4-body');
+      const bodyAll = document.getElementById('f4-body-all');
       const chartWrap = document.getElementById('f4-chart-container');
       if (chartWrap) chartWrap.style.display = 'none';
       if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
@@ -1775,9 +1870,9 @@
           return rowsHtml.join('');
         })();
         if (isAll) {
-          if (bodyAll) bodyAll.innerHTML = html;
+          if (bodyAll) { bodyAll.innerHTML = html; try{ enableTableDrag('f4-body-all'); }catch(_){ } }
         } else {
-        body.innerHTML = html;
+        body.innerHTML = html; try{ enableTableDrag('f4-body'); }catch(_){ }
         // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
         const statusForCount = statusVal;
         const names = normalizedSorted.filter(x=> x.count == null && !F4_COUNTS_BY_NAME.has(x.name)).map(x=>x.name);
@@ -1878,6 +1973,7 @@
             </tr>`);
         }
         body.innerHTML = rowsHtml.join('');
+        try{ enableTableDrag('f4-body'); }catch(_){ }
         // Bổ sung: tải số tác vụ bất đồng bộ cho các tên chưa có
         const statusForCount = (F4_LAST_PARAMS && F4_LAST_PARAMS.status) ? F4_LAST_PARAMS.status : 'Doing';
         const fromVal = F4_LAST_PARAMS?.from || '';
@@ -2194,6 +2290,7 @@
           <td class="px-3 py-2">${r.actualDue}</td>
           </tr>`;
         }).join('');
+        try{ enableTableDrag('f4-pivot-body'); }catch(_){ }
       }
       if (sumTotal) sumTotal.textContent = String(rowsOut.length);
       if (note) note.textContent = 'Danh sách tác vụ Doing bị quá hạn (cache cục bộ; nhấn Làm mới để tải lại)';
@@ -2226,6 +2323,27 @@
         }
       });
     }
+    // Default month and change handler for Form 6 filtering
+    (function initF6MonthFilter(){
+      const m = document.getElementById('f6-month');
+      if (!m) return;
+      const d = new Date();
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      if (!m.value) m.value = `${yy}-${mm}`;
+      // on change, re-apply local filter if data already loaded
+      if (!m._bound){
+        m.addEventListener('change', ()=>{
+          try{
+            if (Array.isArray(F6_LAST_ROWS) && F6_LAST_ROWS.length) {
+              if (typeof applyForm6LocalFilter === 'function') applyForm6LocalFilter();
+              else renderForm5List();
+            }
+          }catch(_){ }
+        });
+        m._bound = true;
+      }
+    })();
     // Trigger fetch for Form 5 (All tasks)
     const f5aBtn = document.getElementById('f5a-search');
     if (f5aBtn) { f5aBtn.addEventListener('click', async (e)=>{ e.preventDefault(); try{ await renderForm5All(); }catch(_){ } }); }
@@ -2328,6 +2446,7 @@
       if (!rows.length){
         body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>';
         F5_LAST_COUNT = 0;
+        F6_LAST_ROWS = [];
         return;
       }
       const getV = (obj, keys)=>{
@@ -2335,22 +2454,41 @@
         for (const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
         return '';
       };
-      const html = rows.map((item)=>{
-        const date = getV(item,['submitdate','date','submit_date','ngaynop','ngay_nop']);
-        const emp = getV(item,['employee','nhanvien','nhan_vien','nhân viên']);
-        const title = getV(item,['title','tieude','tieu_de','tiêu đề ý tưởng']);
-        const prob = getV(item,['problem','van_de','vande','vấn đề nhận diện']);
-        const sol = getV(item,['solution','giai_phap','giaiphap','giải pháp']);
-        return `<tr>
-          <td class="px-3 py-2">${date}</td>
-          <td class="px-3 py-2">${emp}</td>
-          <td class="px-3 py-2">${title}</td>
-          <td class="px-3 py-2">${prob}</td>
-          <td class="px-3 py-2">${sol}</td>
-        </tr>`;
-      }).join('');
-      body.innerHTML = html;
-      F5_LAST_COUNT = rows.length;
+      // Normalize to cache for client-side month filtering
+      F6_LAST_ROWS = rows.map((item)=>({
+        submitDate: getV(item,['submitdate','date','submit_date','ngaynop','ngay_nop']),
+        employee: getV(item,['employee','nhanvien','nhan_vien','nhân viên']),
+        title: getV(item,['title','tieude','tieu_de','tiêu đề ý tưởng']),
+        problem: getV(item,['problem','van_de','vande','vấn đề nhận diện']),
+        solution: getV(item,['solution','giai_phap','giaiphap','giải pháp'])
+      }));
+      // Local filter + render
+      window.applyForm6LocalFilter = function(){
+        try{
+          const monthEl = document.getElementById('f6-month');
+          const monthVal = monthEl ? (monthEl.value || '').trim() : '';
+          let list = Array.isArray(F6_LAST_ROWS) ? F6_LAST_ROWS.slice() : [];
+          if (monthVal) list = list.filter(r => formatYyyyMm(r.submitDate) === monthVal);
+          if (!list.length){
+            body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Không có dữ liệu</td></tr>';
+            return;
+          }
+          const html2 = list.map(r=>`
+            <tr>
+              <td class="px-3 py-2">${r.submitDate}</td>
+              <td class="px-3 py-2">${r.employee}</td>
+              <td class="px-3 py-2">${r.title}</td>
+              <td class="px-3 py-2">${r.problem}</td>
+              <td class="px-3 py-2">${r.solution}</td>
+            </tr>
+          `).join('');
+          body.innerHTML = html2;
+          try{ enableTableDrag('f5-body'); }catch(_){ }
+        }catch(_){ }
+      };
+      // initial render
+      try{ applyForm6LocalFilter(); }catch(_){ }
+      F5_LAST_COUNT = F6_LAST_ROWS.length;
     }
 
     (function setupForm5(){
@@ -2862,6 +3000,7 @@
                 </tr>`;
             }).join('');
             body.innerHTML = html;
+            try{ enableTableDrag('f5a-body'); }catch(_){ }
             // build rows for chart
             const chartRows = rowsStatsFlexSorted.map(item=>{
               const name = getV2(item,['employee','nhanvien','nhân viên','họ tên','name']);
@@ -2938,6 +3077,7 @@
                   </tr>`;
               }).join('');
               body.innerHTML = html;
+              try{ enableTableDrag('f5a-body'); }catch(_){ }
               const chartRows = rowsBareFlexSorted.map(item=>({
                 name: getV2b(item,['employee','nhanvien','nhân viên','họ tên','name']),
                 rateAhead: toNumeric(getV2b(item,['rate_ahead','tỷ lệ vượt (%)'])),
@@ -3010,6 +3150,7 @@
             </tr>`);
         }
         body.innerHTML = rowsHtml.join('');
+        try{ enableTableDrag('f5a-body'); }catch(_){ }
         // Chart from fallback stats
         const chartRows = [];
         for (const x of sorted){
@@ -3041,3 +3182,7 @@
   </script>
 </body>
 </html>
+
+
+
+
