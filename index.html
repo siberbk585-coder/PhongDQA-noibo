@@ -599,6 +599,9 @@
     let F5_LAST_COUNT = 0;
     let F4_PIVOT_BUSY = false;
     let F4_PIVOT_TMO = null;
+    // Pivot cache (Form 4): lưu tất cả dòng quá hạn để lọc cục bộ khi chuyển nhóm
+    let F4_PIVOT_ROWS_ALL = [];
+    let F4_PIVOT_LAST_PARAMS = { from: '', to: '' };
     // Form 5 (All tasks) chart globals
     let F5A_CHART = null;
     let F5A_LAST_ROWS = [];
@@ -685,6 +688,15 @@
       "Phạm Thành Trung Kiên","Phạm Thị Minh","Thái Thị Giang","Trần Hiếu Nghĩa","Vũ Thị Hằng","Vũ Thị Thanh Hiền"
     ];
     const FORM2_NAMES = FORM1_NAMES;
+    // Danh sách riêng cho Form 3 (Người được giao): loại 3 tên và thêm 3 tên
+    const FORM3_ASSIGNEES = (()=>{
+      const base = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
+      const exclude = new Set(["Hà Mỹ Linh","Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
+      const add = ["Đào Hoàng Dương","Nguyễn Văn Linh","Nguyễn Văn Hiếu"];
+      const filtered = base.filter(n => !exclude.has(n));
+      add.forEach(n => { if (filtered.indexOf(n) === -1) filtered.push(n); });
+      return filtered;
+    })();
 
     // Dữ liệu tác vụ (khởi tạo rỗng; sẽ nối nguồn thật sau)
     const demoTasksForm1 = {};
@@ -695,7 +707,7 @@
     fillSelect(document.getElementById('f1-name'), FORM1_NAMES);
     fillSelect(document.getElementById('f2-name'), FORM2_NAMES);
     const f3AssigneeSel = document.getElementById('f3-assignee');
-    if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM1_NAMES);
+    if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM3_ASSIGNEES);
     const f4PeopleSel = document.getElementById('f4-people');
     if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
     const f5EmployeeSel = document.getElementById('f5-employee');
@@ -1372,14 +1384,22 @@
     let F4_SELECTED_NAMES = new Set();
     let F4_ALL_NAMES = [];
 
+    // Form 4: cache dữ liệu để lọc client-side (không refetch khi bấm nút nhóm)
+    let F4_LAST_NORMALIZED = [];
+    let F4_LAST_MERGED = [];
+    let F4_COUNTS_BY_NAME = new Map();
+    let F4_LAST_PARAMS = { status: '', from: '', to: '', month: '' };
+
     // Predefined groups for Form 4 filters
+    // Loại bỏ: Hà Mỹ Linh, Đỗ Thế Cường, Lê Thị Thanh Nhàn
+    const F4_EXCLUDED = new Set(["Hà Mỹ Linh","Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
     const F4_GROUP_LINH = [
       "Bùi Đặng Quốc Huy","Nguyễn Hữu Thịnh","Trần Hiếu Nghĩa","Lại Quốc Lộc",
-      "Lê Ngọc Ánh","Lê Thị Thanh Nhàn","Lê Văn Sơn","Nguyễn Thị Hiền","Phạm Thị Minh"
+      "Lê Ngọc Ánh","Lê Văn Sơn","Nguyễn Thị Hiền","Phạm Thị Minh"
     ];
     const F4_GROUP_HIEU = [
-      "Đỗ Quang Long","Hà Mỹ Linh","Phạm Thành Trung Kiên","Thái Thị Giang",
-      "Vũ Thị Hằng","Đào Tuấn Kỳ","Đỗ Thế Cường","Lê Thị Thảo","Vũ Thị Thanh Hiền"
+      "Đỗ Quang Long","Phạm Thành Trung Kiên","Thái Thị Giang",
+      "Vũ Thị Hằng","Đào Tuấn Kỳ","Lê Thị Thảo","Vũ Thị Thanh Hiền"
     ];
     function f4SetGroupSelection(names){
       if (!names || names.length === 0) {
@@ -1387,7 +1407,8 @@
       } else {
         F4_SELECTED_NAMES = new Set(names);
       }
-      renderForm4();
+      // Lọc cục bộ từ cache, không gọi server
+      renderForm4Local();
       try { renderF4Pivot(); } catch(_) {}
     }
     function f4UpdateGroupButtonsUI(){
@@ -1609,20 +1630,36 @@
           return '';
         };
         const normalized = rows.map(r=>{
-          const name = getV(r,['field_employee','employee','nhanvien','nhan_vien','user','name','nhân viên']).toString().trim();
-          const manRaw = getV(r,['field_current_manhour','manhour','current_manhour','congchuan','cong_chuan','hours','công chuẩn hiện tại']);
+          const name = getV(r,[
+            'field_employee','employee','employee_name','nhanvien','nhan_vien','nhân viên','họ tên','ho_ten','user','name',
+            'assignee','assignee_name','pic','nguoi_phu_trach','người phụ trách','người nhận','receiver','recipient'
+          ]).toString().trim();
+          const manRaw = getV(r,[
+            'field_current_manhour','manhour','manhour_current','current_manhour','current_manhours','man_hours','man_hour',
+            'congchuan','cong_chuan','công chuẩn hiện tại','công chuẩn nhận','công chuẩn tổng tháng','cong_chuan_thang','hours','score'
+          ]);
           const man = Number(manRaw);
-          const countRaw = getV(r,['field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ']);
+          const countRaw = getV(r,[
+            'field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ','số tác vụ trong tháng',
+            'so_tac_vu_thang','sotacvu_thang','tasks','total_tasks','task_total','so_luong','so_luong_tac_vu','so_dau_muc',
+            'so_doing','doing_count','count_doing','so_luong_doing','in_month_count','count_in_month'
+          ]);
           const count = Number(countRaw);
           return { name: name || '-', manhour: isNaN(man) ? 0 : man, count: isNaN(count) ? null : count };
         }).filter(x=>x.name && x.name !== '-');
         // Bổ sung mọi nhân sự từ danh sách chuẩn để không bị thiếu tên (vd: "Hà Mỹ Linh")
-        const baseNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES : [];
-        const unionNames = Array.from(new Set([ ...normalized.map(x=>x.name), ...baseNames ]));
+        const baseNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.filter(n=> !F4_EXCLUDED.has(n)) : [];
+        const unionNamesRaw = Array.from(new Set([ ...normalized.map(x=>x.name), ...baseNames ]));
+        const unionNames = unionNamesRaw.filter(n=> !F4_EXCLUDED.has(n));
         const merged = unionNames.map(n=>{
           const exist = normalized.find(x=>x.name===n);
           return exist ? exist : { name: n, manhour: 0, count: null };
         });
+        // Lưu cache để phục vụ lọc cục bộ không cần refetch
+        F4_LAST_NORMALIZED = normalized.slice();
+        F4_LAST_MERGED = merged.slice();
+        F4_LAST_PARAMS = { status: statusVal, from: fromVal, to: toVal, month: monthVal };
+        F4_COUNTS_BY_NAME = new Map();
         // Cập nhật danh sách người trong popover
         F4_ALL_NAMES = unionNames;
         f4BuildFilterList(F4_ALL_NAMES);
@@ -1743,7 +1780,7 @@
         body.innerHTML = html;
         // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
         const statusForCount = statusVal;
-        const names = normalizedSorted.filter(x=> x.count == null).map(x=>x.name);
+        const names = normalizedSorted.filter(x=> x.count == null && !F4_COUNTS_BY_NAME.has(x.name)).map(x=>x.name);
         const findCountEl = (n)=>{
           const all = body.querySelectorAll('.emp-count');
           for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; }
@@ -1756,6 +1793,7 @@
             el.textContent = String(c);
             try { const tr = el.closest('tr'); if (tr) tr.setAttribute('data-task-count', String(c)); } catch(_) {}
           }
+          try { F4_COUNTS_BY_NAME.set(n, c); } catch(_) {}
         });
         Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
         }
@@ -1809,6 +1847,61 @@
         if (chartWrap) chartWrap.style.display = 'none';
         if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
       }
+    }
+    // Render lại Form 4 từ cache khi đổi nhóm (lọc client-side, không refetch)
+    function renderForm4Local(){
+      try{
+        const body = document.getElementById('f4-body');
+        const chartWrap = document.getElementById('f4-chart-container');
+        if (chartWrap) chartWrap.style.display = 'none';
+        if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
+        if (!Array.isArray(F4_LAST_MERGED) || F4_LAST_MERGED.length===0){
+          // Chưa có cache -> tải một lần
+          return renderForm4();
+        }
+        const selected = Array.from(F4_SELECTED_NAMES);
+        const filtered = selected.length ? F4_LAST_MERGED.filter(x=> F4_SELECTED_NAMES.has(x.name)) : F4_LAST_MERGED.slice();
+        if (!filtered.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
+        const normalizedSorted = filtered.slice().sort((a,b)=> b.manhour - a.manhour);
+        const rowsHtml = [];
+        for (const x of normalizedSorted){
+          const cached = F4_COUNTS_BY_NAME.get(x.name);
+          const baseCnt = (x.count==null) ? cached : x.count;
+          const cntText = (baseCnt==null || Number.isNaN(baseCnt)) ? "<span class='spinner'></span>" : String(baseCnt);
+          rowsHtml.push(`
+            <tr>
+              <td class="px-3 py-2">
+                <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
+              </td>
+              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
+              <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}">${cntText}</span></td>
+            </tr>`);
+        }
+        body.innerHTML = rowsHtml.join('');
+        // Bổ sung: tải số tác vụ bất đồng bộ cho các tên chưa có
+        const statusForCount = (F4_LAST_PARAMS && F4_LAST_PARAMS.status) ? F4_LAST_PARAMS.status : 'Doing';
+        const fromVal = F4_LAST_PARAMS?.from || '';
+        const toVal = F4_LAST_PARAMS?.to || '';
+        const namesNeed = normalizedSorted.filter(x=> (x.count==null) && !F4_COUNTS_BY_NAME.has(x.name)).map(x=> x.name);
+        const findCountEl = (n)=>{ const all = body.querySelectorAll('.emp-count'); for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; } return null; };
+        const promises = namesNeed.map(async n=>{ const c = await f4FetchTaskCount(n, statusForCount, fromVal, toVal); const el = findCountEl(n); if (el) { el.textContent = String(c); try { const tr = el.closest('tr'); if (tr) tr.setAttribute('data-task-count', String(c)); } catch(_) {} } try { F4_COUNTS_BY_NAME.set(n, c); } catch(_) {} });
+        Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
+        // Vẽ chart theo dữ liệu đã lọc
+        const labels = normalizedSorted.map(x=> x.name);
+        const values = normalizedSorted.map(x=> x.manhour);
+        if (chartWrap) chartWrap.style.display = '';
+        const canvas = document.getElementById('f4-chart');
+        if (canvas && typeof Chart !== 'undefined'){
+          const ctx = canvas.getContext('2d');
+          if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} }
+          F4_CHART = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Công chuẩn nhận', data: values, backgroundColor: 'rgba(90, 169, 255, 0.6)', borderColor: '#5aa9ff', borderWidth: 1, hoverBackgroundColor: 'rgba(59, 130, 246, 0.7)' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Công chuẩn nhận' } }, x: { title: { display: true, text: 'Nhân viên' }, ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx)=> ` ${Number(ctx.raw).toFixed(2)}` } } } }
+          });
+        }
+        try { f4ApplyCountFilter(); } catch(_) {}
+      }catch(_){}
     }
     // ===== Form 4: Modal chi tiết theo nhân viên =====
     const detailModal = document.getElementById('detail-modal');
@@ -1993,7 +2086,7 @@
     // Pivot handlers
     (function initF4Pivot(){
       const refresh = document.getElementById('f4-pivot-refresh');
-      if (refresh) refresh.addEventListener('click', (e)=>{ e.preventDefault(); renderF4Pivot(); });
+      if (refresh) refresh.addEventListener('click', (e)=>{ e.preventDefault(); F4_PIVOT_ROWS_ALL = []; renderF4Pivot(); });
       // auto render once when form loads
       try { renderF4Pivot(); } catch(_) {}
     })();
@@ -2007,70 +2100,69 @@
       const note = document.getElementById('f4-pivot-note');
       if (!body) return;
       body.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-center text-gray-500"><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
-
       const fromVal = document.getElementById('f4-from')?.value || '';
       const toVal = document.getElementById('f4-to')?.value || '';
-      const names = F4_ALL_NAMES && F4_ALL_NAMES.length ? F4_ALL_NAMES : (FORM1_NAMES || []);
+      const base = F4_ALL_NAMES && F4_ALL_NAMES.length ? F4_ALL_NAMES : (FORM1_NAMES || []);
+      const names = base.filter(n=> !F4_EXCLUDED.has(n));
       const selected = Array.from(F4_SELECTED_NAMES);
       const targetNames = selected.length ? names.filter(n => F4_SELECTED_NAMES.has(n)) : names.slice();
 
-      let rowsOut = [];
+      // Nếu cache chưa có hoặc phạm vi thời gian đổi -> tải và xây cache
+      const needRefetch = (!Array.isArray(F4_PIVOT_ROWS_ALL) || !F4_PIVOT_ROWS_ALL.length
+        || F4_PIVOT_LAST_PARAMS.from !== fromVal || F4_PIVOT_LAST_PARAMS.to !== toVal);
 
-      await Promise.all(targetNames.map(async (name)=>{
-        try{
-          const headerMap = {
-            header_requestDate: 'Ngày yêu cầu',
-            header_wishDue: 'Hạn mong muốn',
-            header_actualDue: 'Hạn đáp ứng',
-            header_status: 'Trạng thái',
-            header_code: 'Mã',
-            header_taskName: 'Tên tác vụ',
-            field_requestDate: 'requestDate',
-            field_wishDue: 'wishDue',
-            field_actualDue: 'actualDue',
-            field_status: 'status',
-            field_code: 'code',
-            field_taskName: 'taskName'
-          };
-          const qs = new URLSearchParams({ ...headerMap, action:'form1_lookup', person_name: name, timestamp: new Date().toISOString() });
-          if (fromVal) qs.append('from', fromVal);
-          if (toVal) qs.append('to', toVal);
-          const u = `${WEBHOOK_URL}?${qs.toString()}`;
-          const r = await fetch(u);
-          const t = await r.text();
-          let json = null; try{ json = JSON.parse(t); }catch{ json = null; }
-          let rows = [];
-          if (Array.isArray(json)) rows = json; else if (json && typeof json==='object'){
-            const keys = ['data','rows','result','records','items','list'];
-            for (const k of keys){ if (Array.isArray(json[k])) { rows = json[k]; break; } }
-          }
-          function getV(o, keys){ const L = Object.keys(o||{}).reduce((a,k)=>{a[k.toLowerCase()]=o[k];return a;},{}); for(const k of keys){ const v=L[k.toLowerCase()]; if(v!==undefined) return v; } return ''; }
-          rows.forEach(it=>{
-            const statusText = String(getV(it,['status','trangthai','trang_thai','trạng thái'])||'');
-            const s = statusText.toLowerCase();
-            const isDoing = s.includes('doing') || s.includes('đang');
-            if (!isDoing) return;
-            const wish = getV(it,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-            const act = getV(it,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
-            const due = parseDateFlexible(act || wish || '');
-            if (!due) return;
-            const now = new Date();
-            if (now.getTime() >= due.getTime()){
-              rowsOut.push({
-                assignee: name,
-                code: getV(it,['code','ma','taskcode','mã']),
-                taskName: getV(it,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']),
-                status: statusText,
-                requestDate: getV(it,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']),
-                wishDue: wish,
-                actualDue: act
-              });
+      if (needRefetch){
+        F4_PIVOT_ROWS_ALL = [];
+        F4_PIVOT_LAST_PARAMS = { from: fromVal, to: toVal };
+        await Promise.all(names.map(async (name)=>{
+          try{
+            const headerMap = {
+              header_requestDate: 'Ngày yêu cầu', header_wishDue: 'Hạn mong muốn', header_actualDue: 'Hạn đáp ứng',
+              header_status: 'Trạng thái', header_code: 'Mã', header_taskName: 'Tên tác vụ',
+              field_requestDate: 'requestDate', field_wishDue: 'wishDue', field_actualDue: 'actualDue',
+              field_status: 'status', field_code: 'code', field_taskName: 'taskName'
+            };
+            const qs = new URLSearchParams({ ...headerMap, action:'form1_lookup', person_name: name, timestamp: new Date().toISOString() });
+            if (fromVal) qs.append('from', fromVal);
+            if (toVal) qs.append('to', toVal);
+            const u = `${WEBHOOK_URL}?${qs.toString()}`;
+            const r = await fetch(u);
+            const t = await r.text();
+            let json = null; try{ json = JSON.parse(t); }catch{ json = null; }
+            let rows = [];
+            if (Array.isArray(json)) rows = json; else if (json && typeof json==='object'){
+              const keys = ['data','rows','result','records','items','list'];
+              for (const k of keys){ if (Array.isArray(json[k])) { rows = json[k]; break; } }
             }
-          });
-        }catch(_){ /* skip */ }
-      }));
+            function getV(o, keys){ const L = Object.keys(o||{}).reduce((a,k)=>{a[k.toLowerCase()]=o[k];return a;},{}); for(const k of keys){ const v=L[k.toLowerCase()]; if(v!==undefined) return v; } return ''; }
+            rows.forEach(it=>{
+              const statusText = String(getV(it,['status','trangthai','trang_thai','trạng thái'])||'');
+              const s = statusText.toLowerCase();
+              const isDoing = s.includes('doing') || s.includes('đang');
+              if (!isDoing) return;
+              const wish = getV(it,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
+              const act = getV(it,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
+              const due = parseDateFlexible(act || wish || '');
+              if (!due) return;
+              const now = new Date();
+              if (now.getTime() >= due.getTime()){
+                F4_PIVOT_ROWS_ALL.push({
+                  assignee: name,
+                  code: getV(it,['code','ma','taskcode','mã']),
+                  taskName: getV(it,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']),
+                  status: statusText,
+                  requestDate: getV(it,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']),
+                  wishDue: wish,
+                  actualDue: act
+                });
+              }
+            });
+          }catch(_){ /* skip one name */ }
+        }));
+      }
 
-      // Sort by assignee then due date
+      // Lọc cục bộ từ cache theo nhóm đang chọn
+      let rowsOut = F4_PIVOT_ROWS_ALL.filter(r => targetNames.includes(r.assignee));
       rowsOut.sort((a,b)=>{
         const byName = a.assignee.localeCompare(b.assignee,'vi');
         if (byName !== 0) return byName;
@@ -2104,7 +2196,7 @@
         }).join('');
       }
       if (sumTotal) sumTotal.textContent = String(rowsOut.length);
-      if (note) note.textContent = 'Danh sách tác vụ Doing bị quá hạn (theo Form 1).';
+      if (note) note.textContent = 'Danh sách tác vụ Doing bị quá hạn (cache cục bộ; nhấn Làm mới để tải lại)';
       F4_PIVOT_BUSY = false;
     }
     // Group filter buttons
@@ -2949,7 +3041,3 @@
   </script>
 </body>
 </html>
-
-
-
-
