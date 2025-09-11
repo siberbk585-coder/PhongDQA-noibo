@@ -299,7 +299,7 @@
                   </div>
                 </div>
               </th>
-              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2">Tổng công chuẩn</th>
               <th class="px-3 py-2">Số tác vụ</th>
               
             </tr>
@@ -418,7 +418,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <div class="text-xs text-gray-600 mb-1">Công chuẩn hiện tại</div>
+        <div class="text-xs text-gray-600 mb-1">Tổng công chuẩn</div>
         <div id="f5a-chart-container-manhour" class="h-80" style="display:none">
           <canvas id="f5a-chart-manhour"></canvas>
         </div>
@@ -608,6 +608,8 @@
     // Backward-compat aliases for Form 6 handlers referencing FORM5_* names
     const FORM5_SUBMIT_URL = FORM6_SUBMIT_URL;
     const FORM5_LIST_URL = FORM6_LIST_URL;
+    // Form 5 All (new single-source endpoint)
+    const FORM5_ALL_NEW_URL = "https://iatzhxxuk.tino.page/webhook/2c62c918-413c-49c3-99f6-49466f13c6d6";
     let F4_CHART = null;
     let F5_LAST_COUNT = 0;
     let F4_PIVOT_BUSY = false;
@@ -621,8 +623,239 @@
     let F5A_MODE = 'vertical';
     let F5A_CHART_MAN = null;
     let F5A_BASIS = 'rates';
+    let F5A_RAW_ALL = [];
+    let F5A_RAW_META = { month: '' };
+    // Form 5: Công chuẩn cần nhận (có thể chỉnh tại đây)
+    const F5A_NEED_MANHOUR_DEFAULT = 200;
+    const F5A_NEED_MANHOUR_BY_NAME = {
+      "Bùi Đặng Quốc Huy": 250.00,
+      "Phạm Thành Trung Kiên": 250.00,
+      "Đỗ Quang Long": 250.00,
+      "Nguyễn Hữu Thịnh": 250.00,
+      "Lê Văn Sơn": 250.00,
+      "Nguyễn Thị Hiền": 250.00,
+      "Lại Quốc Lộc": 250.00,
+      "Vũ Thị Thanh Hiền": 250.00,
+      "Lê Ngọc Ánh": 250.00,
+      "Đào Tuấn Kỳ": 250.00,
+      "Vũ Thị Hằng": 250.00,
+      "Thái Thị Giang": 250.00,
+      "Trần Hiếu Nghĩa": 250.00,
+      "Phạm Thị Minh": 250.00
+    };
+    function f5aGetNeedManhour(name){
+      try{
+        const norm = (s)=> String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+        const map = {};
+        Object.keys(F5A_NEED_MANHOUR_BY_NAME||{}).forEach(k=>{ map[norm(k)] = Number(F5A_NEED_MANHOUR_BY_NAME[k]); });
+        const v = map[norm(name)];
+        return (typeof v === 'number' && !isNaN(v)) ? v : F5A_NEED_MANHOUR_DEFAULT;
+      }catch(_){ return F5A_NEED_MANHOUR_DEFAULT; }
+    }
     // Form 6 (ideas) cache for month filter
     let F6_LAST_ROWS = [];
+
+    // ===== Form 5 (All tasks) - fetch once and aggregate locally =====
+    function f5aPickRowsDeep(json){
+      if (!json) return [];
+      if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
+      const candidates = ['data','rows','result','records','items','list'];
+      for (const k of candidates){ if (Array.isArray(json?.[k]) && json[k].length && typeof json[k][0] === 'object') return json[k]; }
+      try{
+        const queue=[json]; const seen=new Set();
+        while(queue.length){
+          const cur = queue.shift(); if(!cur || typeof cur !== 'object' || seen.has(cur)) continue; seen.add(cur);
+          for (const v of Object.values(cur)){
+            if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v;
+            if (v && typeof v === 'object') queue.push(v);
+          }
+        }
+      }catch(_){ }
+      return [];
+    }
+
+    async function f5aFetchAllOnce(month, fromVal, toVal){
+      if (F5A_RAW_ALL && F5A_RAW_ALL.length && F5A_RAW_META && F5A_RAW_META.month === (month||'')) return;
+      const makeQs = (withAction, withRange)=>{
+        const qs = new URLSearchParams();
+        if (withAction) qs.append('action','form5_all');
+        if (withRange){
+          if (month) qs.append('month', month);
+          if (fromVal) qs.append('from', fromVal);
+          if (toVal) qs.append('to', toVal);
+        }
+        qs.append('_ts', Date.now().toString());
+        return qs.toString();
+      };
+      const urls = [];
+      const uBase = FORM5_ALL_NEW_URL;
+      const uTest = uBase.replace('/webhook/','/webhook-test/');
+      [true,false].forEach(withRange=>{
+        [true,false].forEach(withAction=>{
+          const q = makeQs(withAction, withRange);
+          urls.push(`${uBase}${q?`?${q}`:''}`);
+          urls.push(`${uTest}${q?`?${q}`:''}`);
+        });
+      });
+      // thêm phương án không query
+      urls.push(uBase);
+      urls.push(uTest);
+      let rows = [];
+      for (const u of urls){
+        try{
+          console.log('Form5 fetch try:', u);
+          const r = await fetch(u, { method: 'GET', headers: { 'Accept': 'application/json, text/plain, */*' } });
+          const text = await r.text();
+          let data = null; try{ data = JSON.parse(text); }catch{ data = null; }
+          if (!data && typeof text === 'string'){
+            const m = text.match(/\[[\s\S]*\]/);
+            if (m) { try { data = JSON.parse(m[0]); } catch(_) { data = null; } }
+          }
+          const picked = f5aPickRowsDeep(data ?? text);
+          if (Array.isArray(picked) && picked.length){ rows = picked; break; }
+        }catch(_){ /* next */ }
+      }
+      // Unwrap n8n format: [{ json: {...} }]
+      const unwrapped = Array.isArray(rows) ? rows.map(r=> (r && typeof r==='object' && ('json' in r)) ? r.json : r) : [];
+      F5A_RAW_ALL = unwrapped;
+      F5A_RAW_META = { month: month || '' };
+      try{ LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
+    }
+
+    function f5aAggregate(rows, fromVal, toVal){
+      // ==== CONFIG (tham khảo Code tổng hợp.txt) ====
+      const assigneeKeys = ['Assignee','Phụ trách','Người phụ trách','Người xử lý','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+      const taskNameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','Mã','taskname','ten_tac_vu','ten','title'];
+      const scoreKeys = ['Điểm','Score','score'];
+      const altScoreKeys = ['Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+      const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+      const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh'];
+      const countZeroTasks = true;
+      const excludeCanceled = true;
+      const minWeight = 0.0001;
+
+      const hasVal = v => v != null && String(v).trim() !== '';
+      const normKey = (s)=> String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+      const getV = (obj, keys)=>{
+        const lower = {};
+        Object.keys(obj||{}).forEach(k=>{
+          const v = obj[k];
+          const k1 = String(k).toLowerCase();
+          const k2 = normKey(k);
+          lower[k1] = v;
+          lower[k2] = v;
+        });
+        for (const k of keys){
+          const cand1 = String(k).toLowerCase();
+          const cand2 = normKey(k);
+          const v = lower[cand1] ?? lower[cand2];
+          if (v !== undefined && hasVal(v)) return v;
+        }
+        return '';
+      };
+      function toNum(v){
+        if (v == null) return 0;
+        let s = String(v).trim();
+        if (!s) return 0;
+        s = s.replace(/\s|\u00A0/g, '');
+        s = s.replace(/[%₫đvnd]/gi, '');
+        if (s.includes(',')) s = s.replace(/\./g,'').replace(',', '.');
+        else s = s.replace(/\./g,'');
+        const n = Number(s);
+        return Number.isFinite(n) ? n : 0;
+      }
+      function getNumberFrom(row, keys){ const v = getV(row, keys); return toNum(v); }
+      function getTextFrom(row, keys){ const v = getV(row, keys); return String(v||'').trim(); }
+      function isCanceled(row){
+        const f = getTextFrom(row, finishedDateKs).toLowerCase();
+        const st = getTextFrom(row, statusKeys).toLowerCase();
+        return f.includes('cancel') || st.includes('cancel') || st.includes('hủy') || st.includes('huỷ');
+      }
+      const resultKeys = ['⁉️ Kết quả','ket_qua','kết quả','result'];
+      function inRange(v){
+        if (!fromVal && !toVal) return true;
+        const d = parseDateFlexible(v);
+        if (!d) return true;
+        const ds = d.toISOString().slice(0,10);
+        if (fromVal && ds < fromVal) return false;
+        if (toVal && ds > toVal) return false;
+        return true;
+      }
+      const byName = new Map();
+      rows.forEach(row=>{
+        // Bỏ qua bản ghi không phải task (thiếu tên task)
+        const taskVal = getTextFrom(row, taskNameKeys);
+        if (!hasVal(taskVal)) return;
+        if (excludeCanceled && isCanceled(row)) return;
+        let name = getTextFrom(row, assigneeKeys);
+        if (!name || name.toLowerCase() === 'nan') name = 'Chưa phân công';
+
+        const rq = getV(row,[
+          'requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu'
+        ]);
+        const wish = getV(row,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
+        const act = getV(row,['actualdue','handapung','han_dap_ung','completiondate']);
+        const doneDate = getV(row, finishedDateKs);
+        // Chỉ lọc theo \"📆 Ngày yêu cầu\"
+        const refDate = rq;
+        if (!hasVal(refDate) || !inRange(refDate)) return;
+
+        const weight = getNumberFrom(row, scoreKeys) || getNumberFrom(row, altScoreKeys);
+        const resText = getTextFrom(row, resultKeys);
+        const done = /^\s*done\s*$/i.test(resText || '');
+
+        let rec = byName.get(name);
+        if (!rec) { rec = { name, manhour: 0, count: 0, ahead: 0, ontime: 0, late: 0, doneCnt: 0, doneSum: 0, activeCnt: 0, activeSum: 0 }; byName.set(name, rec); }
+
+        const countThis = countZeroTasks ? true : (weight > minWeight);
+        if (done) {
+          if (countThis) rec.doneCnt += 1;
+          rec.doneSum += weight;
+        } else {
+          if (countThis) rec.activeCnt += 1;
+          rec.activeSum += weight;
+        }
+        rec.count = (rec.doneCnt || 0) + (rec.activeCnt || 0);
+        rec.manhour = (rec.doneSum || 0) + (rec.activeSum || 0);
+        // Tổng công chuẩn theo mốc Ngày yêu cầu (không tính Cancel vì đã loại ở trên)
+        try{
+          const dRq = parseDateFlexible(rq || '');
+          if (dRq){
+            const ds = dRq.toISOString().slice(0,10);
+            const inRq = (!fromVal || ds >= fromVal) && (!toVal || ds <= toVal);
+            if (inRq){ rec.totalByRq = (rec.totalByRq || 0) + weight; }
+          }
+        }catch(_){ }
+
+        // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done
+        if (done){
+          const ht = String(getTextFrom(row, statusKeys)||'').toLowerCase();
+          if (ht.includes('vượt tiến độ')) rec.ahead += 1;
+          else if (ht.includes('đúng tiến độ') || ht.includes('dung tien do')) rec.ontime += 1;
+          else if (ht.includes('chậm tiến độ') || ht.includes('cham tien do')) rec.late += 1;
+        }
+      });
+      const out = Array.from(byName.values());
+      out.forEach(r=>{
+        const sum = Math.max(0, Number(r.ahead||0) + Number(r.ontime||0) + Number(r.late||0));
+        const denom = Number(r.doneCnt||0) > 0 ? Number(r.doneCnt) : sum;
+        r.rateAhead = denom ? Math.round((Number(r.ahead||0)*100)/denom) : 0;
+        r.rateOntime = denom ? Math.round((Number(r.ontime||0)*100)/denom) : 0;
+        r.rateLate = denom ? Math.round((Number(r.late||0)*100)/denom) : 0;
+        // Map theo biểu mẫu ngoài (ảnh)
+        r["Phụ trách"] = r.name || '';
+        const activeSum = Number(r.activeSum||0);
+        r["Tổng điểm (đang xử lý)"] = +activeSum.toFixed(2);
+        r["Số task đang xử lý"] = Number(r.activeCnt||0);
+        const totalPts = Number((r.doneSum||0) + (r.activeSum||0));
+        r["Tổng điểm tất cả"] = +totalPts.toFixed(2);
+        r["Tổng tác vụ đã xử lý"] = Number((r.doneCnt||0) + (r.activeCnt||0));
+        // Tổng công chuẩn theo mốc Ngày yêu cầu
+        const byRq = Number(r.totalByRq||0);
+        r["Tổng công chuẩn"] = +byRq.toFixed(2);
+      });
+      return out;
+    }
 
     // Date-time format helpers
     function toDateSafe(value){
@@ -658,6 +891,42 @@
         const pad = n=> String(n).padStart(2,'0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
       }catch(_){ return ''; }
+    }
+
+    // Local storage helpers & last-updated note
+    const LS = {
+      get(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } },
+      set(k,v){ try{ localStorage.setItem(k,v); }catch(_){ } },
+      getJSON(k){ try{ const s=localStorage.getItem(k); return s? JSON.parse(s): null; }catch(_){ return null; } },
+      setJSON(k,obj){ try{ localStorage.setItem(k, JSON.stringify(obj)); }catch(_){ } },
+      remove(k){ try{ localStorage.removeItem(k); }catch(_){ } }
+    };
+    function formatHHmmDdMmYyyy(value){
+      try{
+        const d = toDateSafe(value);
+        if (!d) return '';
+        const pad = n=> String(n).padStart(2,'0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+      }catch(_){ return ''; }
+    }
+    function updateLastUpdatedNote(btnId, tsKey){
+      try{
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        const parent = btn.parentElement || btn;
+        let note = parent.querySelector('[data-last-updated]');
+        if (!note){
+          note = document.createElement('span');
+          note.setAttribute('data-last-updated','1');
+          note.className = 'text-xs text-gray-500 ml-2';
+          parent.appendChild(note);
+        }
+        const tsStr = LS.get(tsKey);
+        if (!tsStr){ note.textContent = ''; return; }
+        const ts = Number(tsStr);
+        const show = isNaN(ts) ? '' : `Dữ liệu cập nhật lúc ${formatHHmmDdMmYyyy(new Date(ts))}`;
+        note.textContent = show;
+      }catch(_){ }
     }
 
     function f4SchedulePivot(delay = 80){
@@ -696,9 +965,9 @@
         btn.classList.add('bg-primary-blue','font-bold');
         const target = btn.getAttribute('data-target');
         showSection(target);
-        if (target === 'form6') { try { renderForm5List(); } catch(_){} }
-        if (target === 'form4') { try { renderForm4(); f4SchedulePivot(); } catch(_){} }
-        if (target === 'form5') { try { setTimeout(()=>{ try{ renderForm5All(); }catch(_){} }, 0); } catch(_){} }
+        if (target === 'form6') { try { if(!restoreForm6FromCache()){ renderForm5List(); } } catch(_){} }
+        if (target === 'form4') { try { if(!restoreForm4FromCache()){ /* chờ bấm Tra cứu */ } f4SchedulePivot(); } catch(_){} }
+        if (target === 'form5') { try { if(!restoreForm5FromCache()){ /* chờ bấm Tra cứu */ } } catch(_){} }
       }
     });
     // Default
@@ -736,6 +1005,26 @@
     if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
     const f5EmployeeSel = document.getElementById('f5-employee');
     if (f5EmployeeSel) fillSelect(f5EmployeeSel, FORM1_NAMES);
+
+    // Persist selections and show last-updated notes for Form 1 & 2
+    (function initPersistSelections(){
+      try{
+        const f1Sel = document.getElementById('f1-name');
+        if (f1Sel){
+          const last = LS.get('f1.selectedName');
+          if (last && Array.prototype.some.call(f1Sel.options, op=> op.value===last)) f1Sel.value = last;
+          f1Sel.addEventListener('change', ()=>{ LS.set('f1.selectedName', f1Sel.value||''); });
+          updateLastUpdatedNote('f1-search','f1.lastUpdated');
+        }
+        const f2Sel = document.getElementById('f2-name');
+        if (f2Sel){
+          const last2 = LS.get('f2.selectedName');
+          if (last2 && Array.prototype.some.call(f2Sel.options, op=> op.value===last2)) f2Sel.value = last2;
+          f2Sel.addEventListener('change', ()=>{ LS.set('f2.selectedName', f2Sel.value||''); });
+          updateLastUpdatedNote('f2-search','f2.lastUpdated');
+        }
+      }catch(_){ }
+    })();
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -986,7 +1275,8 @@
           const s = it.statusNorm || '';
           return s.includes('doing') || s.includes('cho phe duyet') || s.includes('cho phan cong') || s.includes('test ben');
         });
-        const filtered = partDoneCancel.concat(partTimeRestricted);
+        // Ưu tiên nhóm thời gian thực (Doing/Chờ phân công/Test bền) lên trước
+        const filtered = partTimeRestricted.concat(partDoneCancel);
         // Render lại tbody và phân trang
         const body = document.getElementById('f1-body');
         const pager = document.getElementById('f1-pager');
@@ -1000,6 +1290,117 @@
         F1_PAGE = 1;
         applyForm1Paging();
       }catch(_){ }
+    }
+
+    // Render Form 1 từ mảng rows (dùng cho cache)
+    function renderForm1FromRows(rows){
+      const body = document.getElementById('f1-body');
+      if(!rows || !rows.length){ body.innerHTML = "<tr><td colspan='17' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
+      const getV = (obj, keys)=>{
+        const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
+        for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
+        return '';
+      };
+      function getStatusRank(obj){
+        const s = vnLower(getV(obj,['status','trangthai','trang_thai','trạng thái']) || '');
+        if (s.includes('doing') || s.includes('dang')) return 0; // ưu tiên cao nhất
+        if (s.includes('cho phan cong') || s.includes('test ben')) return 1; // nhóm thứ hai
+        return 2; // còn lại
+      }
+      function getTimeValue(obj){
+        const v = getV(obj,[
+          'requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu'
+        ]) || getV(obj,[
+          'actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng'
+        ]) || getV(obj,[
+          'wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn'
+        ]);
+        const d = parseDateFlexible(v);
+        return d ? d.getTime() : 0;
+      }
+      const rowsSorted = rows.slice().sort((a,b)=>{
+        const ra = getStatusRank(a), rb = getStatusRank(b);
+        if (ra !== rb) return ra - rb;
+        const ta = getTimeValue(a), tb = getTimeValue(b);
+        return tb - ta; // mới nhất trước
+      });
+      F1_ALL_ROWS = [];
+      F1_LAST_ITEMS = [];
+      rowsSorted.forEach(item=>{
+        const tr=document.createElement('tr');
+        const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
+        const code = getV(item,['code','ma','taskcode','mã']);
+        const taskId = getV(item,['taskid','task_id','ma_tac_vu','mã tác vụ','taskcode2','requestid','id']);
+        const tname = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+        const statusText = getV(item,['status','trangthai','trang_thai','trạng thái']);
+        const statusLower = (statusText||'').toLowerCase();
+        const isDone = statusLower.includes('hoàn') || statusLower.includes('done');
+        const isCancelled = statusLower.includes('cancel') || statusLower.includes('hủy') || statusLower.includes('huỷ');
+        const isPendingApproval = statusLower.includes('chờ phê duyệt') || statusLower.includes('cho phe duyet');
+        const isEmptyStatus = statusLower.trim()==='';
+        const isLocked = isDone || isCancelled || isPendingApproval || isEmptyStatus;
+        const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
+        const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
+        const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
+        const dueStr = actualDue || wishDue || '';
+        const dueDate = parseDateFlexible(dueStr);
+        if (isDoing && dueDate){
+          const today = new Date();
+          const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const dueDayStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+          const isSameDay = dueDayStart.getTime() === todayStart.getTime();
+          const isPast = dueDayStart.getTime() < todayStart.getTime();
+          try { if (isSameDay) { tr.style.backgroundColor = '#fef3c7'; } else if (isPast) { tr.style.backgroundColor = '#fee2e2'; } } catch(_){}
+        }
+        const labelBtn = document.createElement('button');
+        if (isLocked) {
+          labelBtn.disabled = true;
+          labelBtn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
+          labelBtn.textContent = isCancelled ? 'Đã hủy' : (isDone ? 'Đã hoàn thành' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi'));
+          labelBtn.title = labelBtn.textContent;
+        } else {
+          labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
+          labelBtn.textContent = 'Trả báo cáo';
+          labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname }); };
+        }
+        tdBtn.appendChild(labelBtn);
+        tr.appendChild(tdBtn);
+        const tdStatus=document.createElement('td'); tdStatus.className='px-3 py-2';
+        const s=(statusText||'').toLowerCase();
+        const badge=document.createElement('span');
+        let badgeClass = 'bg-blue-100 text-blue-800';
+        if (s.includes('chờ phê duyệt') || s.includes('cho phe duyet')) badgeClass = 'bg-orange-100 text-orange-800';
+        else if (s.includes('hoàn') || s.includes('done')) badgeClass = 'bg-green-100 text-green-800';
+        else if (s.includes('cancel') || s.includes('hủy') || s.includes('huỷ') || s.includes('chờ') || s.includes('pending')) badgeClass = 'bg-yellow-100 text-yellow-800';
+        badge.className='px-2 py-1 rounded text-xs ' + badgeClass; badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
+        addTd(tr, code);
+        addTd(tr, tname);
+        addTd(tr, getV(item,['requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']));
+        addTd(tr, getV(item,['receiver','receivername','nguoinhanmau','nguoi_nhan_mau','người nhận mẫu','recipient','assignee','người nhận']));
+        addTd(tr, getV(item,[ 'manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn' ]));
+        const requestDateStr = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+        addTd(tr, requestDateStr);
+        addTd(tr, getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
+        addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
+        addTd(tr, getV(item,['purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']));
+        addTd(tr, getV(item,['note','ghi_chu','ghichu']));
+        addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
+        addTd(tr, getV(item,['reportform','form_bao_cao','form_bao_cao_danh_gia']));
+        const attachmentName = getV(item,[ 'attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file' ]);
+        addTd(tr, attachmentName);
+        const tdDl = document.createElement('td'); tdDl.className='px-3 py-2';
+        const url = getV(item,[ 'attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url' ]);
+        if (url) { const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105'; a.textContent = 'Tải về'; tdDl.appendChild(a); }
+        else { const btn = document.createElement('button'); btn.disabled = true; btn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'; btn.textContent = 'Không có link'; tdDl.appendChild(btn); }
+        tr.appendChild(tdDl);
+        addTd(tr, taskId);
+        F1_ALL_ROWS.push(tr);
+        const statusNorm = vnLower(statusText);
+        const monthTagReq = formatYyyyMmSafe(requestDateStr);
+        F1_LAST_ITEMS.push({ rowEl: tr, statusNorm, monthTagReq, requestDateRaw: requestDateStr, isDone, isCancel: isCancelled });
+      });
+      applyForm1Paging();
+      try{ applyForm1MonthFilter(); }catch(_){ }
     }
 
     async function renderForm1(){
@@ -1094,147 +1495,26 @@
         }
         const rows = pickRows(data);
         if(!rows.length){ body.innerHTML = "<tr><td colspan='17' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
-        const getV = (obj, keys)=>{
-          const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
-          for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
-          return '';
-        };
-        // Sort: prioritize non-Done tasks on top
-        const statusWeight = (obj)=>{
-          const s = String(getV(obj,['status','trangthai','trang_thai','trạng thái']) || '').toLowerCase();
-          const isDone = s.includes('hoàn') || s.includes('done');
-          return isDone ? 1 : 0;
-        };
-        const rowsSorted = rows.slice().sort((a,b)=> statusWeight(a) - statusWeight(b));
-        F1_ALL_ROWS = [];
-        F1_LAST_ITEMS = [];
-        rowsSorted.forEach(item=>{
-          const tr=document.createElement('tr');
-          const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
-          const code = getV(item,['code','ma','taskcode','mã']);
-          const taskId = getV(item,['taskid','task_id','ma_tac_vu','mã tác vụ','taskcode2','requestid','id']);
-          const tname = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
-          // Xác định trạng thái để quyết định cho phép gửi báo cáo hay không
-          const statusText = getV(item,['status','trangthai','trang_thai','trạng thái']);
-          const statusLower = (statusText||'').toLowerCase();
-          const isDone = statusLower.includes('hoàn') || statusLower.includes('done');
-          const isCancelled = statusLower.includes('cancel') || statusLower.includes('hủy') || statusLower.includes('huỷ');
-          const isPendingApproval = statusLower.includes('chờ phê duyệt') || statusLower.includes('cho phe duyet');
-          const isEmptyStatus = statusLower.trim()==='';
-          const isLocked = isDone || isCancelled || isPendingApproval || isEmptyStatus;
-          // Highlight for Doing rows: if due is today -> yellow, past due -> red
-          const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
-          const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-          const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
-          const dueStr = actualDue || wishDue || '';
-          const dueDate = parseDateFlexible(dueStr);
-          if (isDoing && dueDate){
-            const today = new Date();
-            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const dueDayStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-            const isSameDay = dueDayStart.getTime() === todayStart.getTime();
-            const isPast = dueDayStart.getTime() < todayStart.getTime();
-            try {
-              if (isSameDay) { tr.style.backgroundColor = '#fef3c7'; } // yellow-100
-              else if (isPast) { tr.style.backgroundColor = '#fee2e2'; } // red-200
-            } catch(_) {}
-          }
-          // Tạo input file ẩn cho mỗi hàng + nút Trả báo cáo
-          const inputId = `f1-upload-${Math.random().toString(36).slice(2)}`;
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.id = inputId;
-          fileInput.className = 'hidden';
-          const labelBtn = document.createElement('label');
-          labelBtn.htmlFor = inputId;
-          if (isLocked) {
-            fileInput.disabled = true;
-            labelBtn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none';
-            labelBtn.textContent = isCancelled ? 'Đã hủy' : (isDone ? 'Đã hoàn thành' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi'));
-            labelBtn.title = isCancelled ? 'Tác vụ đã hủy, không thể gửi báo cáo' : (isDone ? 'Tác vụ đã hoàn thành, không thể gửi báo cáo' : (isPendingApproval ? 'Tác vụ đang chờ phê duyệt, không thể gửi báo cáo' : 'Trạng thái trống, không thể gửi báo cáo'));
-          } else {
-            labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
-            labelBtn.textContent = 'Trả báo cáo';
-            // Mở modal như Form 2 khi nhấn ở Form 1 (chống double-click)
-            labelBtn.onclick = (e)=>{
-              e.preventDefault();
-              if (labelBtn.disabled) return;
-              labelBtn.disabled = true;
-              labelBtn.classList.add('opacity-50','pointer-events-none');
-              lastOpenTrigger = labelBtn;
-              openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname });
-            };
-          }
-          // Với cách mở modal, không cần input file ẩn cho Form 1 nữa
-          tdBtn.appendChild(labelBtn);
-          tr.appendChild(tdBtn);
-          // Tình trạng, Mã, Tên tác vụ, Người yêu cầu, Người nhận mẫu, Công chuẩn, ...
-          const tdStatus=document.createElement('td'); tdStatus.className='px-3 py-2';
-          const s=(statusText||'').toLowerCase();
-          const badge=document.createElement('span');
-          let badgeClass = 'bg-blue-100 text-blue-800';
-          if (s.includes('chờ phê duyệt') || s.includes('cho phe duyet')) {
-            badgeClass = 'bg-orange-100 text-orange-800';
-          } else if (s.includes('hoàn') || s.includes('done')) {
-            badgeClass = 'bg-green-100 text-green-800';
-          } else if (s.includes('cancel') || s.includes('hủy') || s.includes('huỷ') || s.includes('chờ') || s.includes('pending')) {
-            badgeClass = 'bg-yellow-100 text-yellow-800';
-          }
-          badge.className='px-2 py-1 rounded text-xs ' + badgeClass;
-          badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
-          addTd(tr, code);
-          addTd(tr, tname);
-          addTd(tr, getV(item,['requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']));
-          addTd(tr, getV(item,['receiver','receivername','nguoinhanmau','nguoi_nhan_mau','người nhận mẫu','recipient','assignee','người nhận']));
-          // Công chuẩn (giữa Tên tác vụ và Ngày yêu cầu)
-          addTd(tr, getV(item,[
-            'manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn'
-          ]));
-          const requestDateStr = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
-          addTd(tr, requestDateStr);
-          addTd(tr, getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
-          addTd(tr, getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
-          addTd(tr, getV(item,['purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']));
-          addTd(tr, getV(item,['note','ghi_chu','ghichu']));
-          addTd(tr, getV(item,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
-          addTd(tr, getV(item,['reportform','form_bao_cao','form_bao_cao_danh_gia']));
-          const attachmentName = getV(item,[
-            'attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file'
-          ]);
-          addTd(tr, attachmentName);
-          const tdDl = document.createElement('td'); tdDl.className='px-3 py-2';
-          const url = getV(item,[
-            'attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url'
-          ]);
-          if (url) {
-            const a = document.createElement('a');
-            a.href = url; a.target = '_blank'; a.rel = 'noopener';
-            a.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105';
-            a.textContent = 'Tải về';
-            tdDl.appendChild(a);
-          } else {
-            const btn = document.createElement('button');
-            btn.disabled = true;
-            btn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
-            btn.textContent = 'Không có link';
-            tdDl.appendChild(btn);
-          }
-          tr.appendChild(tdDl);
-          addTd(tr, taskId);
-          F1_ALL_ROWS.push(tr);
-          // Cache item cho lọc theo tháng của Ngày yêu cầu (chỉ áp dụng cho các trạng thái bị ràng buộc thời gian)
-          const statusNorm = vnLower(statusText);
-          const monthTagReq = formatYyyyMmSafe(requestDateStr);
-          F1_LAST_ITEMS.push({ rowEl: tr, statusNorm, monthTagReq, requestDateRaw: requestDateStr, isDone, isCancel: isCancelled });
-        });
-        applyForm1Paging();
-        // Áp dụng lọc tháng nếu đã chọn
-        try{ applyForm1MonthFilter(); }catch(_){ }
+        // Cache và timestamp
+        try{ LS.setJSON('f1.cache', { name, rows }); LS.set('f1.lastUpdated', String(Date.now())); updateLastUpdatedNote('f1-search','f1.lastUpdated'); }catch(_){ }
+        renderForm1FromRows(rows);
       }catch(err){
         body.innerHTML = `<tr><td colspan='17' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
       }
     }
     document.getElementById('f1-name').onchange = ()=>{};
+    // Tự khởi tạo từ cache nếu có
+    (function initF1FromCache(){
+      try{
+        const cached = LS.getJSON('f1.cache');
+        const cachedName = LS.get('f1.selectedName')||'';
+        if (!cached || !cached.rows || !cachedName) return;
+        const sel = document.getElementById('f1-name');
+        if (sel && (!sel.value)) sel.value = cachedName;
+        renderForm1FromRows(cached.rows);
+        updateLastUpdatedNote('f1-search','f1.lastUpdated');
+      }catch(_){ }
+    })();
     const f1SearchBtn = document.getElementById('f1-search');
     if (f1SearchBtn) {
       let f1Busy = false;
@@ -1319,6 +1599,8 @@
           for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
           return '';
         };
+        // Cache và timestamp
+        try{ LS.setJSON('f2.cache', { name, rows }); LS.set('f2.lastUpdated', String(Date.now())); updateLastUpdatedNote('f2-search','f2.lastUpdated'); }catch(_){ }
         body.innerHTML='';
         rows.forEach(item=>{
           const tr=document.createElement('tr');
@@ -1350,6 +1632,38 @@
       }
     }
     document.getElementById('f2-name').onchange = ()=>{};
+    // Hiển thị từ cache Form 2 nếu có
+    (function initF2FromCache(){
+      try{
+        const cached = LS.getJSON('f2.cache');
+        const name = LS.get('f2.selectedName')||'';
+        if (!cached || !Array.isArray(cached.rows) || !name) return;
+        const body = document.getElementById('f2-body');
+        if (!body) return;
+        body.innerHTML='';
+        const rows = cached.rows;
+        const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
+        rows.forEach(item=>{
+          const tr=document.createElement('tr');
+          const requestDate = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
+          const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
+          const code = getV(item,['code','ma','taskcode','mã']);
+          const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          addTd(tr, requestDate);
+          addTd(tr, wishDue);
+          addTd(tr, actualDue);
+          addTd(tr, code);
+          addTd(tr, taskName);
+          const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
+          const btn=document.createElement('button'); btn.className='px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105'; btn.textContent='Trả form báo cáo';
+          btn.onclick=(e)=>{ e.preventDefault(); if (btn.disabled) return; btn.disabled = true; btn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = btn; openUploadModal({form:'Form 2', name, code, taskName}); };
+          tdBtn.appendChild(btn); tr.appendChild(tdBtn);
+          body.appendChild(tr);
+        });
+        updateLastUpdatedNote('f2-search','f2.lastUpdated');
+      }catch(_){ }
+    })();
     const f2SearchBtn = document.getElementById('f2-search');
     if (f2SearchBtn) {
       let f2Busy = false;
@@ -1718,6 +2032,7 @@
           return [];
         }
         const rows = pickRowsDeep(data);
+        try{ LS.setJSON('f4.cache', { params: { status: statusVal, from: fromVal, to: toVal, month: monthVal }, rows, ts: Date.now() }); LS.set('f4.lastUpdated', String(Date.now())); }catch(_){ }
         if(!rows.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
         const getV = (obj, keys)=>{
           const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
@@ -1942,6 +2257,25 @@
         if (chartWrap) chartWrap.style.display = 'none';
         if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
       }
+    }
+    function restoreForm4FromCache(){
+      try{
+        const cached = LS.getJSON('f4.cache');
+        if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        // kích hoạt UI cơ bản và ghi chú thời gian
+        updateLastUpdatedNote('f4-search','f4.lastUpdated');
+        // Dùng pipeline render hiện tại: gán rows vào F4_LAST_MERGED để re-render nhanh
+        const rows = cached.rows;
+        const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
+        const normalized = rows.map(r=>({
+          name: getV(r,['employee','employee_name','nhanvien','nhân viên','name','assignee','pic']) || '-',
+          manhour: Number(getV(r,['manhour','current_manhour','congchuan']))||0,
+          count: null
+        })).filter(x=>x.name && x.name!=='-');
+        F4_LAST_MERGED = normalized;
+        renderForm4Local();
+        return true;
+      }catch(_){ return false; }
     }
     // Render lại Form 4 từ cache khi đổi nhóm (lọc client-side, không refetch)
     function renderForm4Local(){
@@ -2489,6 +2823,19 @@
       // initial render
       try{ applyForm6LocalFilter(); }catch(_){ }
       F5_LAST_COUNT = F6_LAST_ROWS.length;
+      try{ LS.setJSON('f6.cache', { rows: F6_LAST_ROWS, ts: Date.now() }); LS.set('f6.lastUpdated', String(Date.now())); }catch(_){ }
+    }
+    function restoreForm6FromCache(){
+      try{
+        const cached = LS.getJSON('f6.cache');
+        if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        const body = document.getElementById('f5-body');
+        if (!body) return false;
+        F6_LAST_ROWS = cached.rows.slice();
+        if (typeof applyForm6LocalFilter === 'function') applyForm6LocalFilter();
+        updateLastUpdatedNote('f5-search','f6.lastUpdated');
+        return true;
+      }catch(_){ return false; }
     }
 
     (function setupForm5(){
@@ -2879,11 +3226,6 @@
         }catch(_){ if(chartWrap) chartWrap.style.display='none'; }
       }
       try{
-        const urlTest = 'https://iatzhxxuk.tino.page/webhook/4744d882-be8d-4939-a516-9229ba7dc87a';
-        const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
-        const params = new URLSearchParams();
-        params.append('action', 'form5_all');
-        params.append('status', 'All');
         const monthInput = document.getElementById('f5a-month');
         const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
         const toNumeric = (v)=>{ const s=String(v??''); const n=parseFloat(s.replace(/[^0-9.+-]/g,'')); return isNaN(n)?0:n; };
@@ -2896,272 +3238,96 @@
             const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
             const lastDay = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
             fromVal = firstDay; toVal = lastDay;
-            params.append('month', monthVal);
           }catch(_){ }
         }
-        if (fromVal) params.append('from', fromVal);
-        if (toVal) params.append('to', toVal);
-        params.append('header_employee', 'Nhân viên');
-        params.append('header_current_manhour', 'Công chuẩn hiện tại');
-        params.append('field_employee', 'employee');
-        params.append('field_current_manhour', 'manhour');
-        params.append('header_task_count', 'Số tác vụ trong tháng');
-        params.append('field_task_count', 'taskCount');
-        params.append('_ts', Date.now().toString());
-        try { console.log('Form5 All GET (test):', `${urlTest}?${params.toString()}`); } catch(_) {}
-        async function fetchJson(url){
-          const r = await fetch(url, { method: 'GET' });
-          const text = await r.text();
-          let parsed = null; try { parsed = JSON.parse(text); } catch { parsed = null; }
-          return { ok: r.ok, parsed, raw: text, status: r.status };
-        }
-        // 1) Thử lấy dữ liệu tổng hợp có đủ cột từ server (form5_all_stats)
-        const paramsStats = new URLSearchParams(params);
-        paramsStats.set('action','form5_all_stats');
-        paramsStats.append('header_done','Số DONE');
-        paramsStats.append('header_ahead','Vượt tiến độ');
-        paramsStats.append('header_ontime','Đúng tiến độ');
-        paramsStats.append('header_late','Chậm tiến độ');
-        paramsStats.append('header_rate_ontime','Tỷ lệ đúng (%)');
-        paramsStats.append('header_rate_late','Tỷ lệ chậm (%)');
-        paramsStats.append('header_rate_ahead','Tỷ lệ vượt (%)');
-        paramsStats.append('field_done','done');
-        paramsStats.append('field_ahead','ahead');
-        paramsStats.append('field_ontime','ontime');
-        paramsStats.append('field_late','late');
-        paramsStats.append('field_rate_ontime','rate_ontime');
-        paramsStats.append('field_rate_late','rate_late');
-        paramsStats.append('field_rate_ahead','rate_ahead');
-        paramsStats.append('header_needManhour', 'Công chuẩn cần nhận');
-        paramsStats.append('field_needManhour', 'Need_manhour');
-        paramsStats.append('_ts', Date.now().toString());
-        try { console.log('Form5 All Stats GET (test):', `${urlTest}?${paramsStats.toString()}`); } catch(_) {}
-        let combined = await fetchJson(`${urlTest}?${paramsStats.toString()}`);
-        if (!combined.ok || /could not be started/i.test(String(combined.parsed?.message||''))){
-          combined = await fetchJson(`${urlProd}?${paramsStats.toString()}`);
-        }
-        function pickRowsDeep(json){
-          if (!json) return [];
-          if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
-          const candidates = ['data','rows','result','records','items','list'];
-          for (const k of candidates){ if (Array.isArray(json?.[k]) && json[k].length && typeof json[k][0] === 'object') return json[k]; }
-          try{
-            const queue=[json]; const seen=new Set();
-            while(queue.length){ const cur = queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for (const v of Object.values(cur)){ if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v; if (v && typeof v==='object') queue.push(v);} }
-          }catch(_){ }
-          return [];
-        }
-        if (combined.ok){
-          const dataStats = combined.parsed ?? (combined.raw ? JSON.parse(combined.raw) : null);
-          const rowsStats = pickRowsDeep(dataStats);
-          // Hỗ trợ dạng object-map: { "Tên": { ... }, ... }
-          let rowsStatsFlex = rowsStats;
-          if ((!rowsStatsFlex || rowsStatsFlex.length===0) && dataStats && typeof dataStats==='object' && !Array.isArray(dataStats)){
-            const entries = Object.entries(dataStats);
-            const valid = entries.filter(([,v])=> v && typeof v==='object' && !Array.isArray(v));
-            if (valid.length && valid.length === entries.length){
-              rowsStatsFlex = entries.map(([k,v])=> ({ name: k, ...v }));
-            }
-          }
-          const getV2 = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
-          if (rowsStatsFlex && rowsStatsFlex.length){
-            const rowsStatsFlexSorted = rowsStatsFlex.slice().sort((a,b)=>{
-              const ma = Number((()=>{ try{ return (a && (a.manhour ?? a.manhours ?? a.Manhour)); }catch(_){ return undefined; } })() ?? getV2(a,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-              const mb = Number((()=>{ try{ return (b && (b.manhour ?? b.manhours ?? b.Manhour)); }catch(_){ return undefined; } })() ?? getV2(b,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-              return (isNaN(mb)?0:mb) - (isNaN(ma)?0:ma);
-            });
-            const html = rowsStatsFlexSorted.map(item=>{
-              const name = getV2(item,['employee','nhanvien','nhân viên','họ tên','name']);
-              const man = Number(getV2(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-              const count = getV2(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']);
-              const done = getV2(item,['done','số done']);
-              const ahead = getV2(item,['ahead','vượt tiến độ']);
-              const ontime = getV2(item,['ontime','đúng tiến độ']);
-              const late = getV2(item,['late','chậm tiến độ']);
-              const rOn = Number(getV2(item,['rate_ontime','tỷ lệ đúng (%)']));
-              const rLate = Number(getV2(item,['rate_late','tỷ lệ chậm (%)']));
-              const rAhead = Number(getV2(item,['rate_ahead','tỷ lệ vượt (%)']));
-              const need = getV2(item,[
-                'công chuẩn cần nhận','cong chuan can nhan','need_manhour','needmanhour','need_manhours','needmanhours','need_mh','needmh','target_manhour','targetmanhour','need_manhour_month','need_in_month','planned_manhour'
-              ]);
-              return `
-                <tr>
-                  <td class="px-3 py-2">${name}</td>
-                  <td class="px-3 py-2">${isNaN(man)?'0.00':man.toFixed(2)}</td>
-                  <td class="px-3 py-2 cell-div">${need?String(need):''}</td>
-                  <td class="px-3 py-2">${(count ?? '')}</td>
-                  <td class="px-3 py-2">${(done ?? '')}</td>
-                  <td class="px-3 py-2">${(ahead ?? '')}</td>
-                  <td class="px-3 py-2">${(ontime ?? '')}</td>
-                  <td class="px-3 py-2">${(late ?? '')}</td>
-                  <td class="px-3 py-2">${isNaN(rAhead)?'':(rAhead.toFixed(0)+"%")}</td>
-                  <td class="px-3 py-2">${isNaN(rOn)?'':(rOn.toFixed(0)+"%")}</td>
-                  <td class="px-3 py-2">${isNaN(rLate)?'':(rLate.toFixed(0)+"%")}</td>
-                </tr>`;
-            }).join('');
-            body.innerHTML = html;
-            try{ enableTableDrag('f5a-body'); }catch(_){ }
-            // build rows for chart
-            const chartRows = rowsStatsFlexSorted.map(item=>{
-              const name = getV2(item,['employee','nhanvien','nhân viên','họ tên','name']);
-              const rateAhead = toNumeric(getV2(item,['rate_ahead','tỷ lệ vượt (%)']));
-              const rateOntime = toNumeric(getV2(item,['rate_ontime','tỷ lệ đúng (%)']));
-              const rateLate = toNumeric(getV2(item,['rate_late','tỷ lệ chậm (%)']));
-              const countNum = toNumeric(getV2(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']));
-              const aheadCnt = toNumeric(getV2(item,['ahead']));
-              const onCnt = toNumeric(getV2(item,['ontime']));
-              const lateCnt = toNumeric(getV2(item,['late']));
-              const manVal = toNumeric(getV2(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-              return { name, rateAhead, rateOntime, rateLate, count: countNum, ahead: aheadCnt, ontime: onCnt, late: lateCnt, manhour: manVal };
-            });
-            renderStackedChart(chartRows);
+        // Fetch once from the new single-source endpoint, then aggregate locally
+        await f5aFetchAllOnce(monthVal, fromVal, toVal);
+        const aggregated = f5aAggregate(F5A_RAW_ALL || [], fromVal, toVal);
+        try{ LS.setJSON('f5a.cache', { month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
+        if (!aggregated.length){
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>';
+          if (chartWrap) chartWrap.style.display = 'none';
+          if (chartWrapMan) chartWrapMan.style.display = 'none';
             return;
           }
-        }
-        // 1b) Thử gọi endpoint không tham số action (chỉ truyền month/from/to)
-        {
-          const bareQs = new URLSearchParams();
-          if (monthVal) bareQs.append('month', monthVal);
-          if (fromVal) bareQs.append('from', fromVal);
-          if (toVal) bareQs.append('to', toVal);
-          let bare = await fetchJson(`${urlTest}${bareQs.toString()?`?${bareQs.toString()}`:''}`);
-          if (!bare.ok || /could not be started/i.test(String(bare.parsed?.message||''))){
-            bare = await fetchJson(`${urlProd}${bareQs.toString()?`?${bareQs.toString()}`:''}`);
-          }
-          if (bare.ok){
-            const dataBare = bare.parsed ?? (bare.raw ? JSON.parse(bare.raw) : null);
-            const rowsBare = pickRowsDeep(dataBare);
-            // Hỗ trợ object-map
-            let rowsBareFlex = rowsBare;
-            if ((!rowsBareFlex || rowsBareFlex.length===0) && dataBare && typeof dataBare==='object' && !Array.isArray(dataBare)){
-              const entries = Object.entries(dataBare);
-              const valid = entries.filter(([,v])=> v && typeof v==='object' && !Array.isArray(v));
-              if (valid.length && valid.length === entries.length){
-                rowsBareFlex = entries.map(([k,v])=> ({ name: k, ...v }));
-              }
-            }
-            const getV2b = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
-            if (rowsBareFlex && rowsBareFlex.length){
-              const rowsBareFlexSorted = rowsBareFlex.slice().sort((a,b)=>{
-                const ma = Number(getV2b(a,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-                const mb = Number(getV2b(b,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-                return (isNaN(mb)?0:mb) - (isNaN(ma)?0:ma);
-              });
-              const html = rowsBareFlexSorted.map(item=>{
-                const name = getV2b(item,['employee','nhanvien','nhân viên','họ tên','name']);
-                const man = Number(getV2b(item,['manhour','current_manhour','congchuan','công chuẩn hiện tại','công chuẩn tổng tháng']));
-                const need = getV2b(item,[
-                  'công chuẩn cần nhận','cong chuan can nhan','need_manhour','needmanhour','need_manhours','needmanhours','need_mh','needmh','target_manhour','targetmanhour','need_manhour_month','need_in_month','planned_manhour'
-                ]);
-                const count = getV2b(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng']);
-                const done = getV2b(item,['done','số done']);
-                const ahead = getV2b(item,['ahead','vượt tiến độ']);
-                const ontime = getV2b(item,['ontime','đúng tiến độ']);
-                const late = getV2b(item,['late','chậm tiến độ']);
-                const rOn = Number(getV2b(item,['rate_ontime','tỷ lệ đúng (%)']));
-                const rLate = Number(getV2b(item,['rate_late','tỷ lệ chậm (%)']));
-                const rAhead = Number(getV2b(item,['rate_ahead','tỷ lệ vượt (%)']));
+        const sorted = aggregated.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+        const html = sorted.map(item=>{
+          // Dùng các trường theo ảnh: Phụ trách, Tổng điểm (đang xử lý), Số task đang xử lý, Tổng điểm tất cả, Tổng tác vụ đã xử lý
+          const name = item['Phụ trách'] || item.name || '';
+          const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
+          const count = Number(((item['Tổng tác vụ đã xử lý'] ?? item.count) || 0));
+          const ahead = Number(item.ahead||0);
+          const ontime = Number(item.ontime||0);
+          const late = Number(item.late||0);
+          const done = Number(item.doneCnt || (ahead + ontime + late));
+          const rAhead = Number(item.rateAhead||0);
+          const rOn = Number(item.rateOntime||0);
+          const rLate = Number(item.rateLate||0);
+          const need = f5aGetNeedManhour(name);
                 return `
                   <tr>
                     <td class="px-3 py-2">${name}</td>
-                    <td class="px-3 py-2">${isNaN(man)?'0.00':man.toFixed(2)}</td>
-                    <td class="px-3 py-2 cell-div">${need?String(need):''}</td>
-                    <td class="px-3 py-2">${(count ?? '')}</td>
-                    <td class="px-3 py-2">${(done ?? '')}</td>
-                    <td class="px-3 py-2">${(ahead ?? '')}</td>
-                    <td class="px-3 py-2">${(ontime ?? '')}</td>
-                    <td class="px-3 py-2">${(late ?? '')}</td>
-                    <td class="px-3 py-2">${isNaN(rAhead)?'':(rAhead.toFixed(0)+"%")}</td>
-                    <td class="px-3 py-2">${isNaN(rOn)?'':(rOn.toFixed(0)+"%")}</td>
-                    <td class="px-3 py-2">${isNaN(rLate)?'':(rLate.toFixed(0)+"%")}</td>
+              <td class="px-3 py-2">${man.toFixed(2)}</td>
+              <td class="px-3 py-2 cell-div">${need}</td>
+              <td class="px-3 py-2">${count}</td>
+              <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2">${ahead}</td>
+              <td class="px-3 py-2">${ontime}</td>
+              <td class="px-3 py-2">${late}</td>
+              <td class="px-3 py-2">${rAhead.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rOn.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rLate.toFixed(0)}%</td>
                   </tr>`;
               }).join('');
               body.innerHTML = html;
               try{ enableTableDrag('f5a-body'); }catch(_){ }
-              const chartRows = rowsBareFlexSorted.map(item=>({
-                name: getV2b(item,['employee','nhanvien','nhân viên','họ tên','name']),
-                rateAhead: toNumeric(getV2b(item,['rate_ahead','tỷ lệ vượt (%)'])),
-                rateOntime: toNumeric(getV2b(item,['rate_ontime','tỷ lệ đúng (%)'])),
-                rateLate: toNumeric(getV2b(item,['rate_late','tỷ lệ chậm (%)'])),
-                count: toNumeric(getV2b(item,['taskcount','task_count','count','sotacvu','số tác vụ','số tác vụ hiện tại','số tác vụ trong tháng'])),
-                ahead: toNumeric(getV2b(item,['ahead'])),
-                ontime: toNumeric(getV2b(item,['ontime'])),
-                late: toNumeric(getV2b(item,['late']))
-              }));
-              renderStackedChart(chartRows);
-              return;
-            }
-          }
-        }
-        // 2) Fallback: lấy danh sách và tự fetch thống kê từng người (giữ logic cũ)
-        let first = await fetchJson(`${urlTest}?${params.toString()}`);
-        if (!first.ok || /could not be started/i.test(String(first.parsed?.message||''))){
-          first = await fetchJson(`${urlProd}?${params.toString()}`);
-        }
-        if(!first.ok){ throw new Error(first.raw || `HTTP ${first.status}`); }
-        const data = first.parsed ?? (first.raw ? JSON.parse(first.raw) : null);
-        const rows = pickRowsDeep(data);
-        function getV(obj, keys){ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; }
-        const normalized = rows.map(r=>{
-          const name = getV(r,['field_employee','employee','nhanvien','nhan_vien','user','name','nhân viên']).toString().trim();
-          const manRaw = getV(r,['field_current_manhour','manhour','current_manhour','congchuan','cong_chuan','hours','công chuẩn hiện tại']);
-          const man = Number(manRaw);
-          const countRaw = getV(r,['field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ']);
-          const count = Number(countRaw);
-          return { name: name || '-', manhour: isNaN(man) ? 0 : man, count: isNaN(count) ? null : count };
-        }).filter(x=>x.name && x.name !== '-');
-        const baseNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES : [];
-        const unionNames = Array.from(new Set([ ...normalized.map(x=>x.name), ...baseNames ]));
-        const merged = unionNames.map(n=>{ const exist = normalized.find(x=>x.name===n); return exist ? exist : { name: n, manhour: 0, count: null }; });
-        const sorted = merged.slice().sort((a,b)=> b.manhour - a.manhour);
-        async function fetchStatsFor(name){
-          try{
-            const qs = new URLSearchParams();
-            qs.append('action','form4_employee_stats');
-            qs.append('employee', name);
-            if (fromVal) qs.append('from', fromVal);
-            if (toVal) qs.append('to', toVal);
-            const r = await fetch(`${urlTest}?${qs.toString()}`);
-            const t = await r.text();
-            let j = null; try{ j = JSON.parse(t); }catch{}
-            const obj = (j && typeof j==='object') ? j : {};
-            const getN = (k)=>{ const v = obj[k]; const n = Number(v); return isNaN(n)?0:n; };
-            return {
-              done: getN('done'), ahead: getN('ahead'), ontime: getN('ontime'), late: getN('late'),
-              rateOntime: getN('rate_ontime'), rateLate: getN('rate_late'), rateAhead: getN('rate_ahead')
-            };
-          }catch(_){ return { done:0,ahead:0,ontime:0,late:0,rateOntime:0,rateLate:0,rateAhead:0 }; }
-        }
-        const rowsHtml = [];
-        for (const x of sorted){
-          const st = await fetchStatsFor(x.name);
-          rowsHtml.push(`
-            <tr>
-              <td class="px-3 py-2">${x.name}</td>
-              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
-              <td class="px-3 py-2">${(x.count==null)?'':String(x.count)}</td>
-              <td class="px-3 py-2">${st.done}</td>
-              <td class="px-3 py-2">${st.ahead}</td>
-              <td class="px-3 py-2">${st.ontime}</td>
-              <td class="px-3 py-2">${st.late}</td>
-              <td class="px-3 py-2">${st.rateAhead.toFixed(0)}</td>
-              <td class="px-3 py-2">${st.rateOntime.toFixed(0)}</td>
-              <td class="px-3 py-2">${st.rateLate.toFixed(0)}</td>
-            </tr>`);
-        }
-        body.innerHTML = rowsHtml.join('');
-        try{ enableTableDrag('f5a-body'); }catch(_){ }
-        // Chart from fallback stats
-        const chartRows = [];
-        for (const x of sorted){
-          const st = await fetchStatsFor(x.name);
-          chartRows.push({ name: x.name, rateAhead: toNumeric(st.rateAhead), rateOntime: toNumeric(st.rateOntime), rateLate: toNumeric(st.rateLate), count: Number(x.count||0), ahead: st.ahead, ontime: st.ontime, late: st.late });
-        }
-        renderStackedChart(chartRows);
+        // Chart
+        F5A_LAST_ROWS = sorted;
+        renderStackedChart(sorted);
       }catch(err){
         body.innerHTML = `<tr><td colspan='11' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         if (chartWrap) chartWrap.style.display = 'none';
       }
+    }
+    function restoreForm5FromCache(){
+      try{
+        const cached = LS.getJSON('f5a.cache');
+        if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        updateLastUpdatedNote('f5a-search','f5a.lastUpdated');
+        const body = document.getElementById('f5a-body');
+        if (!body) return false;
+        const sorted = cached.rows.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+        const html = sorted.map(item=>{
+          const name = item['Phụ trách'] || item.name || '';
+          const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
+          const count = Number(((item['Tổng tác vụ đã xử lý'] ?? item.count) || 0));
+          const ahead = Number(item.ahead||0);
+          const ontime = Number(item.ontime||0);
+          const late = Number(item.late||0);
+          const done = Number(item.doneCnt || (ahead + ontime + late));
+          const rAhead = Number(item.rateAhead||0);
+          const rOn = Number(item.rateOntime||0);
+          const rLate = Number(item.rateLate||0);
+          const need = f5aGetNeedManhour(name);
+          return `<tr>
+              <td class="px-3 py-2">${name}</td>
+              <td class="px-3 py-2">${man.toFixed(2)}</td>
+              <td class="px-3 py-2 cell-div">${need}</td>
+              <td class="px-3 py-2">${count}</td>
+              <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2">${ahead}</td>
+              <td class="px-3 py-2">${ontime}</td>
+              <td class="px-3 py-2">${late}</td>
+              <td class="px-3 py-2">${rAhead.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rOn.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rLate.toFixed(0)}%</td>
+            </tr>`; }).join('');
+        body.innerHTML = html;
+        try{ enableTableDrag('f5a-body'); }catch(_){ }
+        F5A_LAST_ROWS = sorted;
+        try{ const chartWrap = document.getElementById('f5a-chart-container'); if(chartWrap) chartWrap.style.display='none'; }catch(_){ }
+        return true;
+      }catch(_){ return false; }
     }
     // Nút làm mới lựa chọn biểu đồ Form 5
     (function initF5aRefresh(){
