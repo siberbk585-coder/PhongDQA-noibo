@@ -315,7 +315,7 @@
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
               <th class="px-3 py-2">Nhân viên</th>
-              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2">Công chuẩn đã nhận</th>
               <th class="px-3 py-2">Số tác vụ</th>
               <th class="px-3 py-2">Số DONE</th>
               <th class="px-3 py-2">Vượt tiến độ</th>
@@ -383,7 +383,7 @@
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
               <th class="px-3 py-2">Nhân viên</th>
-              <th class="px-3 py-2">Công chuẩn hiện tại</th>
+              <th class="px-3 py-2">Công chuẩn đã nhận</th>
               <th class="px-3 py-2 cell-div">Công chuẩn cần nhận</th>
               <th class="px-3 py-2">Số tác vụ trong tháng</th>
               <th class="px-3 py-2">Số DONE</th>
@@ -462,6 +462,26 @@
       <div id="f5-count" class="mt-4 p-3 rounded-lg border border-blue-200 bg-blue-50/30 text-blue-800 cursor-pointer inline-flex items-center gap-2">
         <span>Nhấn để xem số ý tưởng đã nộp</span>
       </div>
+      <div class="mt-6">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-lg font-semibold text-blue-800">Thống kê ý tưởng theo nhân viên</h3>
+          <span id="f6-agg-note" class="text-xs text-gray-500"></span>
+        </div>
+        <div class="overflow-auto max-h-[50vh] border border-gray-200 rounded-lg bg-white">
+          <table class="min-w-[520px] w-full text-sm">
+            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+              <tr class="text-left text-gray-700">
+                <th class="px-3 py-2">Nhân viên</th>
+                <th class="px-3 py-2">Số ý tưởng</th>
+                <th class="px-3 py-2">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="f6-agg-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
     
     <!-- Form 7 -->
@@ -526,10 +546,11 @@
         <button id="detail-close" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
       </div>
       <div class="p-4">
-        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+        <div class="overflow-auto border border-gray-200 rounded-lg" style="max-height:60vh">
           <table class="min-w-[900px] w-full text-sm">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
+                <th class="px-3 py-2">STT</th>
                 <th class="px-3 py-2">Mã</th>
                 <th class="px-3 py-2">Tên tác vụ</th>
                 <th class="px-3 py-2">Trạng thái</th>
@@ -541,7 +562,7 @@
               </tr>
             </thead>
             <tbody id="detail-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -592,6 +613,33 @@
     </div>
   </div>
 
+  <!-- Form 6: Modal xem ý tưởng theo nhân viên -->
+  <div id="f6-ideas-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f6-ideas-title">
+    <div class="w-full max-w-4xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+        <h3 id="f6-ideas-title" class="text-base font-semibold text-gray-800">Ý tưởng của <span id="f6-ideas-name" class="text-primary-blue"></span></h3>
+        <button id="f6-ideas-close" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
+      </div>
+      <div class="p-4">
+        <div class="overflow-auto border border-gray-200 rounded-lg" style="max-height:60vh">
+          <table class="min-w-[800px] w-full text-sm">
+            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+              <tr class="text-left text-gray-700">
+                <th class="px-3 py-2">Ngày nộp</th>
+                <th class="px-3 py-2">Tiêu đề</th>
+                <th class="px-3 py-2">Vấn đề nhận diện</th>
+                <th class="px-3 py-2">Giải pháp</th>
+              </tr>
+            </thead>
+            <tbody id="f6-ideas-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -628,20 +676,21 @@
     // Form 5: Công chuẩn cần nhận (có thể chỉnh tại đây)
     const F5A_NEED_MANHOUR_DEFAULT = 200;
     const F5A_NEED_MANHOUR_BY_NAME = {
-      "Bùi Đặng Quốc Huy": 250.00,
-      "Phạm Thành Trung Kiên": 250.00,
-      "Đỗ Quang Long": 250.00,
-      "Nguyễn Hữu Thịnh": 250.00,
-      "Lê Văn Sơn": 250.00,
-      "Nguyễn Thị Hiền": 250.00,
-      "Lại Quốc Lộc": 250.00,
-      "Vũ Thị Thanh Hiền": 250.00,
-      "Lê Ngọc Ánh": 250.00,
-      "Đào Tuấn Kỳ": 250.00,
-      "Vũ Thị Hằng": 250.00,
-      "Thái Thị Giang": 250.00,
-      "Trần Hiếu Nghĩa": 250.00,
-      "Phạm Thị Minh": 250.00
+      "Bùi Đặng Quốc Huy": 248.40,
+      "Phạm Thành Trung Kiên": 248.40,
+      "Đỗ Quang Long": 280.80,
+      "Nguyễn Hữu Thịnh": 279.60,
+      "Lê Văn Sơn": 266.40,
+      "Nguyễn Thị Hiền": 246.00,
+      "Lại Quốc Lộc": 226.80,
+      "Vũ Thị Thanh Hiền": 252.00,
+      "Lê Ngọc Ánh": 218.40,
+      "Đào Tuấn Kỳ": 259.20,
+      "Vũ Thị Hằng": 230.40,
+      "Thái Thị Giang": 264.00,
+      "Trần Hiếu Nghĩa": 214.80,
+      "Phạm Thị Minh": 238.80,
+      "Lê Thị Thảo": 247.20,
     };
     function f5aGetNeedManhour(name){
       try{
@@ -796,8 +845,16 @@
         const wish = getV(row,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
         const act = getV(row,['actualdue','handapung','han_dap_ung','completiondate']);
         const doneDate = getV(row, finishedDateKs);
-        // Chỉ lọc theo \"📆 Ngày yêu cầu\"
-        const refDate = rq;
+        // Lọc theo mốc ngày ưu tiên: Ngày yêu cầu -> Hạn đáp ứng -> Hạn mong muốn -> Ngày hoàn thành
+        const refDate = (
+          hasVal(rq) ? rq : (
+            hasVal(act) ? act : (
+              hasVal(wish) ? wish : (
+                hasVal(doneDate) ? doneDate : ''
+              )
+            )
+          )
+        );
         if (!hasVal(refDate) || !inRange(refDate)) return;
 
         const weight = getNumberFrom(row, scoreKeys) || getNumberFrom(row, altScoreKeys);
@@ -817,13 +874,13 @@
         }
         rec.count = (rec.doneCnt || 0) + (rec.activeCnt || 0);
         rec.manhour = (rec.doneSum || 0) + (rec.activeSum || 0);
-        // Tổng công chuẩn theo mốc Ngày yêu cầu (không tính Cancel vì đã loại ở trên)
+        // Tổng công chuẩn theo mốc tham chiếu refDate (không tính Cancel vì đã loại ở trên)
         try{
-          const dRq = parseDateFlexible(rq || '');
-          if (dRq){
-            const ds = dRq.toISOString().slice(0,10);
-            const inRq = (!fromVal || ds >= fromVal) && (!toVal || ds <= toVal);
-            if (inRq){ rec.totalByRq = (rec.totalByRq || 0) + weight; }
+          const dRef = parseDateFlexible(refDate || '');
+          if (dRef){
+            const ds = dRef.toISOString().slice(0,10);
+            const inRef = (!fromVal || ds >= fromVal) && (!toVal || ds <= toVal);
+            if (inRef){ rec.totalByRef = (rec.totalByRef || 0) + weight; }
           }
         }catch(_){ }
 
@@ -850,9 +907,9 @@
         const totalPts = Number((r.doneSum||0) + (r.activeSum||0));
         r["Tổng điểm tất cả"] = +totalPts.toFixed(2);
         r["Tổng tác vụ đã xử lý"] = Number((r.doneCnt||0) + (r.activeCnt||0));
-        // Tổng công chuẩn theo mốc Ngày yêu cầu
-        const byRq = Number(r.totalByRq||0);
-        r["Tổng công chuẩn"] = +byRq.toFixed(2);
+        // Tổng công chuẩn theo mốc refDate
+        const byRef = Number(r.totalByRef||0);
+        r["Tổng công chuẩn"] = +byRef.toFixed(2);
       });
       return out;
     }
@@ -2347,6 +2404,18 @@
       detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
       detailModal.classList.add('open');
       detailModal.setAttribute('aria-hidden','false');
+      try{
+        const isForm5Visible = (function(){
+          try{
+            const sec5 = document.getElementById('form5');
+            return sec5 && !sec5.classList.contains('hidden');
+          }catch(_){ return false; }
+        })();
+        if (isForm5Visible && Array.isArray(F5A_RAW_ALL) && F5A_RAW_ALL.length){
+          renderDetailTasksFromF5All(empName, from, to).catch(()=> renderDetailTasks(empName, filter, from, to));
+          return;
+        }
+      }catch(_){ }
       renderDetailTasks(empName, filter, from, to).catch(()=>{});
     }
     function closeDetailModal(){
@@ -2357,6 +2426,93 @@
     if (detailClose) detailClose.onclick = closeDetailModal;
     if (detailModal) detailModal.addEventListener('click', (e)=>{ if(e.target===detailModal) closeDetailModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && detailModal && detailModal.classList.contains('open')) closeDetailModal(); });
+
+    // Renderer dùng đúng nguồn dữ liệu của Form 5 và thuật toán lọc "Công chuẩn đã nhận"
+    async function renderDetailTasksFromF5All(name, from, to){
+      try{
+        if (!Array.isArray(F5A_RAW_ALL) || !F5A_RAW_ALL.length){
+          try{
+            const monthGuess = (from || '').slice(0,7);
+            await f5aFetchAllOnce(monthGuess || '', from || '', to || '');
+          }catch(_){ }
+        }
+        const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+        function hasVal(v){ return v != null && String(v).trim() !== ''; }
+        const assigneeKeys = ['Assignee','Phụ trách','Người phụ trách','Người xử lý','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+        const taskNameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','Mã','taskname','ten_tac_vu','ten','title'];
+        const scoreKeys = ['Điểm','Score','score'];
+        const altScoreKeys = ['Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+        const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+        const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh'];
+        function norm(s){ return String(s||'').trim(); }
+        function getV(obj, keys){
+          const lower = {};
+          Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; });
+          for (const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v = lower[c1] ?? lower[c2]; if (v!==undefined) return v; }
+          return '';
+        }
+        function toNum(v){ try{ let s=String(v||'').trim(); if(!s) return 0; s=s.replace(/\s|\u00A0/g,''); s=s.replace(/[%₫đvnd]/gi,''); if (s.includes(',')) s=s.replace(/\./g,'').replace(',', '.'); else s=s.replace(/\./g,''); const n=Number(s); return Number.isFinite(n)?n:0; }catch(_){ return 0; } }
+        function isCanceled(o){ const f = String(getV(o, finishedDateKs)||'').toLowerCase(); const st = String(getV(o, statusKeys)||'').toLowerCase(); return f.includes('cancel') || st.includes('cancel') || st.includes('hủy') || st.includes('huỷ'); }
+        function pickName(o){ let n = norm(getV(o, assigneeKeys)); if (!n || n.toLowerCase()==='nan') n = 'Chưa phân công'; return n; }
+        function chooseRefDate(o){
+          const rq = getV(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']);
+          const act = getV(o,['actualdue','handapung','han_dap_ung','completiondate']);
+          const wish= getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
+          const done= getV(o, finishedDateKs);
+          return hasVal(rq) ? rq : (hasVal(act) ? act : (hasVal(wish) ? wish : (hasVal(done) ? done : '')));
+        }
+        function inRangeDate(ref){
+          if (!hasVal(from) && !hasVal(to)) return true;
+          const d = parseDateFlexible(ref);
+          if (!d) return false;
+          const ds = d.toISOString().slice(0,10);
+          if (hasVal(from) && ds < from) return false;
+          if (hasVal(to) && ds > to) return false;
+          return true;
+        }
+        const list = [];
+        rows.forEach(o=>{
+          const tname = norm(getV(o, taskNameKeys));
+          if (!tname) return;
+          if (isCanceled(o)) return;
+          const n = pickName(o);
+          if (n !== name) return;
+          const ref = chooseRefDate(o);
+          if (!inRangeDate(ref)) return;
+          const code = norm(getV(o,['code','ma','taskcode','mã']));
+          const status = norm(getV(o, statusKeys));
+          const man = toNum(getV(o, scoreKeys)) || toNum(getV(o, altScoreKeys));
+          const rq = norm(getV(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']));
+          const wish = norm(getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
+          const act = norm(getV(o,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
+          const done = norm(getV(o, finishedDateKs));
+          list.push({ code, tname, status, man, rq, wish, act, done });
+        });
+        if (!list.length){
+          const hasRange = Boolean((from||'').trim() || (to||'').trim());
+          const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : 'Không có tác vụ.';
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">${msg}</td></tr>`;
+          return;
+        }
+        let stt = 0;
+        const html = list.map(it=>`
+          <tr>
+            <td class="px-3 py-2">${++stt}</td>
+            <td class="px-3 py-2">${it.code}</td>
+            <td class="px-3 py-2">${it.tname}</td>
+            <td class="px-3 py-2">${it.status}</td>
+            <td class="px-3 py-2">${(Number(it.man)||0).toFixed(2)}</td>
+            <td class="px-3 py-2">${it.rq}</td>
+            <td class="px-3 py-2">${it.wish}</td>
+            <td class="px-3 py-2">${it.act}</td>
+            <td class="px-3 py-2">${it.done}</td>
+          </tr>
+        `).join('');
+        detailBody.innerHTML = html;
+      }catch(_){
+        detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi hiển thị dữ liệu.</td></tr>`;
+      }
+    }
 
     async function renderDetailTasks(name, filter, from, to){
       const headerMapF1 = {
@@ -2383,8 +2539,8 @@
         person_name: name,
         timestamp: new Date().toISOString()
       });
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      // KHÔNG truyền from/to lên server để tránh lọc sai mốc (server có thể chỉ lọc theo Ngày yêu cầu);
+      // Thay vào đó, lọc cục bộ theo tháng bằng logic refDate ở dưới để khớp với "Công chuẩn đã nhận".
       function getV(obj, keys){
         const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
         for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
@@ -2431,8 +2587,49 @@
             return isDoing;
           });
         }
+        // Lọc cục bộ theo tháng dựa trên mốc tham chiếu refDate (requestDate -> actualDue -> wishDue -> doneDate), loại Cancel
+        (function(){
+          try{
+            const fromVal = (from || '').trim();
+            const toVal = (to || '').trim();
+            function hasVal(v){ return v != null && String(v).trim() !== ''; }
+            function getText(o, keys){
+              const lower = Object.keys(o||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = o[k]; return acc; },{});
+              for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return String(v); }
+              return '';
+            }
+            function isCanceledRow(o){
+              const st = getText(o,['status','trangthai','trang_thai','trạng thái']).toLowerCase();
+              const doneDate = getText(o,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh']);
+              return st.includes('cancel') || st.includes('hủy') || st.includes('huỷ') || /cancel/i.test(doneDate||'');
+            }
+            function chooseRefDate(o){
+              const rq = getText(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']);
+              const act = getText(o,['actualdue','handapung','han_dap_ung','completiondate']);
+              const wish= getText(o,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
+              const done= getText(o,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh']);
+              return hasVal(rq) ? rq : (hasVal(act) ? act : (hasVal(wish) ? wish : (hasVal(done) ? done : '')));
+            }
+            if (fromVal || toVal){
+              rows = rows.filter(o=>{
+                if (isCanceledRow(o)) return false;
+                const ref = chooseRefDate(o);
+                const d = parseDateFlexible(ref);
+                if (!d) return false;
+                const ds = d.toISOString().slice(0,10);
+                if (fromVal && ds < fromVal) return false;
+                if (toVal && ds > toVal) return false;
+                return true;
+              });
+            } else {
+              rows = rows.filter(o=> !isCanceledRow(o));
+            }
+          }catch(_){ }
+        })();
         if (!rows.length){
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Không có tác vụ${filter==='Doing'?' Doing':''}.</td></tr>`;
+          const hasRange = Boolean((from||'').trim() || (to||'').trim());
+          const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : `Không có tác vụ${filter==='Doing'?' Doing':''}.`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">${msg}</td></tr>`;
           return;
         }
         // Helper parse date (hỗ trợ YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, có/không giờ)
@@ -2452,12 +2649,13 @@
           return isNaN(dt) ? null : dt;
         }
 
+        let stt = 0;
         const html = rows.map(item=>{
           const code = getV(item,['code','ma','taskcode','mã']);
           const tname = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
           const status = getV(item,['status','trangthai','trang_thai','trạng thái']);
           const man = getV(item,['manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn']);
-          const rq = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          const rq = getV(item,['📆 ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           const wish = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const act = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const done = getV(item,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh','completion','done_date','ngày hoàn thành']);
@@ -2482,6 +2680,7 @@
 
           return `
             <tr class="${trClass}">
+              <td class="px-3 py-2">${++stt}</td>
               <td class="px-3 py-2">${code}</td>
               <td class="px-3 py-2">${tname}</td>
               <td class="px-3 py-2">${status}</td>
@@ -2733,6 +2932,8 @@
     // ===== Form 5: submit and list ideas =====
     async function renderForm5List(){
       const body = document.getElementById('f5-body');
+      const aggBody = document.getElementById('f6-agg-body');
+      const aggNote = document.getElementById('f6-agg-note');
       if (!body) return;
       body.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       const headerMapF5 = {
@@ -2781,6 +2982,8 @@
         body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>';
         F5_LAST_COUNT = 0;
         F6_LAST_ROWS = [];
+        if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>';
+        if (aggNote) aggNote.textContent = '';
         return;
       }
       const getV = (obj, keys)=>{
@@ -2805,6 +3008,8 @@
           if (monthVal) list = list.filter(r => formatYyyyMm(r.submitDate) === monthVal);
           if (!list.length){
             body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Không có dữ liệu</td></tr>';
+            if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Không có dữ liệu</td></tr>';
+            if (aggNote) aggNote.textContent = '';
             return;
           }
           const html2 = list.map(r=>`
@@ -2818,12 +3023,65 @@
           `).join('');
           body.innerHTML = html2;
           try{ enableTableDrag('f5-body'); }catch(_){ }
+
+          // Aggregate by employee and render f6-agg-body
+          try{
+            const counts = new Map();
+            list.forEach(r=>{ const name = String(r.employee||'').trim()||'(Chưa rõ)'; counts.set(name, (counts.get(name)||0)+1); });
+            const items = Array.from(counts.entries()).map(([name, cnt])=>({ name, cnt })).sort((a,b)=> b.cnt - a.cnt || a.name.localeCompare(b.name,'vi'));
+            const rowsHtml = items.map(it=>`
+              <tr>
+                <td class="px-3 py-2">${it.name}</td>
+                <td class="px-3 py-2">${it.cnt}</td>
+                <td class="px-3 py-2"><button class="px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105" data-f6-view="${it.name.replace(/"/g,'&quot;')}">Xem</button></td>
+              </tr>
+            `).join('');
+            if (aggBody) aggBody.innerHTML = rowsHtml || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Không có dữ liệu</td></tr>';
+            if (aggNote) {
+              const monthTxt = monthVal ? `tháng ${monthVal}` : 'tất cả thời gian';
+              aggNote.textContent = `Đếm theo ${monthTxt}`;
+            }
+          }catch(_){ }
         }catch(_){ }
       };
       // initial render
       try{ applyForm6LocalFilter(); }catch(_){ }
       F5_LAST_COUNT = F6_LAST_ROWS.length;
       try{ LS.setJSON('f6.cache', { rows: F6_LAST_ROWS, ts: Date.now() }); LS.set('f6.lastUpdated', String(Date.now())); }catch(_){ }
+    }
+
+    // Form 6: Modal helpers
+    (function initF6IdeasModal(){
+      const modal = document.getElementById('f6-ideas-modal');
+      const closeBtn = document.getElementById('f6-ideas-close');
+      if (closeBtn) closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } });
+      if (modal) modal.addEventListener('click', (e)=>{ if(e.target===modal){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal && modal.classList.contains('open')){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
+    })();
+
+    function openF6IdeasModal(empName, ideas){
+      try{
+        const modal = document.getElementById('f6-ideas-modal');
+        const nameEl = document.getElementById('f6-ideas-name');
+        const body = document.getElementById('f6-ideas-body');
+        if (!modal || !nameEl || !body) return;
+        nameEl.textContent = empName || '';
+        if (!Array.isArray(ideas) || !ideas.length){
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Không có dữ liệu</td></tr>';
+        } else {
+          const rows = ideas.map(r=>`
+            <tr>
+              <td class="px-3 py-2">${r.submitDate||''}</td>
+              <td class="px-3 py-2">${r.title||''}</td>
+              <td class="px-3 py-2">${r.problem||''}</td>
+              <td class="px-3 py-2">${r.solution||''}</td>
+            </tr>
+          `).join('');
+          body.innerHTML = rows;
+        }
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+      }catch(_){ }
     }
     function restoreForm6FromCache(){
       try{
@@ -2844,6 +3102,7 @@
       const sendBtn = document.getElementById('f5-btn-send');
       const cancelBtn = document.getElementById('f5-btn-cancel');
       const countBox = document.getElementById('f5-count');
+      const aggBody = document.getElementById('f6-agg-body');
 
       function openF5Modal(){
         try { setF5DateDefault(); } catch(_){}
@@ -2931,6 +3190,22 @@
       if (countBox){
         countBox.addEventListener('click', ()=>{
           countBox.innerHTML = `<span>📊</span><span>Số ý tưởng đã nộp: <b>${F5_LAST_COUNT}</b></span>`;
+        });
+      }
+
+      // Delegate click on "Xem" buttons in aggregate table
+      if (aggBody){
+        aggBody.addEventListener('click', (e)=>{
+          const btn = e.target && e.target.closest ? e.target.closest('[data-f6-view]') : null;
+          if (!btn) return;
+          const name = btn.getAttribute('data-f6-view') || '';
+          try {
+            const list = Array.isArray(F6_LAST_ROWS) ? F6_LAST_ROWS.slice() : [];
+            const monthEl = document.getElementById('f6-month');
+            const monthVal = monthEl ? (monthEl.value || '').trim() : '';
+            const filtered = list.filter(r=> (!monthVal || formatYyyyMm(r.submitDate) === monthVal) && String(r.employee||'').trim() === name);
+            openF6IdeasModal(name, filtered);
+          } catch(_) {}
         });
       }
     })();
@@ -3266,7 +3541,7 @@
           const need = f5aGetNeedManhour(name);
                 return `
                   <tr>
-                    <td class="px-3 py-2">${name}</td>
+                    <td class="px-3 py-2 cursor-pointer" data-f5a-emp="${name}"><span class="text-primary-blue hover:underline">${name}</span></td>
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
               <td class="px-3 py-2">${count}</td>
@@ -3310,7 +3585,7 @@
           const rLate = Number(item.rateLate||0);
           const need = f5aGetNeedManhour(name);
           return `<tr>
-              <td class="px-3 py-2">${name}</td>
+              <td class="px-3 py-2 cursor-pointer" data-f5a-emp="${name}"><span class="text-primary-blue hover:underline">${name}</span></td>
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
               <td class="px-3 py-2">${count}</td>
@@ -3344,6 +3619,31 @@
       const yy = d.getFullYear();
       const mm = String(d.getMonth()+1).padStart(2,'0');
       if (!m.value) m.value = `${yy}-${mm}`;
+    })();
+    // Click tên nhân viên tại Form 5 để mở bảng chi tiết tác vụ đã tính trong "Công chuẩn đã nhận"
+    (function initF5aNameClick(){
+      const body = document.getElementById('f5a-body');
+      if (!body) return;
+      body.addEventListener('click', (e)=>{
+        const cell = e.target && e.target.closest ? e.target.closest('[data-f5a-emp]') : null;
+        if (!cell) return;
+        const name = cell.getAttribute('data-f5a-emp') || '';
+        const monthInput = document.getElementById('f5a-month');
+        const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+        let fromVal = '', toVal = '';
+        if (monthVal) {
+          try{
+            const parts = monthVal.split('-');
+            const yy = Number(parts[0]);
+            const mm = Number(parts[1]);
+            const firstDay = `${yy}-${String(mm).padStart(2,'0')}-01`;
+            const lastDate = new Date(yy, mm, 0).getDate();
+            const lastDay = `${yy}-${String(mm).padStart(2,'0')}-${String(lastDate).padStart(2,'0')}`;
+            fromVal = firstDay; toVal = lastDay;
+          }catch(_){ }
+        }
+        if (name) openDetailModal(name, 'All', fromVal, toVal);
+      });
     })();
   </script>
 </body>
