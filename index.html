@@ -1023,7 +1023,16 @@
         const target = btn.getAttribute('data-target');
         showSection(target);
         if (target === 'form6') { try { if(!restoreForm6FromCache()){ renderForm5List(); } } catch(_){} }
-        if (target === 'form4') { try { if(!restoreForm4FromCache()){ renderForm4(); } f4SchedulePivot(); } catch(_){} }
+        if (target === 'form4') {
+          try {
+            const restored = restoreForm4FromCache();
+            f4UpdateGroupButtonsUI();
+            f4SchedulePivot();
+            // Refresh ngầm: giữ UI hiện có, tải dữ liệu mới không hiển thị spinner
+            try { F4_SUPPRESS_LOADING = true; } catch(_) {}
+            renderForm4().finally(()=>{ try { F4_SUPPRESS_LOADING = false; } catch(_) {} });
+          } catch(_){}
+        }
         if (target === 'form5') { try { if(!restoreForm5FromCache()){ /* chờ bấm Tra cứu */ } } catch(_){} }
       }
     });
@@ -1848,6 +1857,7 @@
     // ===== Form 4: filter popover & selection =====
     let F4_SELECTED_NAMES = new Set();
     let F4_ALL_NAMES = [];
+    let F4_SUPPRESS_LOADING = false;
 
     // Form 4: cache dữ liệu để lọc client-side (không refetch khi bấm nút nhóm)
     let F4_LAST_NORMALIZED = [];
@@ -2012,12 +2022,16 @@
       const body = document.getElementById('f4-body');
       const bodyAll = document.getElementById('f4-body-all');
       const chartWrap = document.getElementById('f4-chart-container');
-      if (chartWrap) chartWrap.style.display = 'none';
-      if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
+      if (!F4_SUPPRESS_LOADING){
+        if (chartWrap) chartWrap.style.display = 'none';
+        if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
+      }
       const statusSelEl = document.getElementById('f4-status');
       const statusValPreview = statusSelEl ? statusSelEl.value : 'Doing';
       const colSpan = (statusValPreview === 'All') ? 10 : 3;
-      body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
+      if (!F4_SUPPRESS_LOADING){
+        body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
+      }
       try{
         const urlTest = 'https://iatzhxxuk.tino.page/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
         const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
