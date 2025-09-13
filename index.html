@@ -1023,7 +1023,7 @@
         const target = btn.getAttribute('data-target');
         showSection(target);
         if (target === 'form6') { try { if(!restoreForm6FromCache()){ renderForm5List(); } } catch(_){} }
-        if (target === 'form4') { try { if(!restoreForm4FromCache()){ /* chờ bấm Tra cứu */ } f4SchedulePivot(); } catch(_){} }
+        if (target === 'form4') { try { if(!restoreForm4FromCache()){ renderForm4(); } f4SchedulePivot(); } catch(_){} }
         if (target === 'form5') { try { if(!restoreForm5FromCache()){ /* chờ bấm Tra cứu */ } } catch(_){} }
       }
     });
