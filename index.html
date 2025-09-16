@@ -42,6 +42,8 @@
     .cell-div{ border-left:1px solid #e5e7eb; }
     .table-vdiv{ border-collapse: separate; border-spacing: 0; }
     .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
+    /* Form 5: ẩn cột Số DONE (có thể bật lại sau) */
+    .f5a-col-done{ display:none; }
     /* Drag row highlight */
     .drag-over{ background-color:#e0f2fe !important; }
   </style>
@@ -386,7 +388,7 @@
               <th class="px-3 py-2">Công chuẩn đã nhận</th>
               <th class="px-3 py-2 cell-div">Công chuẩn cần nhận</th>
               <th class="px-3 py-2">Số tác vụ trong tháng</th>
-              <th class="px-3 py-2">Số DONE</th>
+              <th class="px-3 py-2 f5a-col-done">Số DONE</th>
               <th class="px-3 py-2">Vượt tiến độ</th>
               <th class="px-3 py-2">Đúng tiến độ</th>
               <th class="px-3 py-2">Chậm tiến độ</th>
@@ -553,12 +555,12 @@
                 <th class="px-3 py-2">STT</th>
                 <th class="px-3 py-2">Mã</th>
                 <th class="px-3 py-2">Tên tác vụ</th>
-                <th class="px-3 py-2">Trạng thái</th>
+                <th class="px-3 py-2">Số giờ đánh giá thực tế</th>
                 <th class="px-3 py-2">Công chuẩn</th>
-                <th class="px-3 py-2">Ngày yêu cầu</th>
+                <th class="px-3 py-2">Trạng thái theo công chuẩn</th>
                 <th class="px-3 py-2">Hạn mong muốn</th>
-                <th class="px-3 py-2">Hạn đáp ứng</th>
                 <th class="px-3 py-2">Ngày hoàn thành</th>
+                <th class="px-3 py-2">Hiện trạng theo hạn mong muốn</th>
               </tr>
             </thead>
             <tbody id="detail-body" class="divide-y divide-gray-100">
@@ -700,6 +702,25 @@
         const v = map[norm(name)];
         return (typeof v === 'number' && !isNaN(v)) ? v : F5A_NEED_MANHOUR_DEFAULT;
       }catch(_){ return F5A_NEED_MANHOUR_DEFAULT; }
+    }
+    // Form 5: whitelist tên hiển thị
+    const F5A_WHITELIST = [
+      "Đỗ Quang Long",
+      "Phạm Thành Trung Kiên",
+      "Lê Thị Thảo",
+      "Vũ Thị Thanh Hiền",
+      "Lại Quốc Lộc",
+      "Lê Ngọc Ánh",
+      "Lê Văn Sơn",
+      "Nguyễn Thị Hiền",
+      "Phạm Thị Minh",
+    ];
+    const F5A_WHITELIST_SET = new Set(F5A_WHITELIST.map(n => (typeof vnLower==='function'? vnLower(n): String(n||'').toLowerCase())));
+    function f5aIsWhitelisted(name){
+      try{
+        const key = (typeof vnLower==='function'? vnLower(name): String(name||'').toLowerCase());
+        return F5A_WHITELIST_SET.has(key);
+      }catch(_){ return false; }
     }
     // Form 6 (ideas) cache for month filter
     let F6_LAST_ROWS = [];
@@ -1811,6 +1832,17 @@
       const prev = btn ? btn.textContent : '';
       if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
 
+      // Generate Reqcode: QA.NB.DDMM-XXXXXX (X: A-Z0-9)
+      const Reqcode = (function(){
+        const d = new Date();
+        const pad = (n)=> String(n).padStart(2,'0');
+        const ddmm = pad(d.getDate()) + pad(d.getMonth()+1);
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let rand = '';
+        for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random()*chars.length)];
+        return `QA.NB.${ddmm}-${rand}`;
+      })();
+
       const mapped = {
         requesterName: requester,
         requesterEmail: requesterEmail,
@@ -1821,11 +1853,14 @@
         Assignee: assignee,
         desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
         Odoojira: odooJira,
-        deptRequest: 'DQA'
+        deptRequest: 'DQA',
+        Reqcode: Reqcode
       };
 
       const fd = new FormData();
       Object.entries(mapped).forEach(([k,v])=> fd.append(k, v));
+      // Also append explicitly for form-data pipelines
+      try { fd.append('Reqcode', mapped.Reqcode || ''); } catch(_){ }
       const fileEl = document.getElementById('attach');
       if (fileEl && fileEl.files && fileEl.files.length){
         const f = fileEl.files[0];
@@ -2414,7 +2449,7 @@
     function openDetailModal(empName, filter, from, to){
       if (!detailModal) return;
       detailNameEl.textContent = empName || '';
-      detailBody.innerHTML = `<tr><td colspan="8" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
+      detailBody.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
       detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
       detailModal.classList.add('open');
       detailModal.setAttribute('aria-hidden','false');
@@ -2457,6 +2492,7 @@
         const scoreKeys = ['Điểm','Score','score'];
         const altScoreKeys = ['Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
         const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+        const statusByWishKeys = ['Hiện trạng theo hạn mong muốn','hien trang theo han mong muon','Hiện trạng theo hạn mong muon','status_by_wish','statusbywish','statusWish','status_wish','ht_theo_han_mong_muon'];
         const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh'];
         function norm(s){ return String(s||'').trim(); }
         function getV(obj, keys){
@@ -2500,12 +2536,27 @@
           const wish = norm(getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
           const act = norm(getV(o,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
           const done = norm(getV(o, finishedDateKs));
-          list.push({ code, tname, status, man, rq, wish, act, done });
+          // Số giờ đánh giá thực tế: cố gắng lấy từ các field thường gặp
+          const actualHours = norm(getV(o,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]));
+          // Hiện trạng theo hạn mong muốn: ưu tiên lấy trực tiếp từ dữ liệu server
+          let statusVsWish = norm(getV(o, statusByWishKeys));
+          // Fallback nếu server không có cột này
+          if (!statusVsWish){
+            try{
+              const dDone = parseDateFlexible(done);
+              const dWish = parseDateFlexible(wish);
+              if (dWish && dDone){
+                const wishPlus2 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate() + 2);
+                statusVsWish = (dDone.getTime() <= wishPlus2.getTime()) ? 'Đúng hạn yêu cầu' : 'Trễ hạn yêu cầu';
+              }
+            }catch(_){ }
+          }
+          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish });
         });
         if (!list.length){
           const hasRange = Boolean((from||'').trim() || (to||'').trim());
           const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : 'Không có tác vụ.';
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">${msg}</td></tr>`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">${msg}</td></tr>`;
           return;
         }
         let stt = 0;
@@ -2514,12 +2565,12 @@
             <td class="px-3 py-2">${++stt}</td>
             <td class="px-3 py-2">${it.code}</td>
             <td class="px-3 py-2">${it.tname}</td>
-            <td class="px-3 py-2">${it.status}</td>
+            <td class="px-3 py-2">${it.actualHours||''}</td>
             <td class="px-3 py-2">${(Number(it.man)||0).toFixed(2)}</td>
-            <td class="px-3 py-2">${it.rq}</td>
+            <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.status)}</td>
             <td class="px-3 py-2">${it.wish}</td>
-            <td class="px-3 py-2">${it.act}</td>
             <td class="px-3 py-2">${it.done}</td>
+            <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
           </tr>
         `).join('');
         detailBody.innerHTML = html;
@@ -2643,7 +2694,7 @@
         if (!rows.length){
           const hasRange = Boolean((from||'').trim() || (to||'').trim());
           const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : `Không có tác vụ${filter==='Doing'?' Doing':''}.`;
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">${msg}</td></tr>`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">${msg}</td></tr>`;
           return;
         }
         // Helper parse date (hỗ trợ YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, có/không giờ)
@@ -2673,6 +2724,16 @@
           const wish = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const act = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const done = getV(item,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh','completion','done_date','ngày hoàn thành']);
+          const actualHours = getV(item,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]);
+          let statusVsWish = '';
+          try{
+            const dDone = toDate(done);
+            const dWish = toDate(wish);
+            if (dWish && dDone){
+              const wishPlus2 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate() + 2);
+              statusVsWish = (dDone.getTime() <= wishPlus2.getTime()) ? 'Đúng hạn yêu cầu' : 'Trễ hạn yêu cầu';
+            }
+          }catch(_){ }
 
           // Late completed highlight (yellow)
           const dueForCompare = act || wish || '';
@@ -2697,18 +2758,18 @@
               <td class="px-3 py-2">${++stt}</td>
               <td class="px-3 py-2">${code}</td>
               <td class="px-3 py-2">${tname}</td>
-              <td class="px-3 py-2">${status}</td>
+              <td class="px-3 py-2">${actualHours}</td>
               <td class="px-3 py-2">${man}</td>
-              <td class="px-3 py-2">${rq}</td>
+              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(status)}</td>
               <td class="px-3 py-2">${wish}</td>
-              <td class="px-3 py-2">${act}</td>
               <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
             </tr>
           `;
         }).join('');
         detailBody.innerHTML = html;
       }catch(err){
-        detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+        detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="9">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
       }
     }
 
@@ -3272,7 +3333,7 @@
     async function renderForm5All(){
       const body = document.getElementById('f5a-body');
       if (!body) return;
-      body.innerHTML = "<tr><td colspan='11' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      body.innerHTML = "<tr><td colspan='10' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       const chartWrap = document.getElementById('f5a-chart-container');
       const chartCanvas = document.getElementById('f5a-chart');
       const chartWrapMan = document.getElementById('f5a-chart-container-manhour');
@@ -3533,13 +3594,15 @@
         await f5aFetchAllOnce(monthVal, fromVal, toVal);
         const aggregated = f5aAggregate(F5A_RAW_ALL || [], fromVal, toVal);
         try{ LS.setJSON('f5a.cache', { month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
-        if (!aggregated.length){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>';
+        // Lọc theo whitelist tên
+        const filtered = Array.isArray(aggregated) ? aggregated.filter(item => f5aIsWhitelisted(item['Phụ trách'] || item.name || '')) : [];
+        if (!filtered.length){
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
           if (chartWrap) chartWrap.style.display = 'none';
           if (chartWrapMan) chartWrapMan.style.display = 'none';
             return;
           }
-        const sorted = aggregated.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+        const sorted = filtered.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
         const html = sorted.map(item=>{
           // Dùng các trường theo ảnh: Phụ trách, Tổng điểm (đang xử lý), Số task đang xử lý, Tổng điểm tất cả, Tổng tác vụ đã xử lý
           const name = item['Phụ trách'] || item.name || '';
@@ -3548,7 +3611,6 @@
           const ahead = Number(item.ahead||0);
           const ontime = Number(item.ontime||0);
           const late = Number(item.late||0);
-          const done = Number(item.doneCnt || (ahead + ontime + late));
           const rAhead = Number(item.rateAhead||0);
           const rOn = Number(item.rateOntime||0);
           const rLate = Number(item.rateLate||0);
@@ -3559,7 +3621,7 @@
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
               <td class="px-3 py-2">${count}</td>
-              <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2 f5a-col-done">${Number(item.doneCnt || (ahead + ontime + late))}</td>
               <td class="px-3 py-2">${ahead}</td>
               <td class="px-3 py-2">${ontime}</td>
               <td class="px-3 py-2">${late}</td>
@@ -3574,7 +3636,7 @@
         F5A_LAST_ROWS = sorted;
         renderStackedChart(sorted);
       }catch(err){
-        body.innerHTML = `<tr><td colspan='11' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='10' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         if (chartWrap) chartWrap.style.display = 'none';
       }
     }
@@ -3585,7 +3647,14 @@
         updateLastUpdatedNote('f5a-search','f5a.lastUpdated');
         const body = document.getElementById('f5a-body');
         if (!body) return false;
-        const sorted = cached.rows.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+        const baseRows = Array.isArray(cached.rows) ? cached.rows.slice() : [];
+        const filtered = baseRows.filter(item => f5aIsWhitelisted(item['Phụ trách'] || item.name || ''));
+        if (!filtered.length){
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
+          try{ const chartWrap = document.getElementById('f5a-chart-container'); if(chartWrap) chartWrap.style.display='none'; }catch(_){ }
+          return true;
+        }
+        const sorted = filtered.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
         const html = sorted.map(item=>{
           const name = item['Phụ trách'] || item.name || '';
           const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
@@ -3593,7 +3662,6 @@
           const ahead = Number(item.ahead||0);
           const ontime = Number(item.ontime||0);
           const late = Number(item.late||0);
-          const done = Number(item.doneCnt || (ahead + ontime + late));
           const rAhead = Number(item.rateAhead||0);
           const rOn = Number(item.rateOntime||0);
           const rLate = Number(item.rateLate||0);
@@ -3603,7 +3671,7 @@
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
               <td class="px-3 py-2">${count}</td>
-              <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2 f5a-col-done">${Number(item.doneCnt || (ahead + ontime + late))}</td>
               <td class="px-3 py-2">${ahead}</td>
               <td class="px-3 py-2">${ontime}</td>
               <td class="px-3 py-2">${late}</td>
