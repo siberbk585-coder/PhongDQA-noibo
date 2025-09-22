@@ -970,6 +970,37 @@
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
       }catch(_){ return ''; }
     }
+    // Parse number flexible: supports both comma and dot decimals
+    function parseNumberFlexible(value){
+      try{
+        let s = String(value ?? '').trim();
+        if (!s) return NaN;
+        s = s.replace(/\s|\u00A0/g,'');
+        s = s.replace(/[%₫đvnd]/gi,'');
+        if (s.includes(',')) {
+          s = s.replace(/\./g,'').replace(',', '.');
+        } else {
+          s = s.replace(/,/g,'');
+        }
+        const n = Number(s);
+        return Number.isFinite(n) ? n : NaN;
+      }catch(_){ return NaN; }
+    }
+    // Number formatters for display only (do not mutate source data)
+    function formatNumberVi(num, min=2, max=2){
+      try{
+        if (!Number.isFinite(num)) return '';
+        return num.toLocaleString('vi-VN', { minimumFractionDigits: min, maximumFractionDigits: max });
+      }catch(_){
+        try{ return String(num); }catch(__){ return ''; }
+      }
+    }
+    function formatNumberViFromRaw(raw, min=2, max=2){
+      try{
+        const n = parseNumberFlexible(raw);
+        return Number.isFinite(n) ? formatNumberVi(n, min, max) : String(raw||'');
+      }catch(_){ return String(raw||''); }
+    }
 
     // Local storage helpers & last-updated note
     const LS = {
@@ -2538,6 +2569,20 @@
           const done = norm(getV(o, finishedDateKs));
           // Số giờ đánh giá thực tế: cố gắng lấy từ các field thường gặp
           const actualHours = norm(getV(o,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]));
+          // Chuẩn hóa hiển thị (display only)
+          const actualNum = toNum(actualHours);
+          const actualHoursDisp = Number.isFinite(actualNum) ? formatNumberVi(actualNum, 2, 2) : (actualHours||'');
+          const manDisp = formatNumberVi(Number(man)||0, 2, 2);
+          const wishDisp = formatDdMmYyyy(wish);
+          let wishPlus2Disp = '';
+          try{
+            const dW = parseDateFlexible(wish);
+            if (dW){
+              const plus2 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 2);
+              wishPlus2Disp = formatDdMmYyyy(plus2);
+            }
+          }catch(_){ }
+          const doneDisp = formatDdMmYyyy(done);
           // Hiện trạng theo hạn mong muốn: ưu tiên lấy trực tiếp từ dữ liệu server
           let statusVsWish = norm(getV(o, statusByWishKeys));
           // Fallback nếu server không có cột này
@@ -2551,7 +2596,19 @@
               }
             }catch(_){ }
           }
-          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish });
+          // Tính Trạng thái theo công chuẩn dựa trên so sánh số giờ thực tế và công chuẩn (chuẩn hoá dấu thập phân)
+          let statusByMan = '';
+          try{
+            const actualNum = toNum(actualHours);
+            const EPS = 1e-4;
+            const hasDone = !!parseDateFlexible(done);
+            if (hasDone && !isNaN(actualNum) && !isNaN(man)){
+              if (actualNum > man + EPS) statusByMan = 'Chậm tiến độ';
+              else if (Math.abs(actualNum - man) <= EPS) statusByMan = 'Đúng tiến độ';
+              else statusByMan = 'Vượt tiến độ';
+            }
+          }catch(_){ }
+          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp });
         });
         if (!list.length){
           const hasRange = Boolean((from||'').trim() || (to||'').trim());
@@ -2565,11 +2622,11 @@
             <td class="px-3 py-2">${++stt}</td>
             <td class="px-3 py-2">${it.code}</td>
             <td class="px-3 py-2">${it.tname}</td>
-            <td class="px-3 py-2">${it.actualHours||''}</td>
-            <td class="px-3 py-2">${(Number(it.man)||0).toFixed(2)}</td>
-            <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.status)}</td>
-            <td class="px-3 py-2">${it.wish}</td>
-            <td class="px-3 py-2">${it.done}</td>
+            <td class="px-3 py-2">${it.actualHoursDisp||''}</td>
+            <td class="px-3 py-2">${it.manDisp||''}</td>
+            <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
+            <td class="px-3 py-2">${it.wishDisp||it.wish||''}${it.wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${it.wishPlus2Disp}</div>`:''}</td>
+            <td class="px-3 py-2">${it.doneDisp||it.done||''}</td>
             <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
           </tr>
         `).join('');
@@ -2725,6 +2782,34 @@
           const act = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const done = getV(item,['completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh','completion','done_date','ngày hoàn thành']);
           const actualHours = getV(item,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]);
+          // Hiển thị đồng nhất
+          const manNum = parseNumberFlexible(man);
+          const actualNum = parseNumberFlexible(actualHours);
+          const manDisp = Number.isFinite(manNum) ? formatNumberVi(manNum, 2, 2) : String(man||'');
+          const actualHoursDisp = Number.isFinite(actualNum) ? formatNumberVi(actualNum, 2, 2) : String(actualHours||'');
+          const wishDisp = formatDdMmYyyy(wish);
+          const doneDisp = formatDdMmYyyy(done);
+          let wishPlus2Disp = '';
+          try{
+            const dW = toDate(wish);
+            if (dW){
+              const plus2 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 2);
+              wishPlus2Disp = formatDdMmYyyy(plus2);
+            }
+          }catch(_){ }
+          // Tính Trạng thái theo công chuẩn bằng so sánh số giờ thực tế và công chuẩn (hỗ trợ dấu phẩy/dấu chấm)
+          let statusByMan = '';
+          try{
+            const manNum = parseNumberFlexible(man);
+            const actualNum = parseNumberFlexible(actualHours);
+            const EPS = 1e-4;
+            const hasDone = !!toDate(done);
+            if (hasDone && !isNaN(actualNum) && !isNaN(manNum)){
+              if (actualNum > manNum + EPS) statusByMan = 'Chậm tiến độ';
+              else if (Math.abs(actualNum - manNum) <= EPS) statusByMan = 'Đúng tiến độ';
+              else statusByMan = 'Vượt tiến độ';
+            }
+          }catch(_){ }
           let statusVsWish = '';
           try{
             const dDone = toDate(done);
@@ -2758,11 +2843,11 @@
               <td class="px-3 py-2">${++stt}</td>
               <td class="px-3 py-2">${code}</td>
               <td class="px-3 py-2">${tname}</td>
-              <td class="px-3 py-2">${actualHours}</td>
-              <td class="px-3 py-2">${man}</td>
-              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(status)}</td>
-              <td class="px-3 py-2">${wish}</td>
-              <td class="px-3 py-2">${done}</td>
+              <td class="px-3 py-2">${actualHoursDisp}</td>
+              <td class="px-3 py-2">${manDisp}</td>
+              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan || status)}</td>
+              <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${wishPlus2Disp}</div>`:''}</td>
+              <td class="px-3 py-2">${doneDisp||done||''}</td>
               <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
             </tr>
           `;
