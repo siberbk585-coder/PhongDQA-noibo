@@ -1201,6 +1201,7 @@
           if (splitWrap) splitWrap.style.display = 'none';
         }
       } catch(_) {}
+      try { if (ctx && ctx.form === 'Form 2') { sendForm2RowMeta(ctx); } } catch(_) {}
       fileInput.value = '';
       try { document.getElementById('upload-file-pdfzip').value = ''; } catch(_){}
       try { document.getElementById('upload-file-xlsxzip').value = ''; } catch(_){}
@@ -1228,6 +1229,27 @@
     document.getElementById('btn-cancel').onclick = closeUploadModal;
     modal.addEventListener('click', (e)=>{ if(e.target===modal) closeUploadModal(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeUploadModal(); });
+
+    function sendForm2RowMeta(ctx){
+      try{
+        if (!ctx || ctx.form !== 'Form 2') return;
+        const p = new URLSearchParams();
+        p.append('action','form2_report_open');
+        p.append('person_name', ctx.name || '');
+        p.append('taskId', ctx.taskId || ctx.code || '');
+        p.append('code', ctx.code || '');
+        p.append('taskName', ctx.taskName || '');
+        const rd = ctx.rowData || {};
+        try{
+          Object.keys(rd).forEach(k=>{
+            const v = rd[k];
+            p.append(`row.${k}`, String(v ?? ''));
+          });
+        }catch(_){ }
+        p.append('timestamp', new Date().toISOString());
+        fetch(WEBHOOK_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: p.toString() }).catch(()=>{});
+      }catch(_){ }
+    }
 
     document.getElementById('btn-send').onclick = async ()=>{
       if (isModalSubmitting) return;
@@ -1747,6 +1769,7 @@
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
           const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || '');
+          const rowData = { taskId: taskIdBest, requestDate, wishDue, actualDue, code, taskName };
           addTd(tr, taskId);
           addTd(tr, requestDate);
           addTd(tr, wishDue);
@@ -1761,7 +1784,7 @@
             btn.disabled = true;
             btn.classList.add('opacity-50','pointer-events-none');
             lastOpenTrigger = btn;
-            openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName});
+            openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName, rowData});
           };
           tdBtn.appendChild(btn); tr.appendChild(tdBtn);
           body.appendChild(tr);
@@ -1790,7 +1813,9 @@
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
-          addTd(tr, (taskId && String(taskId).trim()) ? taskId : (code || ''));
+          const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || '');
+          const rowData = { taskId: taskIdBest, requestDate, wishDue, actualDue, code, taskName };
+          addTd(tr, taskIdBest);
           addTd(tr, requestDate);
           addTd(tr, wishDue);
           addTd(tr, actualDue);
@@ -1798,7 +1823,7 @@
           addTd(tr, taskName);
           const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
           const btn=document.createElement('button'); btn.className='px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105'; btn.textContent='Trả form báo cáo';
-          btn.onclick=(e)=>{ e.preventDefault(); if (btn.disabled) return; btn.disabled = true; btn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = btn; const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || ''); openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName}); };
+          btn.onclick=(e)=>{ e.preventDefault(); if (btn.disabled) return; btn.disabled = true; btn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = btn; openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName, rowData}); };
           tdBtn.appendChild(btn); tr.appendChild(tdBtn);
           body.appendChild(tr);
         });
