@@ -173,6 +173,7 @@
         <table class="min-w-[900px] w-full text-sm">
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
+              <th class="px-3 py-2">Mã tác vụ</th>
               <th class="px-3 py-2">Ngày yêu cầu</th>
               <th class="px-3 py-2">Hạn mong muốn</th>
               <th class="px-3 py-2">Hạn đáp ứng</th>
@@ -182,7 +183,7 @@
             </tr>
           </thead>
           <tbody id="f2-body" class="divide-y divide-gray-100">
-            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -1023,6 +1024,7 @@
         const btn = document.getElementById(btnId);
         if (!btn) return;
         const parent = btn.parentElement || btn;
+        // Ghi chú thời gian
         let note = parent.querySelector('[data-last-updated]');
         if (!note){
           note = document.createElement('span');
@@ -1031,10 +1033,20 @@
           parent.appendChild(note);
         }
         const tsStr = LS.get(tsKey);
-        if (!tsStr){ note.textContent = ''; return; }
         const ts = Number(tsStr);
-        const show = isNaN(ts) ? '' : `Dữ liệu cập nhật lúc ${formatHHmmDdMmYyyy(new Date(ts))}`;
+        const show = tsStr ? (isNaN(ts) ? '' : `Dữ liệu cập nhật lúc ${formatHHmmDdMmYyyy(new Date(ts))}`) : '';
         note.textContent = show;
+
+        // Dòng hướng dẫn nổi bật bên dưới
+        const hintId = `${btnId}-refresh-hint`;
+        let hint = document.getElementById(hintId);
+        if (!hint){
+          hint = document.createElement('div');
+          hint.id = hintId;
+          hint.className = 'mt-1 text-xs inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-50 border border-amber-200 text-amber-700';
+          parent.insertAdjacentElement('afterend', hint);
+        }
+        hint.innerHTML = `🔄 <span>Nhấn <b>TRA CỨU</b> để cập nhật dữ liệu mới nhất.</span>`;
       }catch(_){ }
     }
 
@@ -1091,6 +1103,10 @@
     // Default
     navBtns[0].classList.add('bg-primary-blue','font-bold');
     showSection(navBtns[0].getAttribute('data-target'));
+    // Hiển thị dòng hướng dẫn dưới các nút Tra cứu của các form khác
+    try { updateLastUpdatedNote('f4-search','f4.lastUpdated'); } catch(_){}
+    try { updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); } catch(_){}
+    try { updateLastUpdatedNote('f5-search','f5.lastUpdated'); } catch(_){}
 
     // Names
     const FORM1_NAMES = [
@@ -1677,11 +1693,13 @@
       body.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       try{
         const headerMapF2 = {
+          header_taskId: 'Mã tác vụ',
           header_requestDate: 'Ngày yêu cầu',
           header_wishDue: 'Hạn mong muốn',
           header_actualDue: 'Hạn đáp ứng',
           header_code: 'Mã',
           header_taskName: 'Tên tác vụ',
+          field_taskId: 'taskId',
           field_requestDate: 'requestDate',
           field_wishDue: 'wishDue',
           field_actualDue: 'actualDue',
@@ -1722,11 +1740,14 @@
         body.innerHTML='';
         rows.forEach(item=>{
           const tr=document.createElement('tr');
+          const taskId = getV(item,['taskid','task_id','ma_tac_vu','mã tác vụ','requestid','id']);
           const requestDate = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || '');
+          addTd(tr, taskId);
           addTd(tr, requestDate);
           addTd(tr, wishDue);
           addTd(tr, actualDue);
@@ -1740,7 +1761,7 @@
             btn.disabled = true;
             btn.classList.add('opacity-50','pointer-events-none');
             lastOpenTrigger = btn;
-            openUploadModal({form:'Form 2', name, code, taskName});
+            openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName});
           };
           tdBtn.appendChild(btn); tr.appendChild(tdBtn);
           body.appendChild(tr);
@@ -1763,11 +1784,13 @@
         const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
         rows.forEach(item=>{
           const tr=document.createElement('tr');
+          const taskId = getV(item,['taskid','task_id','ma_tac_vu','mã tác vụ','requestid','id']);
           const requestDate = getV(item,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           const wishDue = getV(item,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
+          addTd(tr, (taskId && String(taskId).trim()) ? taskId : (code || ''));
           addTd(tr, requestDate);
           addTd(tr, wishDue);
           addTd(tr, actualDue);
@@ -1775,7 +1798,7 @@
           addTd(tr, taskName);
           const tdBtn=document.createElement('td'); tdBtn.className='px-3 py-2';
           const btn=document.createElement('button'); btn.className='px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105'; btn.textContent='Trả form báo cáo';
-          btn.onclick=(e)=>{ e.preventDefault(); if (btn.disabled) return; btn.disabled = true; btn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = btn; openUploadModal({form:'Form 2', name, code, taskName}); };
+          btn.onclick=(e)=>{ e.preventDefault(); if (btn.disabled) return; btn.disabled = true; btn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = btn; const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || ''); openUploadModal({form:'Form 2', name, code, taskId: taskIdBest, taskName}); };
           tdBtn.appendChild(btn); tr.appendChild(tdBtn);
           body.appendChild(tr);
         });
@@ -2598,17 +2621,20 @@
           }
           // Tính Trạng thái theo công chuẩn dựa trên so sánh số giờ thực tế và công chuẩn (chuẩn hoá dấu thập phân)
           let statusByMan = '';
+          const actualIsZero = Number.isFinite(actualNum) && Math.abs(actualNum) < 1e-9;
           try{
             const actualNum = toNum(actualHours);
             const EPS = 1e-4;
             const hasDone = !!parseDateFlexible(done);
-            if (hasDone && !isNaN(actualNum) && !isNaN(man)){
+            if (actualIsZero) {
+              statusByMan = 'Thiếu dữ liệu';
+            } else if (hasDone && !isNaN(actualNum) && !isNaN(man)){
               if (actualNum > man + EPS) statusByMan = 'Chậm tiến độ';
               else if (Math.abs(actualNum - man) <= EPS) statusByMan = 'Đúng tiến độ';
               else statusByMan = 'Vượt tiến độ';
             }
           }catch(_){ }
-          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp });
+          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp, actualIsZero });
         });
         if (!list.length){
           const hasRange = Boolean((from||'').trim() || (to||'').trim());
@@ -2622,9 +2648,9 @@
             <td class="px-3 py-2">${++stt}</td>
             <td class="px-3 py-2">${it.code}</td>
             <td class="px-3 py-2">${it.tname}</td>
-            <td class="px-3 py-2">${it.actualHoursDisp||''}</td>
+            <td class="px-3 py-2${it.actualIsZero ? ' bg-amber-100 text-amber-800' : ''}">${it.actualHoursDisp||''}</td>
             <td class="px-3 py-2">${it.manDisp||''}</td>
-            <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
+            <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
             <td class="px-3 py-2">${it.wishDisp||it.wish||''}${it.wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${it.wishPlus2Disp}</div>`:''}</td>
             <td class="px-3 py-2">${it.doneDisp||it.done||''}</td>
             <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
@@ -2804,7 +2830,9 @@
             const actualNum = parseNumberFlexible(actualHours);
             const EPS = 1e-4;
             const hasDone = !!toDate(done);
-            if (hasDone && !isNaN(actualNum) && !isNaN(manNum)){
+            if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
+              statusByMan = 'Thiếu dữ liệu';
+            } else if (hasDone && !isNaN(actualNum) && !isNaN(manNum)){
               if (actualNum > manNum + EPS) statusByMan = 'Chậm tiến độ';
               else if (Math.abs(actualNum - manNum) <= EPS) statusByMan = 'Đúng tiến độ';
               else statusByMan = 'Vượt tiến độ';
@@ -2843,9 +2871,9 @@
               <td class="px-3 py-2">${++stt}</td>
               <td class="px-3 py-2">${code}</td>
               <td class="px-3 py-2">${tname}</td>
-              <td class="px-3 py-2">${actualHoursDisp}</td>
+              <td class="px-3 py-2${(function(n){ const EPS=1e-4; return (Number.isFinite(parseNumberFlexible(actualHours)) && Math.abs(parseNumberFlexible(actualHours))<EPS) ? ' bg-amber-100 text-amber-800' : ''; })()}">${actualHoursDisp}</td>
               <td class="px-3 py-2">${manDisp}</td>
-              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan || status)}</td>
+              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan || status)}</td>
               <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${wishPlus2Disp}</div>`:''}</td>
               <td class="px-3 py-2">${doneDisp||done||''}</td>
               <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
