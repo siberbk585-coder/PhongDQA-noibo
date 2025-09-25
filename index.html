@@ -393,13 +393,15 @@
               <th class="px-3 py-2">Vượt tiến độ</th>
               <th class="px-3 py-2">Đúng tiến độ</th>
               <th class="px-3 py-2">Chậm tiến độ</th>
+              <th class="px-3 py-2">Số N/A</th>
               <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
               <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
               <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
+              <th class="px-3 py-2">%N/A</th>
             </tr>
           </thead>
           <tbody id="f5a-body" class="divide-y divide-gray-100">
-            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -678,6 +680,8 @@
     let F5A_BASIS = 'rates';
     let F5A_RAW_ALL = [];
     let F5A_RAW_META = { month: '' };
+    // Debug flag: bật/tắt bằng localStorage key "f5a.debug" = '1'
+    function f5aIsDebug(){ try{ return (localStorage.getItem('f5a.debug')||'') === '1'; }catch(_){ return false; } }
     // Form 5: Công chuẩn cần nhận (có thể chỉnh tại đây)
     const F5A_NEED_MANHOUR_DEFAULT = 200;
     const F5A_NEED_MANHOUR_BY_NAME = {
@@ -867,6 +871,7 @@
         return true;
       }
       const byName = new Map();
+      const dbg = { total:0, done:0, both:0, addAhead:0, addOn:0, addLate:0, missWish:0, missMan:0 };
       rows.forEach(row=>{
         // Bỏ qua bản ghi không phải task (thiếu tên task)
         const taskVal = getTextFrom(row, taskNameKeys);
@@ -902,7 +907,7 @@
         const done = hasDoneDate || /^\s*done\s*$/i.test(resText||'') || /\bdone\b/.test(normRes) || /\bhoan\b|\bdone\b|\bda hoan\b/.test(normStatus);
 
         let rec = byName.get(name);
-        if (!rec) { rec = { name, manhour: 0, count: 0, ahead: 0, ontime: 0, late: 0, doneCnt: 0, doneSum: 0, activeCnt: 0, activeSum: 0 }; byName.set(name, rec); }
+        if (!rec) { rec = { name, manhour: 0, count: 0, ahead: 0, ontime: 0, late: 0, na: 0, doneCnt: 0, doneSum: 0, activeCnt: 0, activeSum: 0 }; byName.set(name, rec); }
 
         const countThis = countZeroTasks ? true : (weight > minWeight);
         if (done) {
@@ -925,34 +930,95 @@
         }catch(_){ }
 
         // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done
-        if (done){
-          const ht = normalizeVi(getTextFrom(row, statusKeys)); // theo công chuẩn
-          const htWish = normalizeVi(getTextFrom(row, statusByWishKeys)); // theo hạn mong muốn
-          const manAhead = ht.includes('vuot tien do');
-          const manOn    = ht.includes('dung tien do');
-          const manLate  = ht.includes('cham tien do');
-          const wishOn   = htWish.includes('dung han');
-          const wishLate = htWish.includes('tre han');
-          // Theo yêu cầu: nếu thiếu 1 trong 2 cột => KHÔNG TÍNH
-          if ((wishOn || wishLate) && (manAhead || manOn || manLate)){
+        dbg.total++;
+        {
+          // Xác định điều kiện N/A: có ngày hoàn thành và số giờ thực tế = 0
+          const EPS_NA = 1e-4;
+          let actualNumForNA = 0;
+          try { actualNumForNA = getNumberFrom(row, actualHoursKeys); } catch(_) { actualNumForNA = 0; }
+          const isNA = (hasDoneDate && Number.isFinite(actualNumForNA) && Math.abs(actualNumForNA) < EPS_NA);
+          let handled = false;
+          if (!done) { dbg.missWish++; dbg.missMan++; } // chưa hoàn thành thì thường không có đủ 2 chiều
+          // Lấy text nếu có
+          const htText = normalizeVi(getTextFrom(row, statusKeys));
+          const wishText = normalizeVi(getTextFrom(row, statusByWishKeys));
+          let manAhead = htText.includes('vuot tien do');
+          let manOn    = htText.includes('dung tien do');
+          let manLate  = htText.includes('cham tien do');
+          let wishOn   = wishText.includes('dung han');
+          let wishLate = wishText.includes('tre han');
+          // Fallback: suy ra Đúng/Trễ hạn nếu thiếu text
+          if (!(wishOn || wishLate)){
+            try{
+              const dWish = parseDateFlexible(wish);
+              const dDone = parseDateFlexible(doneDate);
+              if (dWish && dDone){
+                const plus2 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate()+2);
+                if (dDone.getTime() <= plus2.getTime()) wishOn = true; else wishLate = true;
+              }
+            }catch(_){ }
+          }
+          // Fallback: suy ra theo công chuẩn nếu thiếu text
+          if (!(manAhead || manOn || manLate)){
+            try{
+              const actualNum = getNumberFrom(row, actualHoursKeys);
+              const manNum = weight;
+              const EPS = 1e-4;
+              // Nếu thực tế = 0 thì coi là thiếu dữ liệu -> không phân loại vào Vượt/Đúng/Chậm
+              if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
+                // giữ nguyên manAhead/manOn/manLate = false để đẩy vào N/A
+              } else if (Number.isFinite(actualNum) && Number.isFinite(manNum)){
+                if (actualNum > manNum + EPS) manLate = true;
+                else if (Math.abs(actualNum - manNum) <= EPS) manOn = true;
+                else manAhead = true;
+              }
+            }catch(_){ }
+          }
+          // Nếu thuộc N/A thì ưu tiên đưa vào N/A và bỏ qua các phân loại khác
+          if (isNA){
+            rec.na = (rec.na || 0) + 1;
+            handled = true;
+          }
+          if (!handled && (wishOn || wishLate) && (manAhead || manOn || manLate)){
+            rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
+            dbg.both++;
             if (wishOn){
-              if (manAhead) rec.ahead += 1;      // Đúng hạn + Vượt → Vượt
-              else if (manOn) rec.late += 1;     // Đúng hạn + Đúng → Chậm
-              else if (manLate) rec.ontime += 1; // Đúng hạn + Trễ → Đúng
+              if (manAhead) { rec.ahead += 1; dbg.addAhead++; }
+              else if (manOn) { rec.ontime += 1; dbg.addOn++; }
+              else if (manLate) { rec.late += 1; dbg.addLate++; }
             } else if (wishLate){
-              rec.late += 1; // Trễ hạn + bất kỳ → Chậm
+              rec.late += 1; dbg.addLate++;
+            }
+          } else if (!handled) {
+            // Nếu chỉ có phân loại theo công chuẩn (thiếu hạn mong muốn) thì vẫn cộng để tránh đếm thiếu
+            if (!wishOn && !wishLate && (manAhead || manOn || manLate)){
+              rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
+              if (manAhead) { rec.ahead += 1; dbg.addAhead++; }
+              else if (manOn) { rec.ontime += 1; dbg.addOn++; }
+              else if (manLate) { rec.late += 1; dbg.addLate++; }
+            }
+            // Nếu chỉ có Trễ hạn theo hạn mong muốn mà thiếu phân loại theo công chuẩn, vẫn tính là Chậm
+            else if (wishLate && !(manAhead||manOn||manLate)){
+              rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
+              rec.late += 1; dbg.addLate++;
+            } else {
+              if (!(wishOn||wishLate)) dbg.missWish++;
+              if (!(manAhead||manOn||manLate)) dbg.missMan++;
             }
           }
         }
       });
       const out = Array.from(byName.values());
       out.forEach(r=>{
-        const sum = Math.max(0, Number(r.ahead||0) + Number(r.ontime||0) + Number(r.late||0));
-        // Theo yêu cầu: chỉ tính tỷ lệ trên các bản ghi có ĐỦ 2 cột (đã được phân loại)
-        const denom = sum;
+        const na = Math.max(0, Number(r.na||0));
+        const sumClassified = Math.max(0, Number(r.ahead||0) + Number(r.ontime||0) + Number(r.late||0));
+        // Mẫu số mới: tổng (Vượt + Đúng + Chậm + N/A)
+        const denom = sumClassified + na;
         r.rateAhead = denom ? Math.round((Number(r.ahead||0)*100)/denom) : 0;
         r.rateOntime = denom ? Math.round((Number(r.ontime||0)*100)/denom) : 0;
         r.rateLate = denom ? Math.round((Number(r.late||0)*100)/denom) : 0;
+        r.rateNA = denom ? Math.max(0, Math.min(100, Math.round((na*100)/denom))) : 0;
+        r.classifiedCnt = sumClassified;
         // Map theo biểu mẫu ngoài (ảnh)
         r["Phụ trách"] = r.name || '';
         const activeSum = Number(r.activeSum||0);
@@ -965,6 +1031,7 @@
         const byRef = Number(r.totalByRef||0);
         r["Tổng công chuẩn"] = +byRef.toFixed(2);
       });
+      try{ if (f5aIsDebug()) console.log('[F5A] classify summary:', dbg); }catch(_){ }
       return out;
     }
 
@@ -1129,7 +1196,13 @@
             renderForm4().finally(()=>{ try { F4_SUPPRESS_LOADING = false; } catch(_) {} });
           } catch(_){}
         }
-        if (target === 'form5') { try { if(!restoreForm5FromCache()){ /* chờ bấm Tra cứu */ } } catch(_){} }
+        if (target === 'form5') {
+          try {
+            const restored = restoreForm5FromCache();
+            // Luôn làm mới ngầm để đảm bảo % được tính lại sau khi chuyển form hoặc cập nhật mã
+            renderForm5All().catch(()=>{});
+          } catch(_){}
+        }
       }
     });
     // Default
@@ -1739,6 +1812,21 @@
       if (!m._bound){ m.addEventListener('change', ()=> applyForm1MonthFilter()); m._bound = true; }
     })();
 
+    // Helper: ưu tiên chọn Mã tác vụ theo tiền tố QA.Y/QA.NB
+    function pickTaskIdPreferQA(taskId, code){
+      try{
+        const s1 = String(taskId||'').trim();
+        const s2 = String(code||'').trim();
+        const re = /^QA\.(?:Y|NB)\./i;
+        const has1 = re.test(s1);
+        const has2 = re.test(s2);
+        if (has1 && has2) return s1;
+        if (has1) return s1;
+        if (has2) return s2;
+        return s1 || s2 || '';
+      }catch(_){ return String(taskId||code||'').trim(); }
+    }
+
     // Form 2 rendering
     async function renderForm2(){
       const name = (document.getElementById('f2-name').value || '').trim();
@@ -1800,9 +1888,9 @@
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
-          const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || '');
+          const taskIdBest = pickTaskIdPreferQA(taskId, code);
           const rowData = { taskId: taskIdBest, requestDate, wishDue, actualDue, code, taskName };
-          addTd(tr, taskId);
+          addTd(tr, taskIdBest);
           addTd(tr, requestDate);
           addTd(tr, wishDue);
           addTd(tr, actualDue);
@@ -1845,7 +1933,7 @@
           const actualDue = getV(item,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const code = getV(item,['code','ma','taskcode','mã']);
           const taskName = getV(item,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']);
-          const taskIdBest = (taskId && String(taskId).trim()) ? taskId : (code || '');
+          const taskIdBest = pickTaskIdPreferQA(taskId, code);
           const rowData = { taskId: taskIdBest, requestDate, wishDue, actualDue, code, taskName };
           addTd(tr, taskIdBest);
           addTd(tr, requestDate);
@@ -3126,7 +3214,20 @@
     const f5aBtn = document.getElementById('f5a-search');
     if (f5aBtn) { f5aBtn.addEventListener('click', async (e)=>{ e.preventDefault(); try{ await renderForm5All(); }catch(_){ } }); }
     // Auto render once when Form 5 first shows
-    try { setTimeout(()=>{ try{ renderForm5All(); }catch(_){ } }, 300); } catch(_) {}
+    try {
+      setTimeout(()=>{ try{ renderForm5All(); }catch(_){ } }, 300);
+      // Rebind khi user thay đổi chế độ biểu đồ để tránh mất handler sau khi chuyển form
+      const modeSel = document.getElementById('f5a-mode');
+      if (modeSel && !modeSel._bound){
+        modeSel.addEventListener('change', ()=>{ try{ renderForm5All(); }catch(_){ } });
+        modeSel._bound = true;
+      }
+      const refreshBtn = document.getElementById('f5a-refresh');
+      if (refreshBtn && !refreshBtn._bound){
+        refreshBtn.addEventListener('click', (e)=>{ e.preventDefault(); try{ renderForm5All(); }catch(_){ } });
+        refreshBtn._bound = true;
+      }
+    } catch(_) {}
     // Tự động render khi đổi trạng thái
     const f4StatusHidden = document.getElementById('f4-status');
     if (f4StatusHidden) f4StatusHidden.value = 'Doing';
@@ -3764,10 +3865,12 @@
         await f5aFetchAllOnce(monthVal, fromVal, toVal);
         const aggregated = f5aAggregate(F5A_RAW_ALL || [], fromVal, toVal);
         try{ LS.setJSON('f5a.cache', { version: APP_CACHE_VERSION, month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
+        // Sau khi render, giữ một bản sao trong biến toàn cục để các lần render lại nhanh không phụ thuộc cache/bộ nhớ ngoài
+        try { F5A_LAST_ROWS = Array.isArray(aggregated) ? aggregated.slice() : []; } catch(_) {}
         // Lọc theo whitelist tên
         const filtered = Array.isArray(aggregated) ? aggregated.filter(item => f5aIsWhitelisted(item['Phụ trách'] || item.name || '')) : [];
         if (!filtered.length){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có dữ liệu</td></tr>';
           if (chartWrap) chartWrap.style.display = 'none';
           if (chartWrapMan) chartWrapMan.style.display = 'none';
             return;
@@ -3784,6 +3887,8 @@
           const rAhead = Number(item.rateAhead||0);
           const rOn = Number(item.rateOntime||0);
           const rLate = Number(item.rateLate||0);
+          const rNA = Number(item.rateNA||0);
+          const clsCnt = Number(item.classifiedCnt|| (ahead+ontime+late));
           const need = f5aGetNeedManhour(name);
                 return `
                   <tr>
@@ -3795,9 +3900,11 @@
               <td class="px-3 py-2">${ahead}</td>
               <td class="px-3 py-2">${ontime}</td>
               <td class="px-3 py-2">${late}</td>
+              <td class="px-3 py-2">${Number(item.na||0)}</td>
               <td class="px-3 py-2">${rAhead.toFixed(0)}%</td>
               <td class="px-3 py-2">${rOn.toFixed(0)}%</td>
               <td class="px-3 py-2">${rLate.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rNA.toFixed(0)}%</td>
                   </tr>`;
               }).join('');
               body.innerHTML = html;
@@ -3806,7 +3913,7 @@
         F5A_LAST_ROWS = sorted;
         renderStackedChart(sorted);
       }catch(err){
-        body.innerHTML = `<tr><td colspan='10' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='12' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         if (chartWrap) chartWrap.style.display = 'none';
       }
     }
@@ -3825,7 +3932,7 @@
         const baseRows = Array.isArray(cached.rows) ? cached.rows.slice() : [];
         const filtered = baseRows.filter(item => f5aIsWhitelisted(item['Phụ trách'] || item.name || ''));
         if (!filtered.length){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="12">Không có dữ liệu</td></tr>';
           try{ const chartWrap = document.getElementById('f5a-chart-container'); if(chartWrap) chartWrap.style.display='none'; }catch(_){ }
           return true;
         }
@@ -3840,6 +3947,7 @@
           const rAhead = Number(item.rateAhead||0);
           const rOn = Number(item.rateOntime||0);
           const rLate = Number(item.rateLate||0);
+          const rNA = Number(item.rateNA||0);
           const need = f5aGetNeedManhour(name);
           return `<tr>
               <td class="px-3 py-2 cursor-pointer" data-f5a-emp="${name}"><span class="text-primary-blue hover:underline">${name}</span></td>
@@ -3853,6 +3961,7 @@
               <td class="px-3 py-2">${rAhead.toFixed(0)}%</td>
               <td class="px-3 py-2">${rOn.toFixed(0)}%</td>
               <td class="px-3 py-2">${rLate.toFixed(0)}%</td>
+              <td class="px-3 py-2">${rNA.toFixed(0)}%</td>
             </tr>`; }).join('');
         body.innerHTML = html;
         try{ enableTableDrag('f5a-body'); }catch(_){ }
