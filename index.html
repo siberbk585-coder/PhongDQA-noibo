@@ -661,6 +661,8 @@
     const FORM5_LIST_URL = FORM6_LIST_URL;
     // Form 5 All (new single-source endpoint)
     const FORM5_ALL_NEW_URL = "https://iatzhxxuk.tino.page/webhook/2c62c918-413c-49c3-99f6-49466f13c6d6";
+    // Version hoá cache để tránh xung đột/hiển thị sai giữa các máy hoặc lần triển khai
+    const APP_CACHE_VERSION = "2025-09-25-f5a-v3";
     let F4_CHART = null;
     let F5_LAST_COUNT = 0;
     let F4_PIVOT_BUSY = false;
@@ -799,13 +801,25 @@
       const taskNameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','Mã','taskname','ten_tac_vu','ten','title'];
       const scoreKeys = ['Điểm','Score','score'];
       const altScoreKeys = ['Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
-      const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+      const actualHoursKeys = ['Số giờ đánh giá thực tế','so gio danh gia thuc te','actualhours','actual_hours','gio thuc te','gio_thuc_te','hours_actual'];
+      const statusKeys = [
+        'Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái',
+        // Bổ sung các biến thể cho cột trạng thái theo công chuẩn
+        'Trạng thái theo công chuẩn','trang thai theo cong chuan','hiện trạng theo công chuẩn','hien trang theo cong chuan',
+        'status_by_man','status_by_manhour','status_manhour','status_by_workload','ht_theo_cong_chuan'
+      ];
+      // Cột "Hiện trạng theo hạn mong muốn" (đúng/trễ hạn yêu cầu)
+      const statusByWishKeys = [
+        'Hiện trạng theo hạn mong muốn','hien trang theo han mong muon','trang thai theo han mong muon',
+        'status_by_wish','status_wish','statuswish','ht_theo_han_mong_muon'
+      ];
       const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh'];
       const countZeroTasks = true;
       const excludeCanceled = true;
       const minWeight = 0.0001;
 
       const hasVal = v => v != null && String(v).trim() !== '';
+      const normalizeVi = (s)=>{ try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }catch(_){ return String(s||'').toLowerCase().trim(); } };
       const normKey = (s)=> String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
       const getV = (obj, keys)=>{
         const lower = {};
@@ -881,7 +895,11 @@
 
         const weight = getNumberFrom(row, scoreKeys) || getNumberFrom(row, altScoreKeys);
         const resText = getTextFrom(row, resultKeys);
-        const done = /^\s*done\s*$/i.test(resText || '');
+        const statusRaw = getTextFrom(row, statusKeys);
+        const hasDoneDate = !!parseDateFlexible(doneDate);
+        const normRes = normalizeVi(resText);
+        const normStatus = normalizeVi(statusRaw);
+        const done = hasDoneDate || /^\s*done\s*$/i.test(resText||'') || /\bdone\b/.test(normRes) || /\bhoan\b|\bdone\b|\bda hoan\b/.test(normStatus);
 
         let rec = byName.get(name);
         if (!rec) { rec = { name, manhour: 0, count: 0, ahead: 0, ontime: 0, late: 0, doneCnt: 0, doneSum: 0, activeCnt: 0, activeSum: 0 }; byName.set(name, rec); }
@@ -908,16 +926,44 @@
 
         // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done
         if (done){
-          const ht = String(getTextFrom(row, statusKeys)||'').toLowerCase();
-          if (ht.includes('vượt tiến độ')) rec.ahead += 1;
-          else if (ht.includes('đúng tiến độ') || ht.includes('dung tien do')) rec.ontime += 1;
-          else if (ht.includes('chậm tiến độ') || ht.includes('cham tien do')) rec.late += 1;
+          const ht = normalizeVi(getTextFrom(row, statusKeys)); // theo công chuẩn
+          const htWish = normalizeVi(getTextFrom(row, statusByWishKeys)); // theo hạn mong muốn
+          const manAhead = ht.includes('vuot tien do');
+          const manOn    = ht.includes('dung tien do');
+          const manLate  = ht.includes('cham tien do');
+          if (htWish.includes('dung han')){
+            // Mapping theo bảng người dùng
+            if (manAhead) rec.ahead += 1;          // Đúng hạn + Vượt → Vượt
+            else if (manOn) rec.late += 1;         // Đúng hạn + Đúng → Chậm
+            else if (manLate) rec.ontime += 1;     // Đúng hạn + Trễ → Đúng
+            else rec.ontime += 1;                  // Không rõ trạng thái công chuẩn → coi như Đúng
+          } else if (htWish.includes('tre han')){
+            // Trễ hạn + bất kỳ → Chậm
+            rec.late += 1;
+          } else if (manAhead || manOn || manLate){
+            // Không có cột theo hạn → dùng trực tiếp công chuẩn
+            if (manAhead) rec.ahead += 1;
+            else if (manOn) rec.ontime += 1;
+            else if (manLate) rec.late += 1;
+          } else {
+            // Fallback 2: tự suy ra theo số giờ thực tế vs công chuẩn (nếu có đủ số liệu)
+            const actualNum = getNumberFrom(row, actualHoursKeys);
+            const manNum = weight;
+            const EPS = 1e-4;
+            if (Number.isFinite(actualNum) && Number.isFinite(manNum) && (actualNum > 0 || manNum > 0)){
+              if (actualNum > manNum + EPS) rec.late += 1;
+              else if (Math.abs(actualNum - manNum) <= EPS) rec.ontime += 1;
+              else rec.ahead += 1;
+            }
+          }
         }
       });
       const out = Array.from(byName.values());
       out.forEach(r=>{
         const sum = Math.max(0, Number(r.ahead||0) + Number(r.ontime||0) + Number(r.late||0));
-        const denom = Number(r.doneCnt||0) > 0 ? Number(r.doneCnt) : sum;
+        // Tính phần trăm dựa trên tổng số bản ghi đã được phân loại (sum);
+        // nếu chưa phân loại được bản ghi nào thì fallback theo doneCnt
+        const denom = (sum > 0) ? sum : (Number(r.doneCnt||0) || 0);
         r.rateAhead = denom ? Math.round((Number(r.ahead||0)*100)/denom) : 0;
         r.rateOntime = denom ? Math.round((Number(r.ontime||0)*100)/denom) : 0;
         r.rateLate = denom ? Math.round((Number(r.late||0)*100)/denom) : 0;
@@ -3731,7 +3777,7 @@
         // Fetch once from the new single-source endpoint, then aggregate locally
         await f5aFetchAllOnce(monthVal, fromVal, toVal);
         const aggregated = f5aAggregate(F5A_RAW_ALL || [], fromVal, toVal);
-        try{ LS.setJSON('f5a.cache', { month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
+        try{ LS.setJSON('f5a.cache', { version: APP_CACHE_VERSION, month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
         // Lọc theo whitelist tên
         const filtered = Array.isArray(aggregated) ? aggregated.filter(item => f5aIsWhitelisted(item['Phụ trách'] || item.name || '')) : [];
         if (!filtered.length){
@@ -3781,7 +3827,12 @@
     function restoreForm5FromCache(){
       try{
         const cached = LS.getJSON('f5a.cache');
-        if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        if (!cached || cached.version !== APP_CACHE_VERSION || !Array.isArray(cached.rows) || !cached.rows.length) return false;
+        // Chỉ khôi phục khi trùng tháng hiện đang chọn; nếu input trống thì gán theo cache
+        const monthInput = document.getElementById('f5a-month');
+        const wantMonth = monthInput ? (monthInput.value || '').trim() : '';
+        if (wantMonth && cached.month && cached.month !== wantMonth) return false;
+        if (!wantMonth && cached.month && monthInput) { try { monthInput.value = cached.month; } catch(_){} }
         updateLastUpdatedNote('f5a-search','f5a.lastUpdated');
         const body = document.getElementById('f5a-body');
         if (!body) return false;
