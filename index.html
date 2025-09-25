@@ -662,7 +662,7 @@
     // Form 5 All (new single-source endpoint)
     const FORM5_ALL_NEW_URL = "https://iatzhxxuk.tino.page/webhook/2c62c918-413c-49c3-99f6-49466f13c6d6";
     // Version hoá cache để tránh xung đột/hiển thị sai giữa các máy hoặc lần triển khai
-    const APP_CACHE_VERSION = "2025-09-25-f5a-v3";
+    const APP_CACHE_VERSION = "2025-09-25-f5a-v4";
     let F4_CHART = null;
     let F5_LAST_COUNT = 0;
     let F4_PIVOT_BUSY = false;
@@ -931,29 +931,16 @@
           const manAhead = ht.includes('vuot tien do');
           const manOn    = ht.includes('dung tien do');
           const manLate  = ht.includes('cham tien do');
-          if (htWish.includes('dung han')){
-            // Mapping theo bảng người dùng
-            if (manAhead) rec.ahead += 1;          // Đúng hạn + Vượt → Vượt
-            else if (manOn) rec.late += 1;         // Đúng hạn + Đúng → Chậm
-            else if (manLate) rec.ontime += 1;     // Đúng hạn + Trễ → Đúng
-            else rec.ontime += 1;                  // Không rõ trạng thái công chuẩn → coi như Đúng
-          } else if (htWish.includes('tre han')){
-            // Trễ hạn + bất kỳ → Chậm
-            rec.late += 1;
-          } else if (manAhead || manOn || manLate){
-            // Không có cột theo hạn → dùng trực tiếp công chuẩn
-            if (manAhead) rec.ahead += 1;
-            else if (manOn) rec.ontime += 1;
-            else if (manLate) rec.late += 1;
-          } else {
-            // Fallback 2: tự suy ra theo số giờ thực tế vs công chuẩn (nếu có đủ số liệu)
-            const actualNum = getNumberFrom(row, actualHoursKeys);
-            const manNum = weight;
-            const EPS = 1e-4;
-            if (Number.isFinite(actualNum) && Number.isFinite(manNum) && (actualNum > 0 || manNum > 0)){
-              if (actualNum > manNum + EPS) rec.late += 1;
-              else if (Math.abs(actualNum - manNum) <= EPS) rec.ontime += 1;
-              else rec.ahead += 1;
+          const wishOn   = htWish.includes('dung han');
+          const wishLate = htWish.includes('tre han');
+          // Theo yêu cầu: nếu thiếu 1 trong 2 cột => KHÔNG TÍNH
+          if ((wishOn || wishLate) && (manAhead || manOn || manLate)){
+            if (wishOn){
+              if (manAhead) rec.ahead += 1;      // Đúng hạn + Vượt → Vượt
+              else if (manOn) rec.late += 1;     // Đúng hạn + Đúng → Chậm
+              else if (manLate) rec.ontime += 1; // Đúng hạn + Trễ → Đúng
+            } else if (wishLate){
+              rec.late += 1; // Trễ hạn + bất kỳ → Chậm
             }
           }
         }
@@ -961,9 +948,8 @@
       const out = Array.from(byName.values());
       out.forEach(r=>{
         const sum = Math.max(0, Number(r.ahead||0) + Number(r.ontime||0) + Number(r.late||0));
-        // Tính phần trăm dựa trên tổng số bản ghi đã được phân loại (sum);
-        // nếu chưa phân loại được bản ghi nào thì fallback theo doneCnt
-        const denom = (sum > 0) ? sum : (Number(r.doneCnt||0) || 0);
+        // Theo yêu cầu: chỉ tính tỷ lệ trên các bản ghi có ĐỦ 2 cột (đã được phân loại)
+        const denom = sum;
         r.rateAhead = denom ? Math.round((Number(r.ahead||0)*100)/denom) : 0;
         r.rateOntime = denom ? Math.round((Number(r.ontime||0)*100)/denom) : 0;
         r.rateLate = denom ? Math.round((Number(r.late||0)*100)/denom) : 0;
