@@ -397,9 +397,9 @@
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
               <th class="px-3 py-2">Nhân viên</th>
+              <th class="px-3 py-2">Số tác vụ trong tháng</th>
               <th class="px-3 py-2">Công chuẩn đã nhận</th>
               <th class="px-3 py-2 cell-div">Công chuẩn cần nhận</th>
-              <th class="px-3 py-2">Số tác vụ trong tháng</th>
               <th class="px-3 py-2 f5a-col-done">Số DONE</th>
               <th class="px-3 py-2">Vượt tiến độ</th>
               <th class="px-3 py-2">Đúng tiến độ</th>
@@ -560,33 +560,52 @@
   </div>
 
   <div id="detail-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="detail-title">
-    <div class="w-full max-w-5xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+    <div class="w-full max-w-[95vw] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden" style="width:95vw">
       <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
         <h3 id="detail-title" class="text-base font-semibold text-gray-800">Nhiệm vụ của <span id="detail-name" class="text-primary-blue"></span></h3>
         <button id="detail-close" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
       </div>
       <div class="p-4">
         <div class="overflow-auto border border-gray-200 rounded-lg" style="max-height:60vh">
-          <table class="min-w-[900px] w-full text-sm">
+          <table class="min-w-[1400px] w-full text-sm">
+            <tbody id="detail-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-2" id="detail-note"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Danh sách tác vụ nhận trong tháng (Form 5 - theo requestDate) -->
+  <div id="rq-detail-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="rq-detail-title">
+    <div class="w-full max-w-[95vw] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden" style="width:95vw">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+        <h3 id="rq-detail-title" class="text-base font-semibold text-gray-800">Tác vụ nhận trong tháng của <span id="rq-detail-name" class="text-primary-blue"></span></h3>
+        <button id="rq-detail-close" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
+      </div>
+      <div class="p-4">
+        <div class="overflow-auto border border-gray-200 rounded-lg" style="max-height:60vh">
+          <table class="min-w-[1200px] w-full text-sm">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
                 <th class="px-3 py-2">STT</th>
                 <th class="px-3 py-2">Mã</th>
                 <th class="px-3 py-2">Tên tác vụ</th>
-                <th class="px-3 py-2">Số giờ đánh giá thực tế</th>
+                <th class="px-3 py-2">Ngày yêu cầu</th>
                 <th class="px-3 py-2">Công chuẩn</th>
-                <th class="px-3 py-2">Trạng thái theo công chuẩn</th>
+                <th class="px-3 py-2">Số giờ đánh giá thực tế</th>
                 <th class="px-3 py-2">Hạn mong muốn</th>
                 <th class="px-3 py-2">Ngày hoàn thành</th>
-                <th class="px-3 py-2">Hiện trạng theo hạn mong muốn</th>
+                <th class="px-3 py-2">Trạng thái</th>
               </tr>
             </thead>
-            <tbody id="detail-body" class="divide-y divide-gray-100">
+            <tbody id="rq-detail-body" class="divide-y divide-gray-100">
               <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="text-xs text-gray-500 mt-2" id="detail-note"></p>
       </div>
     </div>
   </div>
@@ -2865,7 +2884,7 @@
     function openDetailModal(empName, filter, from, to){
       if (!detailModal) return;
       detailNameEl.textContent = empName || '';
-      detailBody.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
+      detailBody.innerHTML = `<tr><td colspan="10" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
       detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
       detailModal.classList.add('open');
       detailModal.setAttribute('aria-hidden','false');
@@ -2903,14 +2922,26 @@
         }
         const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
         function hasVal(v){ return v != null && String(v).trim() !== ''; }
-        const assigneeKeys = ['Assignee','Phụ trách','Người phụ trách','Người xử lý','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
-        const taskNameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','Mã','taskname','ten_tac_vu','ten','title'];
+        const assigneeKeys = [
+          'Assignee','Assignee Name','AssigneeName','Assignee name',
+          'Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận',
+          'employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'
+        ];
+        const taskNameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','Mã','taskname','ten_tac_vu','ten','name','title'];
         const scoreKeys = ['Điểm','Score','score'];
         const altScoreKeys = ['Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
         const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
         const statusByWishKeys = ['Hiện trạng theo hạn mong muốn','hien trang theo han mong muon','Hiện trạng theo hạn mong muon','status_by_wish','statusbywish','statusWish','status_wish','ht_theo_han_mong_muon'];
-        const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh'];
+        const finishedDateKs = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
         function norm(s){ return String(s||'').trim(); }
+        function normNameTxt(s){
+          try{
+            const raw = String(s||'').trim();
+            const noAcc = (typeof vnLower==='function') ? vnLower(raw) : raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+            return noAcc.replace(/\s+/g,' ').trim();
+          }catch(_){ return String(s||'').toLowerCase().trim(); }
+        }
+        function equalsName(a,b){ return normNameTxt(a) === normNameTxt(b); }
         function getV(obj, keys){
           const lower = {};
           Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; });
@@ -2920,40 +2951,31 @@
         function toNum(v){ try{ let s=String(v||'').trim(); if(!s) return 0; s=s.replace(/\s|\u00A0/g,''); s=s.replace(/[%₫đvnd]/gi,''); if (s.includes(',')) s=s.replace(/\./g,'').replace(',', '.'); else s=s.replace(/\./g,''); const n=Number(s); return Number.isFinite(n)?n:0; }catch(_){ return 0; } }
         function isCanceled(o){ const f = String(getV(o, finishedDateKs)||'').toLowerCase(); const st = String(getV(o, statusKeys)||'').toLowerCase(); return f.includes('cancel') || st.includes('cancel') || st.includes('hủy') || st.includes('huỷ'); }
         function pickName(o){ let n = norm(getV(o, assigneeKeys)); if (!n || n.toLowerCase()==='nan') n = 'Chưa phân công'; return n; }
-        function chooseRefDate(o){
-          const rq = getV(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']);
-          const act = getV(o,['actualdue','handapung','han_dap_ung','completiondate']);
-          const wish= getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
-          const done= getV(o, finishedDateKs);
-          return hasVal(rq) ? rq : (hasVal(act) ? act : (hasVal(wish) ? wish : (hasVal(done) ? done : '')));
-        }
-        function inRangeDate(ref){
-          if (!hasVal(from) && !hasVal(to)) return true;
-          const d = parseDateFlexible(ref);
-          if (!d) return false;
-          const ds = d.toISOString().slice(0,10);
-          if (hasVal(from) && ds < from) return false;
-          if (hasVal(to) && ds > to) return false;
-          return true;
-        }
-        const list = [];
+        function iso(d){ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; }
+        function inRangeIso(ds){ if (!hasVal(from) && !hasVal(to)) return true; if (!ds) return false; if (hasVal(from) && ds < from) return false; if (hasVal(to) && ds > to) return false; return true; }
+        const listSameMonth = [];
+        const listPrevMonth = [];
         rows.forEach(o=>{
           const tname = norm(getV(o, taskNameKeys));
           if (!tname) return;
           if (isCanceled(o)) return;
           const n = pickName(o);
-          if (n !== name) return;
-          const ref = chooseRefDate(o);
-          if (!inRangeDate(ref)) return;
+          if (!equalsName(n, name)) return;
+          const rq = norm(getV(o,[
+            '📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ',
+            'ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'
+          ]));
+          const done = norm(getV(o, finishedDateKs));
+          const doneD = parseDateFlexible(done);
+          const doneIso = doneD ? iso(doneD) : '';
+          if (!inRangeIso(doneIso)) return;
           const code = norm(getV(o,['code','ma','taskcode','mã']));
           const status = norm(getV(o, statusKeys));
           const man = toNum(getV(o, scoreKeys)) || toNum(getV(o, altScoreKeys));
-          const rq = norm(getV(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']));
-          const wish = norm(getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
-          const act = norm(getV(o,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
-          const done = norm(getV(o, finishedDateKs));
+          const wish = norm(getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn']));
+          const act = norm(getV(o,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng','Ngày có thể đáp ứng']));
           // Số giờ đánh giá thực tế: cố gắng lấy từ các field thường gặp
-          const actualHours = norm(getV(o,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]));
+          const actualHours = norm(getV(o,[ 'Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]));
           // Chuẩn hóa hiển thị (display only)
           const actualNum = toNum(actualHours);
           const actualHoursDisp = Number.isFinite(actualNum) ? formatNumberVi(actualNum, 2, 2) : (actualHours||'');
@@ -2996,20 +3018,24 @@
               else statusByMan = 'Vượt tiến độ';
             }
           }catch(_){ }
-          list.push({ code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp, actualIsZero });
+          const rqD = parseDateFlexible(rq);
+          const rqIso = rqD ? iso(rqD) : '';
+          const item = { code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp, actualIsZero };
+          if (rqIso && hasVal(from) && rqIso >= from && rqIso <= to) listSameMonth.push(item); else listPrevMonth.push(item);
         });
-        if (!list.length){
+        if (!listSameMonth.length && !listPrevMonth.length){
           const hasRange = Boolean((from||'').trim() || (to||'').trim());
           const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : 'Không có tác vụ.';
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">${msg}</td></tr>`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">${msg}</td></tr>`;
           return;
         }
         let stt = 0;
-        const html = list.map(it=>`
+        function renderRow(it){ return `
           <tr>
             <td class="px-3 py-2">${++stt}</td>
             <td class="px-3 py-2">${it.code}</td>
             <td class="px-3 py-2">${it.tname}</td>
+            <td class="px-3 py-2">${(function(v){ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } })(it.rq||it.rqDisp||'')}</td>
             <td class="px-3 py-2${it.actualIsZero ? ' bg-amber-100 text-amber-800' : ''}">${it.actualHoursDisp||''}</td>
             <td class="px-3 py-2">${it.manDisp||''}</td>
             <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
@@ -3017,8 +3043,17 @@
             <td class="px-3 py-2">${it.doneDisp||it.done||''}</td>
             <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
           </tr>
-        `).join('');
-        detailBody.innerHTML = html;
+        `; }
+        const groupHeader = (title)=> `<tr class="bg-blue-50"><td class="px-3 py-2 font-semibold" colspan="10">${title}</td></tr>`;
+        const headerRow = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">STT</td><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Tên tác vụ</td><td class="px-3 py-2">Ngày yêu cầu</td><td class="px-3 py-2">Số giờ đánh giá thực tế</td><td class="px-3 py-2">Công chuẩn</td><td class="px-3 py-2">Trạng thái theo công chuẩn</td><td class="px-3 py-2">Hạn mong muốn</td><td class="px-3 py-2">Ngày hoàn thành</td><td class="px-3 py-2">Hiện trạng theo hạn mong muốn</td></tr>`;
+        const htmlParts = [];
+        htmlParts.push(groupHeader('Nhận trong tháng này và hoàn thành trong tháng'));
+        htmlParts.push(headerRow);
+        htmlParts.push(listSameMonth.length ? listSameMonth.map(renderRow).join('') : `<tr><td colspan="10" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
+        htmlParts.push(groupHeader('Nhận tháng trước nhưng hoàn thành trong tháng'));
+        htmlParts.push(headerRow);
+        htmlParts.push(listPrevMonth.length ? listPrevMonth.map(renderRow).join('') : `<tr><td colspan="10" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
+        detailBody.innerHTML = htmlParts.join('');
       }catch(_){
         detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi hiển thị dữ liệu.</td></tr>`;
       }
@@ -4249,8 +4284,34 @@
             fromVal = firstDay; toVal = lastDay;
           }catch(_){ }
         }
-        // Fetch once from the new single-source endpoint, then aggregate locally
+        // Fetch once from the new single-source endpoint
         await f5aFetchAllOnce(monthVal, fromVal, toVal);
+        // Merge previous month to cover tasks received last month but completed this month
+        let mergedRaw = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL.slice() : [];
+        try{
+          if (monthVal){
+            const [yyStr, mmStr] = monthVal.split('-');
+            let yy = Number(yyStr)||0; let mm = Number(mmStr)||0;
+            if (mm <= 1){ yy = yy - 1; mm = 12; } else { mm = mm - 1; }
+            const mmPad = String(mm).padStart(2,'0');
+            const prevMonthVal = `${yy}-${mmPad}`;
+            const prevFrom = `${yy}-${mmPad}-01`;
+            const prevLastDate = new Date(yy, mm, 0).getDate();
+            const prevTo = `${yy}-${mmPad}-${String(prevLastDate).padStart(2,'0')}`;
+            try{
+              await f5aFetchAllOnce(prevMonthVal, prevFrom, prevTo);
+              const rawPrev = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL.slice() : [];
+              const pick = (o, ks)=>{ try{ const L={}; Object.keys(o||{}).forEach(k=>{ const v=o[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); L[k1]=v; L[k2]=v; }); for(const k of ks){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=L[c1] ?? L[c2]; if(v!==undefined) return String(v||''); } }catch(_){ } return ''; };
+              const keyOf = (o)=>{ const code = pick(o,['code','ma','taskcode','mã']); if (code) return `C:${code}`; const tn = pick(o,['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title']); const rq = pick(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']); return `N:${tn}|RQ:${rq}`; };
+              const map = new Map();
+              mergedRaw.forEach(o=>{ try{ map.set(keyOf(o), o); }catch(_){ } });
+              rawPrev.forEach(o=>{ try{ const k = keyOf(o); if (!map.has(k)) map.set(k, o); }catch(_){ } });
+              mergedRaw = Array.from(map.values());
+            }catch(_){ }
+          }
+        }catch(_){ }
+        try{ F5A_RAW_ALL = Array.isArray(mergedRaw) ? mergedRaw.slice() : mergedRaw; }catch(_){ }
+        // Use original aggregation logic to preserve existing Vượt/Đúng/Trễ classification
         const aggregated = f5aAggregate(F5A_RAW_ALL || [], fromVal, toVal);
         try{ LS.setJSON('f5a.cache', { version: APP_CACHE_VERSION, month: monthVal, rows: aggregated, ts: Date.now() }); LS.set('f5a.lastUpdated', String(Date.now())); updateLastUpdatedNote('f5a-search','f5a.lastUpdated'); }catch(_){ }
         // Sau khi render, giữ một bản sao trong biến toàn cục để các lần render lại nhanh không phụ thuộc cache/bộ nhớ ngoài
@@ -4264,11 +4325,39 @@
             return;
           }
         const sorted = filtered.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+        // Tính lại "Số tác vụ trong tháng" theo ngày nhận (requestDate) từ dữ liệu thô để khớp bảng phụ
+        const rqCountMap = (()=>{
+          try{
+            const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+            const map = new Map();
+            const toKey = (s)=>{ try{ const raw=String(s||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(s||'').toLowerCase().trim(); } };
+            const sameName = (a,b)=> toKey(a)===toKey(b);
+            const getV = (obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+            const parseDate = (v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+            const iso = (d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+            const inRange = (ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+            const assigneeKeys = ['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+            const rqKeys = ['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+            const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+            const doneKeys = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+            const isCanceled = (o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const done=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(done); };
+            // Đếm theo từng tên hiển thị trong bảng sorted
+            sorted.forEach(it=>{ const displayName = it['Phụ trách'] || it.name || ''; const key = toKey(displayName); map.set(key, 0); });
+            rows.forEach(o=>{
+              if (isCanceled(o)) return;
+              const emp = getV(o, assigneeKeys);
+              const rq = getV(o, rqKeys); const rqD = parseDate(rq); const rqIso = rqD? iso(rqD):''; if (!inRange(rqIso)) return;
+              const k = toKey(emp); if (!map.has(k)) return;
+              map.set(k, (map.get(k)||0) + 1);
+            });
+            return map;
+          }catch(_){ return new Map(); }
+        })();
         const html = sorted.map(item=>{
           // Dùng các trường theo ảnh: Phụ trách, Tổng điểm (đang xử lý), Số task đang xử lý, Tổng điểm tất cả, Tổng tác vụ đã xử lý
           const name = item['Phụ trách'] || item.name || '';
           const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
-          const count = Number(((item['Tổng tác vụ đã xử lý'] ?? item.count) || 0));
+          const count = (function(){ try{ const key=(typeof vnLower==='function'? vnLower(name): String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim(); const v = rqCountMap.get(key); return Number.isFinite(v)? v : 0; }catch(_){ return 0; } })();
           const ahead = Number(item.ahead||0);
           const ontime = Number(item.ontime||0);
           const late = Number(item.late||0);
@@ -4281,9 +4370,9 @@
                 return `
                   <tr>
                     <td class="px-3 py-2 cursor-pointer" data-f5a-emp="${name}"><span class="text-primary-blue hover:underline">${name}</span></td>
+              <td class="px-3 py-2"><button class="text-primary-blue hover:underline" data-f5a-rqcount="${name}">${count}</button></td>
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
-              <td class="px-3 py-2">${count}</td>
               <td class="px-3 py-2 f5a-col-done">${Number(item.doneCnt || (ahead + ontime + late))}</td>
               <td class="px-3 py-2">${ahead}</td>
               <td class="px-3 py-2">${ontime}</td>
@@ -4298,7 +4387,7 @@
               // Hàng tổng cuối bảng
               const sumMan = sorted.reduce((a,it)=> a + Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0)), 0);
               const sumNeed = sorted.reduce((a,it)=> a + Number(f5aGetNeedManhour(it['Phụ trách'] || it.name || '')), 0);
-              const sumCount = sorted.reduce((a,it)=> a + Number(((it['Tổng tác vụ đã xử lý'] ?? it.count) || 0)), 0);
+              const sumCount = (function(){ try{ return sorted.reduce((acc,it)=>{ const n = it['Phụ trách'] || it.name || ''; const key=(typeof vnLower==='function'? vnLower(n): String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim(); const v = rqCountMap.get(key)||0; return acc + Number(v||0); }, 0); }catch(_){ return 0; } })();
               const sumAhead = sorted.reduce((a,it)=> a + Number(it.ahead||0), 0);
               const sumOn = sorted.reduce((a,it)=> a + Number(it.ontime||0), 0);
               const sumLate = sorted.reduce((a,it)=> a + Number(it.late||0), 0);
@@ -4306,9 +4395,9 @@
               const totalRow = `
                   <tr class="bg-blue-50 font-semibold">
                     <td class="px-3 py-2">TỔNG</td>
+                    <td class="px-3 py-2">${sumCount}</td>
                     <td class="px-3 py-2">${sumMan.toFixed(2)}</td>
                     <td class="px-3 py-2 cell-div">${sumNeed.toFixed(2)}</td>
-                    <td class="px-3 py-2">${sumCount}</td>
                     <td class="px-3 py-2 f5a-col-done">${sumDone}</td>
                     <td class="px-3 py-2">${sumAhead}</td>
                     <td class="px-3 py-2">${sumOn}</td>
@@ -4498,16 +4587,46 @@
 
     // Xuất CSV/XLSX
     function f5aRowsToAOA(rows){
+      // Lấy tháng hiện chọn để lọc theo ngày nhận
+      let fromVal = '', toVal = '';
+      try{
+        const m = (document.getElementById('f5a-month')?.value||'').trim();
+        if (m){ const [yy,mm] = m.split('-'); fromVal = `${yy}-${mm}-01`; const last = new Date(Number(yy), Number(mm), 0).getDate(); toVal = `${yy}-${mm}-${String(last).padStart(2,'0')}`; }
+      }catch(_){ }
       const headers = [
-        'Nhân viên','Công chuẩn đã nhận','Công chuẩn cần nhận','Số tác vụ trong tháng','Số DONE','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','%Vượt','%Đúng','%Chậm','%N/A'
+        'Nhân viên','Số tác vụ trong tháng','Công chuẩn đã nhận','Công chuẩn cần nhận','Số hoàn thành trong tháng','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','%Vượt','%Đúng','%Chậm','%N/A'
       ];
       const aoa = [headers];
       const list = Array.isArray(rows) ? rows : [];
+      // Map đếm số task theo ngày nhận (requestDate) trong tháng đã chọn, loại Cancel
+      const rqCountMap = (function(){
+        try{
+          const raw = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+          const map = new Map();
+          const toKey = (s)=>{ try{ const raw=String(s||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(s||'').toLowerCase().trim(); } };
+          const getV = (obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+          const parseDate = (v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+          const iso = (d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+          const inRange = (ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+          const assigneeKeys = ['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+          const rqKeys = ['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+          const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+          const doneKeys = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+          const isCanceled = (o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const done=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(done); };
+          raw.forEach(o=>{
+            if (isCanceled(o)) return;
+            const emp = getV(o, assigneeKeys);
+            const rq = getV(o, rqKeys); const rqD = parseDate(rq); const rqIso = rqD? iso(rqD):''; if (!inRange(rqIso)) return;
+            const key = toKey(emp);
+            map.set(key, (map.get(key)||0) + 1);
+          });
+          return map;
+        }catch(_){ return new Map(); }
+      })();
       list.forEach(item=>{
         const name = item['Phụ trách'] || item.name || '';
         const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
         const need = Number(f5aGetNeedManhour(name)||0);
-        const count = Number(((item['Tổng tác vụ đã xử lý'] ?? item.count) || 0));
         const ahead = Number(item.ahead||0);
         const ontime = Number(item.ontime||0);
         const late = Number(item.late||0);
@@ -4517,11 +4636,13 @@
         const rOn = Number(item.rateOntime||0);
         const rLate = Number(item.rateLate||0);
         const rNA = Number(item.rateNA||0);
+        const key = (function(){ try{ const raw = String(name||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(name||'').toLowerCase().trim(); } })();
+        const count = Number(rqCountMap.get(key)||0);
         aoa.push([
           name,
+          count,
           man,
           need,
-          count,
           done,
           ahead,
           ontime,
@@ -4533,15 +4654,15 @@
           rNA
         ]);
       });
-      // Tổng cuối
+      // Tổng cuối (đồng bộ thứ tự cột)
       const sumMan = list.reduce((a,it)=> a + Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0)), 0);
       const sumNeed = list.reduce((a,it)=> a + Number(f5aGetNeedManhour(it['Phụ trách'] || it.name || '')), 0);
-      const sumCount = list.reduce((a,it)=> a + Number(((it['Tổng tác vụ đã xử lý'] ?? it.count) || 0)), 0);
+      const sumCount = (function(){ try{ let s=0; (Array.isArray(list)?list:[]).forEach(it=>{ const n=it['Phụ trách']||it.name||''; const key=(typeof vnLower==='function'? vnLower(String(n||'')): String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim(); s += Number(rqCountMap.get(key)||0); }); return s; }catch(_){ return 0; } })();
       const sumAhead = list.reduce((a,it)=> a + Number(it.ahead||0), 0);
       const sumOn = list.reduce((a,it)=> a + Number(it.ontime||0), 0);
       const sumLate = list.reduce((a,it)=> a + Number(it.late||0), 0);
       const sumDone = list.reduce((a,it)=> a + Number(it.doneCnt || ((Number(it.ahead||0) + Number(it.ontime||0) + Number(it.late||0)))), 0);
-      aoa.push(['TỔNG', +sumMan.toFixed(2), +sumNeed.toFixed(2), sumCount, sumDone, sumAhead, sumOn, sumLate, '', '', '', '', '' ]);
+      aoa.push(['TỔNG', sumCount, +sumMan.toFixed(2), +sumNeed.toFixed(2), sumDone, sumAhead, sumOn, sumLate, '', '', '', '', '' ]);
       return aoa;
     }
     function f5aDownloadXLSX(rows){
@@ -4552,78 +4673,91 @@
         const aoa = f5aRowsToAOA(rows);
         const wsAll = XLSX.utils.aoa_to_sheet(aoa);
         XLSX.utils.book_append_sheet(wb, wsAll, 'Tổng hợp');
-        // Mỗi sheet theo từng nhân viên, dữ liệu giống bảng chi tiết khi click tên
-        const byName = new Map();
-        const list = Array.isArray(rows) ? rows : [];
-        list.forEach(it=>{
-          const name = it['Phụ trách'] || it.name || '';
-          if (!name) return;
-          if (!byName.has(name)) byName.set(name, []);
-          byName.get(name).push(it);
-        });
-        // Chuẩn bị thời gian để lọc theo tháng hiện chọn (refDate giống renderDetailTasksFromF5All)
-        let fromVal = '', toVal = '';
-        try{
-          const m = (document.getElementById('f5a-month')?.value||'').trim();
-          if (m){ const [yy,mm] = m.split('-'); fromVal = `${yy}-${mm}-01`; const last = new Date(Number(yy), Number(mm), 0).getDate(); toVal = `${yy}-${mm}-${String(last).padStart(2,'0')}`; }
-        }catch(_){ }
-        function getV(obj, keys){
-          const lower = {}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; });
-          for (const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v = lower[c1] ?? lower[c2]; if (v!==undefined) return v; }
-          return '';
-        }
-        function toDateSafe2(v){ try{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+("20"+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; }catch(_){ return null; } }
-        function inRangeRef(ref){ if (!fromVal && !toVal) return true; const d = toDateSafe2(ref); if (!d) return true; const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; if (fromVal && ds < fromVal) return false; if (toVal && ds > toVal) return false; return true; }
-        function chooseRef(o){
-          const rq = getV(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']);
-          const act = getV(o,['actualdue','handapung','han_dap_ung','completiondate']);
-          const wish= getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue']);
-          const done= getV(o,['ngày hoàn thành','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh']);
-          return rq||act||wish||done||'';
-        }
-        function safeSheetName(n){
-          let s = String(n||'').trim();
-          s = s.replace(/[\\\?\*\[\]:\/]/g,'-');
-          if (s.length>31) s = s.slice(0,31);
-          if (!s) s = 'Sheet';
-          return s;
-        }
-        // Ưu tiên dùng cache raw nếu có, nếu không có thì fallback F5A_RAW_ALL
-        let rawRows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
-        try{
-          const rawCache = LS.getJSON('f5a.raw');
-          if (rawCache && Array.isArray(rawCache.rows) && rawCache.rows.length) rawRows = rawCache.rows;
-        }catch(_){ }
-        byName.forEach((arr, name)=>{
-          // Lọc theo tháng hiện chọn và loại Cancel
-          const rowsForName = rawRows.filter(o=>{
-            const n = getV(o,[ 'Assignee','Phụ trách','Người phụ trách','Người xử lý','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách' ]);
-            if (String(n||'').trim() !== name) return false;
-            const st = String(getV(o,['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'])||'').toLowerCase();
-            if (st.includes('cancel') || st.includes('hủy') || st.includes('huỷ')) return false;
-            const ref = chooseRef(o);
-            return inRangeRef(ref);
-          });
-          // Dựng bảng chi tiết giống modal: STT, Mã, Tên tác vụ, Số giờ thực tế, Công chuẩn, Trạng thái theo công chuẩn, Hạn mong muốn (+2), Ngày hoàn thành, Hiện trạng theo hạn mong muốn
-          const head = ['STT','Mã','Tên tác vụ','Số giờ đánh giá thực tế','Công chuẩn','Trạng thái theo công chuẩn','Hạn mong muốn','Hạn +2','Ngày hoàn thành','Hiện trạng theo hạn mong muốn'];
-          const aoaDetail = [head];
-          let idx = 0;
-          rowsForName.forEach(o=>{
-            const code = getV(o,['code','ma','taskcode','mã']);
-            const tname = getV(o,['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title']);
-            const man = getV(o,['Điểm','Score','score','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours']);
-            const actualHours = getV(o,[ 'so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te' ]);
-            const wish = getV(o,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-            const done = getV(o,['Ngày hoàn thành thực tế','Ngày hoàn thành','completiondate','completeddate','ngayhoanthanh','ngay_hoan_thanh']);
-            const statusByMan = getV(o,['Trạng thái theo công chuẩn','status_by_man','status_by_manhour','ht_theo_cong_chuan']);
-            let wishPlus2 = '';
-            try{ const dW = toDateSafe2(wish); if (dW){ const p2=new Date(dW.getFullYear(), dW.getMonth(), dW.getDate()+2); const pad=n=>String(n).padStart(2,'0'); wishPlus2 = `${pad(p2.getDate())}/${pad(p2.getMonth()+1)}/${p2.getFullYear()}`; } }catch(_){ }
-            const statusVsWish = getV(o,['Hiện trạng theo hạn mong muốn','status_by_wish','status_wish','statuswish','ht_theo_han_mong_muon']);
-            aoaDetail.push([ ++idx, code, tname, actualHours, man, statusByMan, wish, wishPlus2, done, statusVsWish ]);
-          });
-          const ws = XLSX.utils.aoa_to_sheet(aoaDetail);
-          XLSX.utils.book_append_sheet(wb, ws, safeSheetName(name));
-        });
+        // Sheet bảng phụ - Hoàn thành (lọc theo ngày hoàn thành, chia nhóm theo ngày nhận)
+        (function appendDetailDoneSheet(){
+          try{
+            let fromVal = '', toVal = '';
+            try{ const m=(document.getElementById('f5a-month')?.value||'').trim(); if(m){ const [yy,mm]=m.split('-'); fromVal=`${yy}-${mm}-01`; const last=new Date(Number(yy), Number(mm), 0).getDate(); toVal=`${yy}-${mm}-${String(last).padStart(2,'0')}`; } }catch(_){ }
+            const rowsRaw = Array.isArray(F5A_RAW_ALL)? F5A_RAW_ALL: [];
+            const getV=(obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+            const toDate=(v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+            const iso=(d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+            const inRange=(ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+            const noAcc=(s)=>{ try{ return (typeof vnLower==='function')? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); } };
+            const sameName=(a,b)=> noAcc(a).replace(/\s+/g,' ').trim() === noAcc(b).replace(/\s+/g,' ').trim();
+            const empKeys=['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+            const rqKeys=['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+            const codeKeys=['code','ma','taskcode','mã'];
+            const tnameKeys=['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title'];
+            const manKeys=['Điểm','Score','score','Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+            const actualKeys=['Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te'];
+            const wishKeys=['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'];
+            const doneKeys=['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+            const statusKeys=['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+            const isCanceled=(o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
+            const head=['Nhân viên','Nhóm theo ngày nhận','Mã','Tên tác vụ','Ngày yêu cầu','Số giờ đánh giá thực tế','Công chuẩn','Hạn mong muốn','Hạn +2','Ngày hoàn thành','Hiện trạng theo hạn mong muốn'];
+            const aoaD=[head];
+            rowsRaw.forEach(o=>{
+              if (isCanceled(o)) return;
+              const done = getV(o, doneKeys); const dD = toDate(done); const doneIso = dD? iso(dD):''; if (!inRange(doneIso)) return;
+              const emp = getV(o, empKeys);
+              const rq = getV(o, rqKeys); const rqD = toDate(rq); const rqIso = rqD? iso(rqD):'';
+              const grp = (rqIso && inRange(rqIso)) ? 'Nhận trong tháng' : 'Nhận tháng trước';
+              const code=getV(o, codeKeys);
+              const tn=getV(o, tnameKeys);
+              const man=getV(o, manKeys);
+              const act=getV(o, actualKeys);
+              const wish=getV(o, wishKeys);
+              let wishP2=''; try{ const dW=toDate(wish); if(dW){ const p2=new Date(dW.getFullYear(), dW.getMonth(), dW.getDate()+2); const pad=n=>String(n).padStart(2,'0'); wishP2=`${pad(p2.getDate())}/${pad(p2.getMonth()+1)}/${p2.getFullYear()}`; } }catch(_){ }
+              const stByWish = getV(o,['Hiện trạng theo hạn mong muốn','status_by_wish','status_wish','statuswish','ht_theo_han_mong_muon']);
+              const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
+              aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP2, fmt(done), stByWish ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(aoaD);
+            XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ - Hoàn thành');
+          }catch(_){ }
+        })();
+        // Sheet bảng phụ - Nhận tháng (lọc theo ngày yêu cầu, loại Cancel)
+        (function appendDetailReceivedSheet(){
+          try{
+            let fromVal = '', toVal = '';
+            try{ const m=(document.getElementById('f5a-month')?.value||'').trim(); if(m){ const [yy,mm]=m.split('-'); fromVal=`${yy}-${mm}-01`; const last=new Date(Number(yy), Number(mm), 0).getDate(); toVal=`${yy}-${mm}-${String(last).padStart(2,'0')}`; } }catch(_){ }
+            const rowsRaw = Array.isArray(F5A_RAW_ALL)? F5A_RAW_ALL: [];
+            const getV=(obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+            const toDate=(v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+            const iso=(d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+            const inRange=(ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+            const empKeys=['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+            const rqKeys=['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+            const codeKeys=['code','ma','taskcode','mã'];
+            const tnameKeys=['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title'];
+            const manKeys=['Điểm','Score','score','Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+            const actualKeys=['Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te'];
+            const wishKeys=['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'];
+            const doneKeys=['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+            const statusKeys=['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+            const isCanceled=(o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
+            const head=['Nhân viên','Mã','Tên tác vụ','Ngày yêu cầu','Công chuẩn','Số giờ đánh giá thực tế','Hạn mong muốn','Ngày hoàn thành','Trạng thái'];
+            const aoaR=[head];
+            rowsRaw.forEach(o=>{
+              if (isCanceled(o)) return;
+              const rq = getV(o, rqKeys); const rqD = toDate(rq); const rqIso = rqD? iso(rqD):''; if (!inRange(rqIso)) return;
+              const emp=getV(o, empKeys);
+              const code=getV(o, codeKeys);
+              const tn=getV(o, tnameKeys);
+              const man=getV(o, manKeys);
+              const act=getV(o, actualKeys);
+              const wish=getV(o, wishKeys);
+              const done=getV(o, doneKeys);
+              const st=getV(o, statusKeys);
+              const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
+              aoaR.push([ emp, code, tn, fmt(rq), man, act, wish, fmt(done), st ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(aoaR);
+            XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ - Nhận tháng');
+          }catch(_){ }
+        })();
+        // Bỏ tạo sheet riêng từng nhân viên; đã có 2 bảng phụ ở trên theo yêu cầu
         XLSX.writeFile(wb, `Form5_All_${month||'export'}.xlsx`);
       }catch(_){ showToast('Xuất XLSX thất bại.','error'); }
     }
@@ -4647,14 +4781,81 @@
       const mm = String(d.getMonth()+1).padStart(2,'0');
       if (!m.value) m.value = `${yy}-${mm}`;
     })();
+    // Modal: tác vụ nhận trong tháng (lọc theo requestDate thuộc [from,to])
+    (function initRqDetailModal(){
+      const modal = document.getElementById('rq-detail-modal');
+      const closeBtn = document.getElementById('rq-detail-close');
+      if (closeBtn) closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } });
+      if (modal) modal.addEventListener('click', (e)=>{ if(e.target===modal){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal && modal.classList.contains('open')){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
+    })();
+    function openRqDetailModal(empName, from, to){
+      try{
+        const modal = document.getElementById('rq-detail-modal');
+        const nameEl = document.getElementById('rq-detail-name');
+        const body = document.getElementById('rq-detail-body');
+        if (!modal || !nameEl || !body) return;
+        nameEl.textContent = empName || '';
+        body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500"><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
+        const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+        function norm(s){ return String(s||'').trim(); }
+        function getV(obj, keys){ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; }
+        function vnNoAcc(s){ try{ return (typeof vnLower==='function')? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); } }
+        function sameName(a,b){ return vnNoAcc(a).replace(/\s+/g,' ').trim() === vnNoAcc(b).replace(/\s+/g,' ').trim(); }
+        function parseDate(v){ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; }
+        function iso(d){ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; }
+        function inRange(ds){ if(!from && !to) return true; if(!ds) return false; if(from && ds < from) return false; if(to && ds > to) return false; return true; }
+        const assigneeKeys = ['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+        const rqKeys = ['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+        const codeKeys = ['code','ma','taskcode','mã'];
+        const nameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title'];
+        const manKeys = ['Điểm','Score','score','Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+        const actualKeys = ['Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te'];
+        const wishKeys = ['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'];
+        const doneKeys = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+        const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+        const isCanceled = (o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/.test(dn); };
+        const items = [];
+        rows.forEach(o=>{
+          if (isCanceled(o)) return;
+          const emp = norm(getV(o, assigneeKeys)); if(!sameName(emp, empName)) return;
+          const rq = norm(getV(o, rqKeys)); const rqD = parseDate(rq); const rqIso = rqD? iso(rqD):''; if(!inRange(rqIso)) return;
+          const code = norm(getV(o, codeKeys));
+          const tname = norm(getV(o, nameKeys)); if(!tname) return;
+          const man = norm(getV(o, manKeys));
+          const actual = norm(getV(o, actualKeys));
+          const wish = norm(getV(o, wishKeys));
+          const done = norm(getV(o, doneKeys));
+          const status = norm(getV(o, statusKeys));
+          items.push({ code, tname, rq, man, actual, wish, done, status });
+        });
+        if (!items.length){ body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); return; }
+        const fmt = (v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
+        let stt = 0;
+        body.innerHTML = items.map(it=>`
+          <tr>
+            <td class="px-3 py-2">${++stt}</td>
+            <td class="px-3 py-2">${it.code}</td>
+            <td class="px-3 py-2">${it.tname}</td>
+            <td class="px-3 py-2">${fmt(it.rq)}</td>
+            <td class="px-3 py-2">${it.man}</td>
+            <td class="px-3 py-2">${it.actual}</td>
+            <td class="px-3 py-2">${fmt(it.wish)}</td>
+            <td class="px-3 py-2">${fmt(it.done)}</td>
+            <td class="px-3 py-2">${it.status}</td>
+          </tr>
+        `).join('');
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+      }catch(_){ }
+    }
     // Click tên nhân viên tại Form 5 để mở bảng chi tiết tác vụ đã tính trong "Công chuẩn đã nhận"
     (function initF5aNameClick(){
       const body = document.getElementById('f5a-body');
       if (!body) return;
       body.addEventListener('click', (e)=>{
-        const cell = e.target && e.target.closest ? e.target.closest('[data-f5a-emp]') : null;
-        if (!cell) return;
-        const name = cell.getAttribute('data-f5a-emp') || '';
+        const empCell = e.target && e.target.closest ? e.target.closest('[data-f5a-emp]') : null;
+        const rqBtn = e.target && e.target.closest ? e.target.closest('[data-f5a-rqcount]') : null;
         const monthInput = document.getElementById('f5a-month');
         const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
         let fromVal = '', toVal = '';
@@ -4669,7 +4870,16 @@
             fromVal = firstDay; toVal = lastDay;
           }catch(_){ }
         }
-        if (name) openDetailModal(name, 'All', fromVal, toVal);
+        if (empCell){
+          const name = empCell.getAttribute('data-f5a-emp') || '';
+          if (name) openDetailModal(name, 'All', fromVal, toVal);
+          return;
+        }
+        if (rqBtn){
+          const name = rqBtn.getAttribute('data-f5a-rqcount') || '';
+          if (name) openRqDetailModal(name, fromVal, toVal);
+          return;
+        }
       });
     })();
   </script>
