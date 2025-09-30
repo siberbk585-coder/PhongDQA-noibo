@@ -448,6 +448,7 @@
         <div class="flex items-center gap-2">
           <button id="f5-open-submit" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Nộp ý tưởng</button>
           <button id="f5-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+          <button id="f6-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
         </div>
       </div>
 
@@ -466,10 +467,12 @@
                 <th class="px-3 py-2">Tiêu đề ý tưởng</th>
                 <th class="px-3 py-2">Vấn đề nhận diện</th>
                 <th class="px-3 py-2">Giải pháp</th>
+                <th class="px-3 py-2">Ý kiến trưởng phòng</th>
+                <th class="px-3 py-2">Trạng thái</th>
               </tr>
             </thead>
             <tbody id="f5-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -488,12 +491,13 @@
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
                 <th class="px-3 py-2">Nhân viên</th>
-                <th class="px-3 py-2">Số ý tưởng</th>
+                <th class="px-3 py-2">Tổng số ý tưởng</th>
+                <th class="px-3 py-2">Số ý tưởng được duyệt</th>
                 <th class="px-3 py-2">Hành động</th>
               </tr>
             </thead>
             <tbody id="f6-agg-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -638,17 +642,19 @@
       </div>
       <div class="p-4">
         <div class="overflow-auto border border-gray-200 rounded-lg" style="max-height:60vh">
-          <table class="min-w-[800px] w-full text-sm">
+          <table class="min-w-[980px] w-full text-sm">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
                 <th class="px-3 py-2">Ngày nộp</th>
                 <th class="px-3 py-2">Tiêu đề</th>
                 <th class="px-3 py-2">Vấn đề nhận diện</th>
                 <th class="px-3 py-2">Giải pháp</th>
+                <th class="px-3 py-2">Ý kiến trưởng phòng</th>
+                <th class="px-3 py-2">Trạng thái</th>
               </tr>
             </thead>
             <tbody id="f6-ideas-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -3397,6 +3403,7 @@
         finally {
           f5Btn.disabled = false;
           f5Btn.textContent = prev || 'Tra cứu';
+          try{ updateLastUpdatedNote('f5-search','f6.lastUpdated'); }catch(_){ }
         }
       });
     }
@@ -3407,10 +3414,14 @@
       const d = new Date();
       const yy = d.getFullYear();
       const mm = String(d.getMonth()+1).padStart(2,'0');
-      if (!m.value) m.value = `${yy}-${mm}`;
-      // on change, re-apply local filter if data already loaded
+      try{
+        const last = LS.get('f6.selectedMonth');
+        if (!m.value) m.value = (last && /\d{4}-\d{2}/.test(last)) ? last : `${yy}-${mm}`;
+      }catch(_){ if (!m.value) m.value = `${yy}-${mm}`; }
+      // on change, re-apply local filter if data already loaded and persist selection
       if (!m._bound){
         m.addEventListener('change', ()=>{
+          try{ LS.set('f6.selectedMonth', m.value||''); }catch(_){ }
           try{
             if (Array.isArray(F6_LAST_ROWS) && F6_LAST_ROWS.length) {
               if (typeof applyForm6LocalFilter === 'function') applyForm6LocalFilter();
@@ -3492,18 +3503,22 @@
       const aggBody = document.getElementById('f6-agg-body');
       const aggNote = document.getElementById('f6-agg-note');
       if (!body) return;
-      body.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      body.innerHTML = "<tr><td colspan='7' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       const headerMapF5 = {
         header_submitDate: 'Ngày nộp',
         header_employee: 'Nhân viên',
         header_title: 'Tiêu đề ý tưởng',
         header_problem: 'Vấn đề nhận diện',
         header_solution: 'Giải pháp',
+        header_managerOpinion: 'Ý kiến trưởng phòng',
+        header_status: 'Trạng thái',
         field_submitDate: 'submitDate',
         field_employee: 'employee',
         field_title: 'title',
         field_problem: 'problem',
-        field_solution: 'solution'
+        field_solution: 'solution',
+        field_managerOpinion: 'managerOpinion',
+        field_status: 'status'
       };
       const params = new URLSearchParams({ ...headerMapF5, action: 'form5_list', _ts: Date.now().toString() });
       async function fetchJson(url){
@@ -3531,15 +3546,15 @@
         first = await fetchJson(`${FORM5_LIST_URL.replace('/webhook-test/','/webhook/')}?${params.toString()}`);
       }
       if (!first.ok){
-        body.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải: ${String(first.raw||first.status)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='7' class='px-3 py-3 text-center text-red-600'>Lỗi tải: ${String(first.raw||first.status)}</td></tr>`;
         return;
       }
       const rows = pickRows(first.parsed ?? (first.raw ? JSON.parse(first.raw) : null));
       if (!rows.length){
-        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>';
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Chưa có dữ liệu</td></tr>';
         F5_LAST_COUNT = 0;
         F6_LAST_ROWS = [];
-        if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>';
+        if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>';
         if (aggNote) aggNote.textContent = '';
         return;
       }
@@ -3549,13 +3564,23 @@
         return '';
       };
       // Normalize to cache for client-side month filtering
-      F6_LAST_ROWS = rows.map((item)=>({
-        submitDate: getV(item,['submitdate','date','submit_date','ngaynop','ngay_nop']),
-        employee: getV(item,['employee','nhanvien','nhan_vien','nhân viên']),
-        title: getV(item,['title','tieude','tieu_de','tiêu đề ý tưởng']),
-        problem: getV(item,['problem','van_de','vande','vấn đề nhận diện']),
-        solution: getV(item,['solution','giai_phap','giaiphap','giải pháp'])
-      }));
+      F6_LAST_ROWS = rows.map((item)=>{
+        const submitDate = getV(item,['submitdate','date','submit_date','ngaynop','ngay_nop','ngày nộp']);
+        const employee = getV(item,['employee','nhanvien','nhan_vien','nhân viên']);
+        const title = getV(item,['title','tieude','tieu_de','tiêu đề ý tưởng','nội dung đề xuất']);
+        const problem = getV(item,['problem','van_de','vande','vấn đề nhận diện']);
+        const solution = getV(item,['solution','giai_phap','giaiphap','giải pháp']);
+        const managerOpinion = getV(item,[
+          'manageropinion','manager_opinion','y_kien_truong_phong','ý kiến trưởng phòng','ykien_truong_phong','ykien_tp',
+          'ykien','y_kien','ykien_duyet','ykien_phe_duyet','tp dqa nhận xét','tp_dqa_nhan_xet','nhận xét','nhan xet'
+        ]);
+        // Trạng thái: quét thêm các biến thể thường gặp
+        const statusRaw = getV(item,[
+          'status','trangthai','trang_thai','trạng thái','phe_duyet','phê duyệt','approval','approve','approved',
+          'duyet','đã duyệt','ket_qua','kết quả','result','tinh_trang','tình trạng','state','trang thai'
+        ]) || managerOpinion || getV(item,['Trạng thái']);
+        return { submitDate, employee, title, problem, solution, managerOpinion, status: statusRaw };
+      });
       // Local filter + render
       window.applyForm6LocalFilter = function(){
         try{
@@ -3564,36 +3589,106 @@
           let list = Array.isArray(F6_LAST_ROWS) ? F6_LAST_ROWS.slice() : [];
           if (monthVal) list = list.filter(r => formatYyyyMm(r.submitDate) === monthVal);
           if (!list.length){
-            body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Không có dữ liệu</td></tr>';
-            if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Không có dữ liệu</td></tr>';
+            body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Không có dữ liệu</td></tr>';
+            if (aggBody) aggBody.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Không có dữ liệu</td></tr>';
             if (aggNote) aggNote.textContent = '';
             return;
           }
           const html2 = list.map(r=>`
-            <tr>
+            <tr class="${(function(st,op){ try{ const raw1=String(st||''); const raw2=String(op||''); const s1=raw1.toLowerCase(); const s2=raw2.toLowerCase(); if(s1.includes('không được duyệt')||s2.includes('không được duyệt')) return 'bg-yellow-100'; const n1=(typeof vnLower==='function'? vnLower(raw1): raw1.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); const n2=(typeof vnLower==='function'? vnLower(raw2): raw2.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); if(n1.includes('khong duoc duyet')||n2.includes('khong duoc duyet')) return 'bg-yellow-100'; return ''; }catch(_){ return ''; }})(r.status, r.managerOpinion)}">
               <td class="px-3 py-2">${r.submitDate}</td>
               <td class="px-3 py-2">${r.employee}</td>
               <td class="px-3 py-2">${r.title}</td>
               <td class="px-3 py-2">${r.problem}</td>
               <td class="px-3 py-2">${r.solution}</td>
+              <td class="px-3 py-2">${(function(s){
+                try{
+                  const t = ((typeof vnLower==='function') ? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim();
+                  const approved = (
+                    t.includes('duoc duyet') || t.includes('da duyet') || t.includes('duoc phe duyet') || t.includes('da phe duyet') ||
+                    t.includes('phe duyet') || t.includes('phe chuan') || t.includes('thong qua') || t.includes('chap thuan') ||
+                    t.includes('approved') || t.includes('approve') || (t.includes('dong y') && (t.includes('duyet') || t.includes('phe duyet')))
+                  );
+                  const denied = (
+                    (t.includes('khong') && (t.includes('duyet') || t.includes('phe duyet'))) || t.includes('ko duyet') || t.includes('k duyet') ||
+                    t.includes('chua duyet') || t.includes('tu choi') || t.includes('reject') || t.includes('rejected')
+                  );
+                  let cls = '';
+                  if (approved) cls = 'bg-green-100 text-green-800';
+                  else if (denied) cls = 'bg-red-100 text-red-800';
+                  return cls ? `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>` : (s||'');
+                }catch(_){ return String(s||''); }
+              })(r.managerOpinion||'')}</td>
+              <td class="px-3 py-2">${(function(s){
+                try{
+                  const raw = String(s||'');
+                  const sLower = raw.toLowerCase().trim();
+                  const t = ((typeof vnLower==='function') ? vnLower(raw) : raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim();
+                  const approved = (
+                    t.includes('duoc duyet') || t.includes('da duyet') || t.includes('duoc phe duyet') || t.includes('da phe duyet') ||
+                    t.includes('phe duyet') || t.includes('phe chuan') || t.includes('thong qua') || t.includes('chap thuan') ||
+                    t.includes('approved') || t.includes('approve') || (t.includes('dong y') && (t.includes('duyet') || t.includes('phe duyet'))) ||
+                    sLower.includes('được duyệt') || sLower.includes('đã duyệt') || sLower.includes('được phê duyệt') || sLower.includes('đã phê duyệt') ||
+                    sLower.includes('phê duyệt') || sLower.includes('phê chuẩn') || sLower.includes('thông qua') || sLower.includes('chấp thuận') ||
+                    (sLower.includes('đồng ý') && (sLower.includes('duyệt') || sLower.includes('phê duyệt')))
+                  );
+                  const denied = (
+                    (t.includes('khong') && (t.includes('duyet') || t.includes('phe duyet'))) || t.includes('ko duyet') || t.includes('k duyet') ||
+                    t.includes('chua duyet') || t.includes('tu choi') || t.includes('reject') || t.includes('rejected') ||
+                    ((sLower.includes('không') && (sLower.includes('duyệt') || sLower.includes('phê duyệt'))) || sLower.includes('từ chối'))
+                  );
+                  const deniedStrict = sLower.includes('không được duyệt') || t.includes('khong duoc duyet');
+                  // Chỉ bôi xanh chữ khi trạng thái đã duyệt
+                  if (approved) return `<span class=\"text-green-700 font-semibold\">${s||''}</span>`;
+                  if (deniedStrict) return `<span class=\"text-red-700 font-semibold\">${s||''}</span>`;
+                  let cls = 'bg-gray-100 text-gray-800';
+                  if (denied) cls = 'bg-red-100 text-red-800';
+                  return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`;
+                }catch(_){ return String(s||''); }
+              })(r.status||'')}</td>
             </tr>
           `).join('');
           body.innerHTML = html2;
           try{ enableTableDrag('f5-body'); }catch(_){ }
 
-          // Aggregate by employee and render f6-agg-body
+          // Aggregate by employee and render f6-agg-body (kèm số ý tưởng được duyệt)
           try{
-            const counts = new Map();
-            list.forEach(r=>{ const name = String(r.employee||'').trim()||'(Chưa rõ)'; counts.set(name, (counts.get(name)||0)+1); });
-            const items = Array.from(counts.entries()).map(([name, cnt])=>({ name, cnt })).sort((a,b)=> b.cnt - a.cnt || a.name.localeCompare(b.name,'vi'));
+            const totalCounts = new Map();
+            const rejectedCounts = new Map();
+            const toNorm = (s)=>{
+              try{ return (typeof vnLower==='function') ? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); }
+            };
+            list.forEach(r=>{
+              const name = String(r.employee||'').trim() || '(Chưa rõ)';
+              totalCounts.set(name, (totalCounts.get(name)||0) + 1);
+              // XÁC ĐỊNH BỊ TỪ CHỐI: hàng bị bôi vàng ("Không được duyệt")
+              const rawSt = String(r.status||'');
+              const rawOp = String(r.managerOpinion||'');
+              const sLower = rawSt.toLowerCase();
+              const oLower = rawOp.toLowerCase();
+              const stNz = toNorm(rawSt);
+              const opNz = toNorm(rawOp);
+              const isRejected = (
+                sLower.includes('không được duyệt') || oLower.includes('không được duyệt') ||
+                stNz.includes('khong duoc duyet') || opNz.includes('khong duoc duyet')
+              );
+              if (isRejected) rejectedCounts.set(name, (rejectedCounts.get(name)||0) + 1);
+            });
+            const items = Array.from(totalCounts.entries()).map(([name, cnt])=>{
+              const rej = rejectedCounts.get(name)||0;
+              const approved = Math.max(0, cnt - rej);
+              return { name, cnt, approved };
+            })
+              .sort((a,b)=> b.cnt - a.cnt || a.name.localeCompare(b.name,'vi'));
             const rowsHtml = items.map(it=>`
-              <tr>
+              <tr${it.cnt < 5 ? ' class="bg-yellow-100"' : ''}>
                 <td class="px-3 py-2">${it.name}</td>
                 <td class="px-3 py-2">${it.cnt}</td>
+                <td class="px-3 py-2">${it.approved}</td>
                 <td class="px-3 py-2"><button class="px-3 py-1 rounded-lg text-white bg-primary-blue hover:brightness-105" data-f6-view="${it.name.replace(/"/g,'&quot;')}">Xem</button></td>
               </tr>
             `).join('');
-            if (aggBody) aggBody.innerHTML = rowsHtml || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Không có dữ liệu</td></tr>';
+            if (aggBody) aggBody.innerHTML = rowsHtml || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Không có dữ liệu</td></tr>';
             if (aggNote) {
               const monthTxt = monthVal ? `tháng ${monthVal}` : 'tất cả thời gian';
               aggNote.textContent = `Đếm theo ${monthTxt}`;
@@ -3624,14 +3719,34 @@
         if (!modal || !nameEl || !body) return;
         nameEl.textContent = empName || '';
         if (!Array.isArray(ideas) || !ideas.length){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Không có dữ liệu</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Không có dữ liệu</td></tr>';
         } else {
-          const rows = ideas.map(r=>`
-            <tr>
+        const rows = ideas.map(r=>`
+          <tr class="${(function(st,op){ try{ const raw1=String(st||''); const raw2=String(op||''); const s1=raw1.toLowerCase(); const s2=raw2.toLowerCase(); if(s1.includes('không được duyệt')||s2.includes('không được duyệt')) return 'bg-yellow-100'; const n1=(typeof vnLower==='function'? vnLower(raw1): raw1.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); const n2=(typeof vnLower==='function'? vnLower(raw2): raw2.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); if(n1.includes('khong duoc duyet')||n2.includes('khong duoc duyet')) return 'bg-yellow-100'; return ''; }catch(_){ return ''; }})(r.status, r.managerOpinion)}">
               <td class="px-3 py-2">${r.submitDate||''}</td>
               <td class="px-3 py-2">${r.title||''}</td>
               <td class="px-3 py-2">${r.problem||''}</td>
               <td class="px-3 py-2">${r.solution||''}</td>
+              <td class="px-3 py-2">${r.managerOpinion||''}</td>
+              <td class="px-3 py-2">${(function(s){
+                try{
+                  const raw = String(s||'');
+                  const sLower = raw.toLowerCase();
+                  const t = (typeof vnLower==='function') ? vnLower(raw) : raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+                  // Chỉ bôi xanh chữ khi trạng thái đã duyệt
+                  if (
+                    t.includes('duoc duyet') || t.includes('da duyet') || t.includes('duoc phe duyet') || t.includes('da phe duyet') ||
+                    t.includes('phe duyet') || t.includes('phe chuan') || t.includes('thong qua') || t.includes('chap thuan') ||
+                    sLower.includes('được duyệt') || sLower.includes('đã duyệt') || sLower.includes('được phê duyệt') || sLower.includes('đã phê duyệt') ||
+                    sLower.includes('phê duyệt') || sLower.includes('phê chuẩn') || sLower.includes('thông qua') || sLower.includes('chấp thuận')
+                  ) return `<span class=\"text-green-700 font-semibold\">${s||''}</span>`;
+                  let cls = 'bg-gray-100 text-gray-800';
+                  const deniedStrict = sLower.includes('không được duyệt') || t.includes('khong duoc duyet');
+                  if (deniedStrict) return `<span class=\"text-red-700 font-semibold\">${s||''}</span>`;
+                  if ((t.includes('khong') && (t.includes('duyet') || t.includes('phe duyet'))) || t.includes('tu choi') || (sLower.includes('không') && (sLower.includes('duyệt') || sLower.includes('phê duyệt'))) || sLower.includes('từ chối')) cls = 'bg-red-100 text-red-800';
+                  return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`;
+                }catch(_){ return String(s||''); }
+              })(r.status||'')}</td>
             </tr>
           `).join('');
           body.innerHTML = rows;
@@ -3647,11 +3762,73 @@
         const body = document.getElementById('f5-body');
         if (!body) return false;
         F6_LAST_ROWS = cached.rows.slice();
+        try{ const m = document.getElementById('f6-month'); if (m && cached.ts) { updateLastUpdatedNote('f5-search','f6.lastUpdated'); } }catch(_){ }
         if (typeof applyForm6LocalFilter === 'function') applyForm6LocalFilter();
-        updateLastUpdatedNote('f5-search','f6.lastUpdated');
         return true;
       }catch(_){ return false; }
     }
+
+    // ===== Form 6: Export XLSX =====
+    function f6GetListForCurrentMonth(){
+      try{
+        let list = Array.isArray(F6_LAST_ROWS) ? F6_LAST_ROWS.slice() : [];
+        const monthEl = document.getElementById('f6-month');
+        const monthVal = monthEl ? (monthEl.value || '').trim() : '';
+        if (monthVal) list = list.filter(r => formatYyyyMm(r.submitDate) === monthVal);
+        return list;
+      }catch(_){ return []; }
+    }
+    function f6RowsToAOA(list){
+      try{
+        const headers = ['Ngày nộp','Nhân viên','Tiêu đề ý tưởng','Vấn đề nhận diện','Giải pháp','Ý kiến trưởng phòng','Trạng thái'];
+        const aoa = [headers];
+        (Array.isArray(list)? list: []).forEach(r=>{
+          aoa.push([
+            r.submitDate||'', r.employee||'', r.title||'', r.problem||'', r.solution||'', r.managerOpinion||'', r.status||''
+          ]);
+        });
+        return aoa;
+      }catch(_){ return [['Lỗi xây dựng dữ liệu']]; }
+    }
+    function f6AggToAOA(list){
+      try{
+        const toNorm = (s)=>{ try{ return (typeof vnLower==='function') ? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); } };
+        const totalCounts = new Map();
+        const rejectedCounts = new Map();
+        (Array.isArray(list)? list: []).forEach(r=>{
+          const name = String(r.employee||'').trim() || '(Chưa rõ)';
+          totalCounts.set(name, (totalCounts.get(name)||0) + 1);
+          const st = String(r.status||'');
+          const op = String(r.managerOpinion||'');
+          const isRejected = st.toLowerCase().includes('không được duyệt') || op.toLowerCase().includes('không được duyệt') || toNorm(st).includes('khong duoc duyet') || toNorm(op).includes('khong duoc duyet');
+          if (isRejected) rejectedCounts.set(name, (rejectedCounts.get(name)||0) + 1);
+        });
+        const items = Array.from(totalCounts.entries()).map(([name, cnt])=>{ const rej = rejectedCounts.get(name)||0; return { name, cnt, approved: Math.max(0, cnt - rej) }; })
+          .sort((a,b)=> b.cnt - a.cnt || a.name.localeCompare(b.name,'vi'));
+        const headers = ['Nhân viên','Tổng số ý tưởng','Số ý tưởng được duyệt'];
+        const aoa = [headers];
+        items.forEach(it=> aoa.push([ it.name, it.cnt, it.approved ]));
+        return aoa;
+      }catch(_){ return [['Lỗi xây dựng thống kê']]; }
+    }
+    function f6DownloadXLSX(){
+      try{
+        const list = f6GetListForCurrentMonth();
+        if (!Array.isArray(list) || !list.length){ showToast('Form 6: Không có dữ liệu để xuất.','error'); return; }
+        const wb = XLSX.utils.book_new();
+        const wsList = XLSX.utils.aoa_to_sheet(f6RowsToAOA(list));
+        XLSX.utils.book_append_sheet(wb, wsList, 'Danh sách');
+        const wsAgg = XLSX.utils.aoa_to_sheet(f6AggToAOA(list));
+        XLSX.utils.book_append_sheet(wb, wsAgg, 'Thống kê');
+        const month = (document.getElementById('f6-month')?.value || '').replace(/\s+/g,'');
+        XLSX.writeFile(wb, `Form6_Ideas_${month||'export'}.xlsx`);
+      }catch(_){ showToast('Form 6: Xuất XLSX thất bại.','error'); }
+    }
+    (function initF6Export(){
+      const btn = document.getElementById('f6-export-xlsx');
+      if (!btn) return;
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); f6DownloadXLSX(); });
+    })();
 
     (function setupForm5(){
       const openBtn = document.getElementById('f5-open-submit');
