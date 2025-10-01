@@ -907,6 +907,16 @@
         if (toVal && ds > toVal) return false;
         return true;
       }
+      // Phạm vi theo NGÀY HOÀN THÀNH: dùng để tính DONE/Vượt/Đúng/Chậm theo tháng hoàn thành
+      function inRangeByDone(v){
+        if (!fromVal && !toVal) return true;
+        const d = parseDateFlexible(v);
+        if (!d) return false; // nếu không có ngày hoàn thành thì không tính vào DONE tháng này
+        const ds = d.toISOString().slice(0,10);
+        if (fromVal && ds < fromVal) return false;
+        if (toVal && ds > toVal) return false;
+        return true;
+      }
       const byName = new Map();
       const dbg = { total:0, done:0, both:0, addAhead:0, addOn:0, addLate:0, missWish:0, missMan:0 };
       rows.forEach(row=>{
@@ -933,12 +943,15 @@
             )
           )
         );
-        if (!hasVal(refDate) || !inRange(refDate)) return;
+        const inRef = hasVal(refDate) && inRange(refDate);
 
         const weight = getNumberFrom(row, scoreKeys) || getNumberFrom(row, altScoreKeys);
         const resText = getTextFrom(row, resultKeys);
         const statusRaw = getTextFrom(row, statusKeys);
         const hasDoneDate = !!parseDateFlexible(doneDate);
+        const inDoneMonth = inRangeByDone(doneDate);
+        // Bỏ qua hoàn toàn nếu không thuộc ref range và cũng không hoàn thành trong tháng
+        if (!inRef && !inDoneMonth) return;
         const normRes = normalizeVi(resText);
         const normStatus = normalizeVi(statusRaw);
         const done = hasDoneDate || /^\s*done\s*$/i.test(resText||'') || /\bdone\b/.test(normRes) || /\bhoan\b|\bdone\b|\bda hoan\b/.test(normStatus);
@@ -947,35 +960,36 @@
         if (!rec) { rec = { name, manhour: 0, count: 0, ahead: 0, ontime: 0, late: 0, na: 0, doneCnt: 0, doneSum: 0, activeCnt: 0, activeSum: 0 }; byName.set(name, rec); }
 
         const countThis = countZeroTasks ? true : (weight > minWeight);
-        if (done) {
-          if (countThis) rec.doneCnt += 1;
-          rec.doneSum += weight;
-        } else {
-          if (countThis) rec.activeCnt += 1;
-          rec.activeSum += weight;
+        // Tính số DONE theo THÁNG HOÀN THÀNH (không phụ thuộc refDate)
+        if (done && inDoneMonth) {
+          if (countThis) rec.doneCnt = (rec.doneCnt || 0) + 1;
+        }
+        // Tổng công chuẩn đang xử lý/đã xử lý chỉ tính theo refDate để không lệch tháng nhận
+        if (inRef) {
+          if (done) {
+            rec.doneSum += weight;
+          } else {
+            if (countThis) rec.activeCnt += 1;
+            rec.activeSum += weight;
+          }
         }
         rec.count = (rec.doneCnt || 0) + (rec.activeCnt || 0);
         rec.manhour = (rec.doneSum || 0) + (rec.activeSum || 0);
         // Tổng công chuẩn theo mốc tham chiếu refDate (không tính Cancel vì đã loại ở trên)
         try{
-          const dRef = parseDateFlexible(refDate || '');
-          if (dRef){
-            const ds = dRef.toISOString().slice(0,10);
-            const inRef = (!fromVal || ds >= fromVal) && (!toVal || ds <= toVal);
-            if (inRef){ rec.totalByRef = (rec.totalByRef || 0) + weight; }
-          }
+          if (inRef){ rec.totalByRef = (rec.totalByRef || 0) + weight; }
         }catch(_){ }
 
-        // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done
+        // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done VÀ ngày hoàn thành nằm trong tháng chọn
         dbg.total++;
-        {
+        if (done && inDoneMonth){
           // Xác định điều kiện N/A: có ngày hoàn thành và số giờ thực tế = 0
           const EPS_NA = 1e-4;
           let actualNumForNA = 0;
           try { actualNumForNA = getNumberFrom(row, actualHoursKeys); } catch(_) { actualNumForNA = 0; }
           const isNA = (hasDoneDate && Number.isFinite(actualNumForNA) && Math.abs(actualNumForNA) < EPS_NA);
           let handled = false;
-          if (!done) { dbg.missWish++; dbg.missMan++; } // chưa hoàn thành thì thường không có đủ 2 chiều
+          // done & inDoneMonth nên không cộng missWish/missMan vì không xét task ngoài tháng hoàn thành
           // Lấy text nếu có
           const htText = normalizeVi(getTextFrom(row, statusKeys));
           const wishText = normalizeVi(getTextFrom(row, statusByWishKeys));
@@ -3020,7 +3034,16 @@
           }catch(_){ }
           const rqD = parseDateFlexible(rq);
           const rqIso = rqD ? iso(rqD) : '';
+          // Chỉ tính các tác vụ HOÀN THÀNH trong tháng chọn (dùng doneIso đã tính ở trên)
+          if (!doneIso) return; // chưa có ngày hoàn thành -> không thuộc "Done trong tháng"
+          if ((hasVal(from) && doneIso < from) || (hasVal(to) && doneIso > to)) return; // hoàn thành ngoài tháng
+          // Bỏ Cancel
+          const stLower = String(status||'').toLowerCase();
+          const doneLowerTxt = String(done||'').toLowerCase();
+          if (stLower.includes('cancel') || stLower.includes('hủy') || stLower.includes('huỷ') || /cancel/i.test(doneLowerTxt)) return;
+
           const item = { code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp, actualIsZero };
+          // Nhận trong tháng hay nhận tháng trước (nhưng đều hoàn thành trong tháng do lọc trên)
           if (rqIso && hasVal(from) && rqIso >= from && rqIso <= to) listSameMonth.push(item); else listPrevMonth.push(item);
         });
         if (!listSameMonth.length && !listPrevMonth.length){
