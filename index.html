@@ -1004,8 +1004,8 @@
               const dWish = parseDateFlexible(wish);
               const dDone = parseDateFlexible(doneDate);
               if (dWish && dDone){
-                const plus2 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate()+2);
-                if (dDone.getTime() <= plus2.getTime()) wishOn = true; else wishLate = true;
+                const plus1 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate()+1);
+                if (dDone.getTime() <= plus1.getTime()) wishOn = true; else wishLate = true;
               }
             }catch(_){ }
           }
@@ -2995,12 +2995,12 @@
           const actualHoursDisp = Number.isFinite(actualNum) ? formatNumberVi(actualNum, 2, 2) : (actualHours||'');
           const manDisp = formatNumberVi(Number(man)||0, 2, 2);
           const wishDisp = formatDdMmYyyy(wish);
-          let wishPlus2Disp = '';
+          let wishPlus1Disp = '';
           try{
             const dW = parseDateFlexible(wish);
             if (dW){
-              const plus2 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 2);
-              wishPlus2Disp = formatDdMmYyyy(plus2);
+              const plus1 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 1);
+              wishPlus1Disp = formatDdMmYyyy(plus1);
             }
           }catch(_){ }
           const doneDisp = formatDdMmYyyy(done);
@@ -3012,8 +3012,8 @@
               const dDone = parseDateFlexible(done);
               const dWish = parseDateFlexible(wish);
               if (dWish && dDone){
-                const wishPlus2 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate() + 2);
-                statusVsWish = (dDone.getTime() <= wishPlus2.getTime()) ? 'Đúng hạn yêu cầu' : 'Trễ hạn yêu cầu';
+                const wishPlus1 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate() + 1);
+                statusVsWish = (dDone.getTime() <= wishPlus1.getTime()) ? 'Đúng hạn yêu cầu' : 'Trễ hạn yêu cầu';
               }
             }catch(_){ }
           }
@@ -3042,7 +3042,7 @@
           const doneLowerTxt = String(done||'').toLowerCase();
           if (stLower.includes('cancel') || stLower.includes('hủy') || stLower.includes('huỷ') || /cancel/i.test(doneLowerTxt)) return;
 
-          const item = { code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus2Disp, actualIsZero };
+          const item = { code, tname, status, man, rq, wish, act, done, actualHours, statusVsWish, statusByMan, actualHoursDisp, manDisp, wishDisp, doneDisp, wishPlus1Disp, actualIsZero };
           // Nhận trong tháng hay nhận tháng trước (nhưng đều hoàn thành trong tháng do lọc trên)
           if (rqIso && hasVal(from) && rqIso >= from && rqIso <= to) listSameMonth.push(item); else listPrevMonth.push(item);
         });
@@ -3062,7 +3062,7 @@
             <td class="px-3 py-2${it.actualIsZero ? ' bg-amber-100 text-amber-800' : ''}">${it.actualHoursDisp||''}</td>
             <td class="px-3 py-2">${it.manDisp||''}</td>
             <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
-            <td class="px-3 py-2">${it.wishDisp||it.wish||''}${it.wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${it.wishPlus2Disp}</div>`:''}</td>
+            <td class="px-3 py-2">${it.wishDisp||it.wish||''}${it.wishPlus1Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +1: ${it.wishPlus1Disp}</div>`:''}</td>
             <td class="px-3 py-2">${it.doneDisp||it.done||''}</td>
             <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
           </tr>
@@ -3235,12 +3235,12 @@
           const actualHoursDisp = Number.isFinite(actualNum) ? formatNumberVi(actualNum, 2, 2) : String(actualHours||'');
           const wishDisp = formatDdMmYyyy(wish);
           const doneDisp = formatDdMmYyyy(done);
-          let wishPlus2Disp = '';
+          let wishPlus1Disp = '';
           try{
             const dW = toDate(wish);
             if (dW){
-              const plus2 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 2);
-              wishPlus2Disp = formatDdMmYyyy(plus2);
+              const plus1 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 1);
+              wishPlus1Disp = formatDdMmYyyy(plus1);
             }
           }catch(_){ }
           // Tính Trạng thái theo công chuẩn bằng so sánh số giờ thực tế và công chuẩn (hỗ trợ dấu phẩy/dấu chấm)
@@ -3294,7 +3294,7 @@
               <td class="px-3 py-2${(function(n){ const EPS=1e-4; return (Number.isFinite(parseNumberFlexible(actualHours)) && Math.abs(parseNumberFlexible(actualHours))<EPS) ? ' bg-amber-100 text-amber-800' : ''; })()}">${actualHoursDisp}</td>
               <td class="px-3 py-2">${manDisp}</td>
               <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan || status)}</td>
-              <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +2: ${wishPlus2Disp}</div>`:''}</td>
+              <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus1Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +1: ${wishPlus1Disp}</div>`:''}</td>
               <td class="px-3 py-2">${doneDisp||done||''}</td>
               <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
             </tr>
