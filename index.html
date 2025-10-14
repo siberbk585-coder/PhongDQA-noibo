@@ -186,15 +186,6 @@
         </a>
         <p class="text-xs text-gray-500 mt-1">Nhấn để mở và copy liên kết.</p>
       </div>
-      <div class="mt-4 flex items-center justify-end">
-        <a id="f8-template-link" href="https://drive.usercontent.google.com/download?id=1-8rjlAXi1x8lM235Smzd_jxoxmwT39kN&export=download&authuser=5&confirm=t&uuid=1f5e95c2-1291-4c15-a8d7-557f2a291549&at=AKSUxGNj-8k957V0Bj3nmNOF40aM:1760320142017" target="_blank" rel="noopener" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Form mẫu</a>
-      </div>
-      <div class="mt-4 flex items-center justify-end">
-        <a id="f8-template-link" href="https://drive.usercontent.google.com/download?id=1-8rjlAXi1x8lM235Smzd_jxoxmwT39kN&export=download&authuser=5&confirm=t&uuid=1f5e95c2-1291-4c15-a8d7-557f2a291549&at=AKSUxGNj-8k957V0Bj3nmNOF40aM:1760320142017" target="_blank" rel="noopener" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Form mẫu</a>
-      </div>
-      <div class="mt-4 flex items-center justify-end">
-        <a id="f8-template-link" href="https://drive.usercontent.google.com/download?id=1-8rjlAXi1x8lM235Smzd_jxoxmwT39kN&export=download&authuser=5&confirm=t&uuid=1f5e95c2-1291-4c15-a8d7-557f2a291549&at=AKSUxGNj-8k957V0Bj3nmNOF40aM:1760320142017" target="_blank" rel="noopener" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Form mẫu</a>
-      </div>
     </section>
 
     <!-- Form 2 -->
@@ -3815,7 +3806,7 @@
         // Doing, Chờ phê duyệt, Chờ phân công, Test bền: luôn hiển thị không phụ thuộc thời gian
         let partTimeRestricted = items.filter(it=> {
           const s = it.statusNorm || '';
-          return s.includes('doing') || s.includes('cho phe duyet') || s.includes('cho phan cong') || s.includes('test ben');
+          return s.includes('doing') || s.includes('cho phe duyet') || s.includes('truong nhom review') || s.includes('cho phan cong') || s.includes('test ben');
         });
         // Ưu tiên nhóm thời gian thực (Doing/Chờ phân công/Test bền) lên trước
         const filtered = partTimeRestricted.concat(partDoneCancel);
@@ -3878,7 +3869,7 @@
         const statusLower = (statusText||'').toLowerCase();
         const isDone = statusLower.includes('hoàn') || statusLower.includes('done');
         const isCancelled = statusLower.includes('cancel') || statusLower.includes('hủy') || statusLower.includes('huỷ');
-        const isPendingApproval = statusLower.includes('chờ phê duyệt') || statusLower.includes('cho phe duyet');
+        const isPendingApproval = statusLower.includes('chờ phê duyệt') || statusLower.includes('cho phe duyet') || statusLower.includes('trưởng nhóm review') || statusLower.includes('truong nhom review');
         const isEmptyStatus = statusLower.trim()==='';
         const isLocked = isDone || isCancelled || isPendingApproval || isEmptyStatus;
         const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
@@ -3911,7 +3902,7 @@
         const s=(statusText||'').toLowerCase();
         const badge=document.createElement('span');
         let badgeClass = 'bg-blue-100 text-blue-800';
-        if (s.includes('chờ phê duyệt') || s.includes('cho phe duyet')) badgeClass = 'bg-orange-100 text-orange-800';
+        if (s.includes('chờ phê duyệt') || s.includes('cho phe duyet') || s.includes('trưởng nhóm review') || s.includes('truong nhom review')) badgeClass = 'bg-orange-100 text-orange-800';
         else if (s.includes('hoàn') || s.includes('done')) badgeClass = 'bg-green-100 text-green-800';
         else if (s.includes('cancel') || s.includes('hủy') || s.includes('huỷ') || s.includes('chờ') || s.includes('pending')) badgeClass = 'bg-yellow-100 text-yellow-800';
         badge.className='px-2 py-1 rounded text-xs ' + badgeClass; badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
