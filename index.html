@@ -290,6 +290,16 @@
             <div id="f3-upload-list" class="mt-2 text-sm"></div>
           </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mục đích yêu cầu</label>
+            <select id="rq-purpose" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="Đánh giá Sản phẩm SOP">Đánh giá Sản phẩm SOP</option>
+              <option value="Đánh giá sản phẩm mới">Đánh giá sản phẩm mới</option>
+              <option value="Tác vụ khác">Tác vụ khác</option>
+            </select>
+          </div>
+        </div>
         <div class="pt-2 flex items-center gap-3">
           <button type="submit" class="submit-btn px-6 py-2 text-white font-semibold transition">Giao việc</button>
         </div>
@@ -4341,6 +4351,7 @@
       const assignee = (document.getElementById('f3-assignee').value || '').trim();
       const deadline = document.getElementById('deadline').value;
       const odooJira = document.getElementById('odoo-jira').value.trim();
+      const rqPurpose = (document.getElementById('rq-purpose')?.value || '').trim();
 
       if(!requester || !taskName || !output || !manHourRaw || !assignee){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
       if(!/^\d+(\.\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân.','error'); return; }
@@ -4370,6 +4381,7 @@
         Assignee: assignee,
         desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
         Odoojira: odooJira,
+        purpose: rqPurpose,
         deptRequest: 'DQA',
         Reqcode: Reqcode
       };
