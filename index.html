@@ -802,22 +802,47 @@
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-blue-800">Form 9 · Thống kê test bền</h2>
       </div>
-      <div class="text-center py-16">
-        <div class="mx-auto w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tên</label>
+          <div class="flex gap-2">
+            <select id="f9-name" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="">— Chọn người —</option>
+            </select>
+            <button id="f9-search" class="px-3 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
         </div>
-        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Đang xây dựng</h3>
-        <p class="text-gray-600 max-w-md mx-auto">
-          Form thống kê test bền đang được phát triển. Chức năng này sẽ sớm được cập nhật với các tính năng thống kê và báo cáo chi tiết về test bền.
-        </p>
-        <div class="mt-8">
-          <div class="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-            <span class="text-blue-700 text-sm font-medium">Đang phát triển...</span>
+          <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để hiển thị dữ liệu test bền.</p>
           </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Lọc theo tháng hoàn thành</label>
+          <div class="flex items-center gap-2">
+            <input id="f9-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+            <button id="f9-clear-month" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Xóa lọc</button>
         </div>
+          <p class="text-gray-500 text-xs mt-1">Để trống để hiển thị tất cả. Lọc theo cột "Ngày hoàn thành thực tế"</p>
+        </div>
+      </div>
+      <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
+        <table class="min-w-[1600px] w-full text-sm border-collapse">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-3 min-w-[60px] border border-gray-300">STT</th>
+              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Tình trạng test bền</th>
+              <th class="px-3 py-3 min-w-[120px] border border-gray-300">Mã</th>
+              <th class="px-3 py-3 min-w-[260px] border border-gray-300">Task Name</th>
+              <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã Báo cáo</th>
+              <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã tác vụ</th>
+              <th class="px-3 py-3 min-w-[180px] border border-gray-300">Ngày hoàn thành thực tế</th>
+              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Assignee</th>
+              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Dự kiến hoàn thành test bền</th>
+              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Ghi chú</th>
+              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Khai báo test bền</th>
+            </tr>
+          </thead>
+          <tbody id="f9-body" class="divide-y divide-gray-200">
+            <tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
   </main>
@@ -834,6 +859,91 @@
       <a href="https://docs.google.com/document/d/17dkhMxqyy2YnSxukHC6y94BSFNfnDQ50/edit?usp=drive_link&ouid=101589232360066908244&rtpof=true&sd=true" target="_blank" rel="noopener" class="text-primary-blue hover:underline">Mở bản đầy đủ (hiện đề mục/thẻ)</a>
     </div>
   </section>
+  <!-- Form 9: Modal chi tiết Test bền -->
+  <div id="f9-dur-modal" class="modal" aria-hidden="true">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-[96vw] w-full mx-4 p-0 relative">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-primary-blue text-white rounded-t-2xl flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white"><path d="M3 6a1 1 0 011-1h3.28a1 1 0 01.948.684l.498 1.493A2 2 0 0010.64 8H19a1 1 0 110 2h-8.36a2 2 0 00-1.914 1.277l-.498 1.493A1 1 0 016.28 13H4a1 1 0 110-2h1.84l.36-1.08A4 4 0 0110.64 8H19V6H10.64a4 4 0 01-3.8-2.723L6.28 2H4a1 1 0 00-1 1v3z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold leading-tight">Chi tiết Test bền</h3>
+            <div class="text-xs opacity-90">Khai báo/điều chỉnh thông tin 4 bài test và lưu một lần</div>
+          </div>
+        </div>
+        <button id="f9-dur-close" class="text-white/90 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div class="p-3 rounded-lg bg-blue-50 border border-blue-100"><div class="text-xs text-blue-700">Assignee</div><div id="f9-dur-assignee" class="font-medium text-blue-900"></div></div>
+          <div class="p-3 rounded-lg bg-blue-50 border border-blue-100"><div class="text-xs text-blue-700">Mã tác vụ</div><div id="f9-dur-taskid" class="font-mono font-medium text-blue-900"></div></div>
+          <div class="p-3 rounded-lg bg-blue-50 border border-blue-100 md:col-span-1"><div class="text-xs text-blue-700">Task Name</div><div id="f9-dur-taskname" class="font-medium text-blue-900"></div></div>
+        </div>
+        <div class="mt-3">
+          <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+            <button id="f9-tab-gatea" class="px-4 py-2 bg-blue-600 text-white font-semibold">Gate A</button>
+            <button id="f9-tab-gateb" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-50">Gate B</button>
+          </div>
+        </div>
+        <div id="f9-gatea-wrap" class="mt-3">
+          <div class="mt-2 rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-50 text-amber-900 font-semibold flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-amber-500 text-white text-xs">A</span>
+              Gate A - Bằng chứng và cập nhật trạng thái
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div class="md:col-span-1">
+                <label class="block text-gray-700 text-xs mb-1">Bằng chứng (đính kèm)</label>
+                <input id="f9-gatea-file" type="file" class="block w-full text-sm text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200" />
+              </div>
+              <div class="md:col-span-1">
+                <label class="block text-gray-700 text-xs mb-1">Trạng thái</label>
+                <select id="f9-gatea-status" class="w-full border border-gray-300 rounded px-2 py-2">
+                  <option value="Pending">Pending</option>
+                  <option value="Đang triển khai">Đang triển khai</option>
+                  <option value="Hoàn thành">Hoàn thành</option>
+                </select>
+              </div>
+              <div class="md:col-span-1">
+                <label class="block text-gray-700 text-xs mb-1">Ghi chú</label>
+                <input id="f9-gatea-note" type="text" class="w-full border border-gray-300 rounded px-2 py-2" placeholder="Ghi chú cho Gate A" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="f9-gateb-wrap" class="mt-3" style="display:none">
+          <div class="mt-2 rounded-xl border border-blue-200 overflow-hidden">
+            <div class="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 font-semibold flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-blue-500 text-white text-xs">B</span>
+              Gate B - Trạng thái hiện tại (Test bền)
+            </div>
+          </div>
+          <div class="rounded-xl border border-gray-200 shadow-sm overflow-x-hidden">
+            <table class="w-full text-sm table-zebra table-vdiv">
+              <thead class="bg-gradient-to-r from-blue-100 to-blue-50">
+                <tr class="text-left text-gray-700">
+                  <th class="px-4 py-2">Bài test</th>
+                  <th class="px-4 py-2">Tiêu chuẩn</th>
+                  <th class="px-4 py-2">Điều kiện</th>
+                  <th class="px-4 py-2">Tiến độ</th>
+                  <th class="px-4 py-2">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="f9-dur-body" class="divide-y divide-gray-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 bg-slate-50 rounded-b-2xl flex items-center justify-between">
+        <div class="text-xs text-gray-600">Kiểm tra lại dữ liệu trước khi lưu. Bạn có thể điều chỉnh nhiều lần.</div>
+        <div class="flex items-center gap-2">
+          <button id="f9-dur-save-all" class="px-5 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105 shadow">Gửi dữ liệu</button>
+          <button id="f9-dur-cancel" class="px-5 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 hover:bg-gray-50">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="upload-title">
@@ -882,8 +992,8 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Phân loại</label>
           <div class="flex flex-col gap-2">
             <label class="inline-flex items-center gap-2">
-              <input type="radio" name="upload-classification" value="Máy" class="h-4 w-4"/>
-              <span class="text-sm">Máy</span>
+              <input type="radio" name="upload-classification" value="Sản phẩm" class="h-4 w-4"/>
+              <span class="text-sm">Sản phẩm</span>
             </label>
             <label class="inline-flex items-center gap-2">
               <input type="radio" name="upload-classification" value="Linh kiện" class="h-4 w-4"/>
@@ -1315,6 +1425,9 @@
     const FORM3_ENDPOINT = "https://iatzhxxuk.tino.page/webhook/21b742a9-a6b0-4393-9325-bfa470db5917";
     // Endpoints for Form 6 (submit & list)
     const FORM6_SUBMIT_URL = "https://iatzhxxuk.tino.page/webhook/8e42168f-cb7b-44da-ae44-571f1e072d53";
+    // Form 9 endpoints
+    const FORM9_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/f8f7bcbd-28a8-4ecf-a67d-551f853a0358";
+    const FORM9_POST_URL = "https://iatzhxxuk.tino.page/webhook/a9239a08-167c-4245-b287-f904179aab64";
     const FORM6_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
     // Backward-compat aliases for Form 6 handlers referencing FORM5_* names
     const FORM5_SUBMIT_URL = FORM6_SUBMIT_URL;
@@ -1329,6 +1442,7 @@
     const FORM8_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/a734cb2d-eaa2-490a-95f5-0ce2118eaa6b";
     // Form 8 (4M) post endpoint - POST (để gửi dữ liệu khai báo)
     const FORM8_POST_URL = "https://iatzhxxuk.tino.page/webhook/a734cb2d-eaa2-490a-95f5-0ce2118eaa6b";
+    // Form 9 endpoints đã khai báo ở trên
     // Form 5 All (new single-source endpoint)
     const FORM5_ALL_NEW_URL = "https://iatzhxxuk.tino.page/webhook/2c62c918-413c-49c3-99f6-49466f13c6d6";
     // Form 5 P3 (CE Review data)
@@ -2177,6 +2291,61 @@
       }
     }
 
+    // ===== Form 5: Bảng phụ P4 - chi tiết tác vụ theo nhân viên =====
+    window.showP4TaskDetails = function(empName, month){
+      try{
+        const modal = document.getElementById('detail-modal');
+        const title = document.getElementById('detail-title');
+        const body = document.getElementById('detail-body');
+        const note = document.getElementById('detail-note');
+        if (!modal || !body) return;
+        if (title) title.textContent = `Chi tiết tác vụ (P4) của ${empName}`;
+        note.textContent = 'Chỉ hiển thị tác vụ Phân loại = Sản phẩm';
+        body.innerHTML = `<tr><td colspan="10" class="px-3 py-3 text-center text-gray-500"><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+
+        const norm = (s)=> String(s||'').toLowerCase().trim();
+        const getV = (obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=> lower[norm(k)] = obj[k]); for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; } return ''; };
+        const parseDate = (v)=>{ try{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m){ const d=new Date(+m[3],+m[2]-1,+m[1]); return isNaN(d)?null:d; } m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m){ const d=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(d)?null:d; } const d=new Date(s); return isNaN(d)?null:d; }catch(_){ return null; } };
+        const fmt = (d)=>{ if(!d) return ''; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); return `${dd}/${mm}/${d.getFullYear()}`; };
+
+        // Lọc từ F5A_P3_RAW theo nhân viên, tháng, phân loại Sản phẩm
+        const list = (Array.isArray(window.F5A_P3_RAW)? window.F5A_P3_RAW: []).filter(r=>{
+          const name = String(getV(r,['assignee','employee','name','nhân viên','nhan vien','nhanvien','tên nhân viên','ten nhan vien','tennhanvien','phụ trách','phu trac','phutrac'])||'').trim();
+          if (!name || name.toLowerCase()==='x') return false;
+          if ((typeof vnLower==='function' ? vnLower(name):name.toLowerCase()) !== (typeof vnLower==='function'? vnLower(empName):empName.toLowerCase())) return false;
+          const cls = String(getV(r,['Phân loại','phan loai','phanloai','classification','loai','loại'])||'');
+          const clsNorm = (typeof vnLower==='function') ? vnLower(cls) : cls.toLowerCase();
+          if (clsNorm !== 'san pham' && clsNorm !== 'sản phẩm') return false;
+          const dDone = parseDate(getV(r,['ngày hoàn thành thực tế','ngay hoan thanh thuc te','ngày hoàn thành','ngay hoan thanh','completion date','completiondate','actual completion date','actualcompletiondate']));
+          const dCE = parseDate(getV(r,['Ngày khai báo CE','ngay khai bao ce','ngày khai báo ce','cedate','ce_date']));
+          const d4M = parseDate(getV(r,['Ngày khai báo 4M','ngay khai bao 4m','ngày khai báo 4m','4m_date','4mdate']));
+          const ref = dDone || dCE || d4M;
+          if (month){ const ym = ref? `${ref.getFullYear()}-${String(ref.getMonth()+1).padStart(2,'0')}`:''; if (ym !== month) return false; }
+          return true;
+        });
+
+        if (!list.length){ body.innerHTML = `<tr><td colspan="10" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`; return; }
+        // Header chi tiết: Code, Task, Ngày hoàn thành, TCKT, CE, HDKT, BB, Jig, KHKSCL, Rà soát 4M
+        const head = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Task Name</td><td class="px-3 py-2">Ngày hoàn thành</td><td class="px-3 py-2">TCKT</td><td class="px-3 py-2">CE</td><td class="px-3 py-2">HDKT</td><td class="px-3 py-2">BB</td><td class="px-3 py-2">Jig</td><td class="px-3 py-2">KHKSCL</td><td class="px-3 py-2">Rà soát 4M</td></tr>`;
+        const rowHtml = list.map(r=>{
+          const code = getV(r,['Mã','code','ma','taskcode']);
+          const tname = getV(r,['Task Name','taskname','tên tác vụ','ten_tac_vu','name']);
+          const dDone = parseDate(getV(r,['ngày hoàn thành thực tế','ngay hoan thanh thuc te','ngày hoàn thành','ngay hoan thanh','completion date','completiondate']));
+          const tckt = getV(r,['TCKT(% hoàn thành)','tckt(% hoàn thành)','tckt']);
+          const ce = getV(r,['CE(% hoàn thành)','ce(% hoàn thành)','ce']);
+          const hdkt = getV(r,['HDKT(% hoàn thành)','hdkt(% hoàn thành)','hdkt']);
+          const bb = getV(r,['BB đào tạo(% hoàn thành)','bb đào tạo(% hoàn thành)','bb đào tạo','bb']);
+          const jig = getV(r,['Jig tool(% hoàn thành)','jig tool(% hoàn thành)','jig tool','jig']);
+          const kh = getV(r,['KHKSCL(% hoàn thành)','khkscl(% hoàn thành)','khkscl']);
+          const fourM = getV(r,['4M rà soát','4m rà soát','4m ra soat','4M','4m rasoat','rasoat4m']);
+          return `<tr><td class="px-3 py-2">${code||''}</td><td class="px-3 py-2">${tname||''}</td><td class="px-3 py-2">${fmt(dDone)||''}</td><td class="px-3 py-2">${tckt||''}</td><td class="px-3 py-2">${ce||''}</td><td class="px-3 py-2">${hdkt||''}</td><td class="px-3 py-2">${bb||''}</td><td class="px-3 py-2">${jig||''}</td><td class="px-3 py-2">${kh||''}</td><td class="px-3 py-2">${fourM||''}</td></tr>`;
+        }).join('');
+        body.innerHTML = head + rowHtml;
+      }catch(err){ try{ console.error('showP4TaskDetails error', err); }catch(_){ } }
+    };
+
     // Open modal hiển thị chi tiết 4M của tác vụ
     function openF8_4MModal(taskData) {
       try {
@@ -2731,8 +2900,10 @@
               if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
                 // giữ nguyên manAhead/manOn/manLate = false để đẩy vào N/A
               } else if (Number.isFinite(actualNum) && Number.isFinite(manNum)){
-                if (actualNum > manNum + EPS) manLate = true;
-                else if (Math.abs(actualNum - manNum) <= EPS) manOn = true;
+                // Áp dụng dung sai 10% cho Đúng tiến độ
+                const tolerance = Math.max(EPS, Math.abs(manNum) * 0.10);
+                if (actualNum > manNum + tolerance) manLate = true;
+                else if (Math.abs(actualNum - manNum) <= tolerance) manOn = true;
                 else manAhead = true;
               }
             }catch(_){ }
@@ -3106,8 +3277,9 @@
           } catch(_){}
         }
         if (target === 'form9') {
-          // Form 9 - Thống kê test bền: Đang xây dựng, không cần xử lý gì thêm
-          console.log('Form 9 - Thống kê test bền: Đang xây dựng');
+          try {
+            restoreForm9FromCache();
+          } catch(_){}
         }
       }
     });
@@ -3129,6 +3301,13 @@
     ];
     const FORM2_NAMES = FORM1_NAMES;
     const FORM7_NAMES = FORM1_NAMES;
+    const FORM9_NAMES = (function(){
+      try{
+        const arr = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
+        const exclude = new Set(["Lê Thị Thanh Nhàn"]);
+        return arr.filter(n => !exclude.has(n));
+      }catch(_){ return FORM1_NAMES; }
+    })();
     // Danh sách riêng cho Form 3 (Người được giao): loại 3 tên và thêm 3 tên
     const FORM3_ASSIGNEES = (()=>{
       const base = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
@@ -3137,6 +3316,123 @@
       const filtered = base.filter(n => !exclude.has(n));
       add.forEach(n => { if (filtered.indexOf(n) === -1) filtered.push(n); });
       return filtered;
+    })();
+
+    // ===== Form 5: P4 - Phân tích chi tiết (hiển thị tất cả nhân viên, giống điều kiện Form 8) =====
+    async function renderF5PanelP4(){
+      const body = document.getElementById('f5a-body-p4');
+      const monthEl = document.getElementById('f5a-month');
+      if (!body) return;
+      const monthVal = (monthEl && monthEl.value) ? monthEl.value : '';
+      body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500"><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
+      try{
+        const params = new URLSearchParams({
+          action: 'form8_lookup',
+          header_assignee: 'Assignee',
+          header_code: 'Mã',
+          header_taskName: 'Task Name',
+          header_reportCode: 'Mã Báo cáo',
+          header_actualCompletionDate: 'Ngày hoàn thành thực tế',
+          field_assignee: 'assignee',
+          field_code: 'code',
+          field_taskName: 'taskName',
+          field_reportCode: 'reportCode',
+          field_actualCompletionDate: 'actualCompletionDate',
+          timestamp: new Date().toISOString()
+        });
+        const url = `${FORM8_LOOKUP_URL}?${params.toString()}`;
+        const resp = await fetch(url, { method: 'GET' });
+        const text = await resp.text();
+        if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+        let data = null; try{ data = JSON.parse(text);}catch{ data = null; }
+        function pickRows(json){
+          if (!json) return [];
+          if (Array.isArray(json)) return json;
+          const keys = ['data','rows','result','records','items','list'];
+          for (const k of keys){ if (Array.isArray(json?.[k])) return json[k]; }
+          try{
+            const q=[json]; const seen=new Set();
+            while(q.length){ const cur=q.shift(); if(!cur||typeof cur!=="object"||seen.has(cur)) continue; seen.add(cur); for(const v of Object.values(cur)){ if(Array.isArray(v)&&v.length&&typeof v[0]==='object') return v; if(v&&typeof v==='object') q.push(v);} }
+          }catch(_){ }
+          return [];
+        }
+        let rowsRaw = pickRows(data);
+        // Unwrap n8n format [{ json: {...} }]
+        if (Array.isArray(rowsRaw) && rowsRaw.length && rowsRaw.every(x=> x && typeof x==='object' && ('json' in x))){
+          rowsRaw = rowsRaw.map(x=> x.json);
+        }
+        // Convert table format [[headers], [...]]
+        if (Array.isArray(rowsRaw) && rowsRaw.length && Array.isArray(rowsRaw[0])){
+          try{
+            const header = rowsRaw[0].map(h=> String(h||'').trim());
+            rowsRaw = rowsRaw.slice(1).map(r=>{ const o={}; header.forEach((k,i)=>{ o[k]= Array.isArray(r)? r[i]: undefined; }); return o; });
+          }catch(_){ }
+        }
+        const sanitize = (s)=>{ try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }catch(_){ return String(s||'').toLowerCase().replace(/\s+/g,' ').trim(); } };
+        const getV = (obj, keys)=>{
+          const lower = {}; Object.keys(obj||{}).forEach(k=>{ lower[sanitize(k)] = obj[k]; });
+          for (const k of keys){ const v = lower[sanitize(k)]; if (v!==undefined) return v; }
+          for (const k of keys){ const c=sanitize(k); const m = Object.keys(lower).find(kk=> kk.includes(c)); if (m) return lower[m]; }
+          return '';
+        };
+        // Normalize and filter by month like Form 8 (Ngày hoàn thành thực tế)
+        let rows = rowsRaw.map(it=>({
+          assignee: getV(it,['Assignee','assignee','nhân viên','nhanvien','employee','pic']) || '',
+          code: getV(it,['Mã','code','ma','taskcode']) || '',
+          taskName: getV(it,['Task Name','taskname','tên tác vụ','ten_tac_vu','name']) || '',
+          done: getV(it,['Ngày hoàn thành thực tế','actualcompletiondate','ngay hoan thanh thuc te','completiondate','ngay hoan thanh']) || ''
+        }));
+        if (monthVal){
+          rows = rows.filter(r=>{
+            const d = toDateSafe ? toDateSafe(r.done) : new Date(r.done);
+            if (!d || isNaN(d)) return false;
+            const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            return ym === monthVal;
+          });
+        }
+        // Group by assignee
+        const byAssignee = new Map();
+        rows.forEach(r=>{
+          const key = (r.assignee||'').trim();
+          if (!byAssignee.has(key)) byAssignee.set(key, []);
+          byAssignee.get(key).push(r);
+        });
+        // Union with all employees list
+        const allNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
+        const out = allNames.map(name=>{
+          const list = byAssignee.get(name) || [];
+          const total = list.length;
+          return {
+            name,
+            total,
+            tckt: 0, ce: 0, hdkt: 0, bb: 0, jig: 0, khkscl: 0, p4: 0
+          };
+        });
+        if (!out.length){ body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`; return; }
+        body.innerHTML = out.map(row=>{
+          function pct(v){ try{ const n=Number(v); return isNaN(n)?'0%':(`${Math.round(n)}%`); }catch(_){ return '0%'; } }
+          return `<tr>
+            <td class="px-3 py-2">${row.name}</td>
+            <td class="px-3 py-2">${row.total}</td>
+            <td class="px-3 py-2">${pct(row.tckt)}</td>
+            <td class="px-3 py-2">${pct(row.ce)}</td>
+            <td class="px-3 py-2">${pct(row.hdkt)}</td>
+            <td class="px-3 py-2">${pct(row.bb)}</td>
+            <td class="px-3 py-2">${pct(row.jig)}</td>
+            <td class="px-3 py-2">${pct(row.khkscl)}</td>
+            <td class="px-3 py-2">${pct(row.p4)}</td>
+          </tr>`;
+        }).join('');
+      }catch(err){
+        body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-red-600">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+      }
+    }
+    // Bind button for P4
+    (function initF5P4(){
+      try{
+        const btn = document.getElementById('f5a-search-p4');
+        if (btn && !btn._bound){ btn.addEventListener('click', (e)=>{ e.preventDefault(); renderF5PanelP4(); }); btn._bound = true; }
+      }catch(_){ }
     })();
 
     // Dữ liệu tác vụ (khởi tạo rỗng; sẽ nối nguồn thật sau)
@@ -3148,6 +3444,12 @@
     fillSelect(document.getElementById('f1-name'), FORM1_NAMES);
     fillSelect(document.getElementById('f2-name'), FORM2_NAMES);
     fillSelect(document.getElementById('f7-name'), FORM7_NAMES);
+    const f9NameSel = document.getElementById('f9-name');
+    if (f9NameSel){
+      // Thêm mục Tất cả
+      try{ const opt=document.createElement('option'); opt.value='__ALL__'; opt.textContent='Tất cả'; f9NameSel.appendChild(opt); }catch(_){ }
+      fillSelect(f9NameSel, FORM9_NAMES);
+    }
     const f3AssigneeSel = document.getElementById('f3-assignee');
     if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM3_ASSIGNEES);
     const f4PeopleSel = document.getElementById('f4-people');
@@ -3179,8 +3481,489 @@
           f7Sel.addEventListener('change', ()=>{ LS.set('f7.selectedName', f7Sel.value||''); });
           updateLastUpdatedNote('f7-search','f7.lastUpdated');
         }
+        const f9Sel = document.getElementById('f9-name');
+        if (f9Sel){
+          const last9 = LS.get('f9.selectedName');
+          if (last9 && Array.prototype.some.call(f9Sel.options, op=> op.value===last9)) f9Sel.value = last9;
+          f9Sel.addEventListener('change', ()=>{ LS.set('f9.selectedName', f9Sel.value||''); });
+          updateLastUpdatedNote('f9-search','f9.lastUpdated');
+        }
       }catch(_){ }
     })();
+
+    // ===== Form 9: Test bền =====
+    function addTdF9(tr, text){ const td=document.createElement('td'); td.className='px-3 py-4 align-top text-gray-800 border-r border-gray-200'; td.textContent=text||''; tr.appendChild(td); }
+
+    function openF9DurabilityModal(row){
+      try{
+        const modal = document.getElementById('f9-dur-modal');
+        const closeBtn = document.getElementById('f9-dur-close');
+        const cancelBtn = document.getElementById('f9-dur-cancel');
+        const body = document.getElementById('f9-dur-body');
+        if (!modal || !body) return;
+        // Fill header info
+        try{ document.getElementById('f9-dur-assignee').textContent = row.assignee || ''; }catch(_){ }
+        try{ document.getElementById('f9-dur-taskid').textContent = row.taskId || ''; }catch(_){ }
+        try{ document.getElementById('f9-dur-taskname').textContent = row.taskName || ''; }catch(_){ }
+
+        // Tabs Gate B / Gate A: bind and set default active = Gate B
+        try{
+          const tabA = document.getElementById('f9-tab-gatea');
+          const tabB = document.getElementById('f9-tab-gateb');
+          const wrapA = document.getElementById('f9-gatea-wrap');
+          const wrapB = document.getElementById('f9-gateb-wrap');
+          function styleActive(elActive, elInactive){
+            if (elActive){ elActive.className = 'px-4 py-2 bg-primary-blue text-white font-semibold border border-blue-600 shadow'; }
+            if (elInactive){ elInactive.className = 'px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'; }
+          }
+          function activateB(){ if (wrapB) wrapB.style.display = ''; if (wrapA) wrapA.style.display = 'none'; styleActive(tabB, tabA); }
+          function activateA(){ if (wrapA) wrapA.style.display = ''; if (wrapB) wrapB.style.display = 'none'; styleActive(tabA, tabB); }
+          if (tabA && !tabA._bound){ tabA.addEventListener('click', (e)=>{ e.preventDefault(); activateA(); }); tabA._bound = true; }
+          if (tabB && !tabB._bound){ tabB.addEventListener('click', (e)=>{ e.preventDefault(); activateB(); }); tabB._bound = true; }
+          // Default -> Gate A
+          activateA();
+        }catch(_){ }
+
+        // Build 4 tests rows from row fields or defaults
+        const tests = [1,2,3,4].map(i=>({
+          name: row && (row[`Bài test ${i}`] || row[`Bai test ${i}`] || row[`test${i}`] || row[`t${i}_name`]) ? String(row[`Bài test ${i}`] || row[`Bai test ${i}`] || row[`test${i}`] || row[`t${i}_name`]) : '',
+          standard: (row && (row[`Tiêu chuẩn ${i}`] || row[`Tieu chuan ${i}`] || row[`t${i}_standard`])) || '',
+          condition: (row && (row[`Điều kiện ${i}`] || row[`Dieu kien ${i}`] || row[`t${i}_condition`])) || '',
+          progress: (row && (row[`Tiến độ ${i}`] || row[`Tien do ${i}`] || row[`t${i}_progress`])) || ''
+        }));
+        // fallback: try generic keys if backend returns flat structure
+        function val(obj, keys){ for(const k of keys){ if (obj && obj[k]!==undefined && obj[k]!==null) return String(obj[k]); } return ''; }
+        if (!tests.some(t=> t.standard || t.condition || t.progress)){
+          tests[0].standard = val(row,['test1_standard','standard_test1','t1_std']);
+          tests[0].condition = val(row,['test1_condition','condition_test1','t1_cond']);
+          tests[0].progress = val(row,['test1_progress','progress_test1','t1_prog']);
+          tests[1].standard = val(row,['test2_standard','standard_test2','t2_std']);
+          tests[1].condition = val(row,['test2_condition','condition_test2','t2_cond']);
+          tests[1].progress = val(row,['test2_progress','progress_test2','t2_prog']);
+          tests[2].standard = val(row,['test3_standard','standard_test3','t3_std']);
+          tests[2].condition = val(row,['test3_condition','condition_test3','t3_cond']);
+          tests[2].progress = val(row,['test3_progress','progress_test3','t3_prog']);
+          tests[3].standard = val(row,['test4_standard','standard_test4','t4_std']);
+          tests[3].condition = val(row,['test4_condition','condition_test4','t4_cond']);
+          tests[3].progress = val(row,['test4_progress','progress_test4','t4_prog']);
+        }
+
+        body.innerHTML = '';
+        tests.forEach((t, idx)=>{
+          const tr = document.createElement('tr');
+          const nameTd = document.createElement('td'); nameTd.className='px-3 py-2';
+          const stdTd = document.createElement('td'); stdTd.className='px-3 py-2';
+          const condTd = document.createElement('td'); condTd.className='px-3 py-2';
+          const progTd = document.createElement('td'); progTd.className='px-3 py-2';
+          const actTd = document.createElement('td'); actTd.className='px-3 py-2 flex items-center';
+
+          const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.className='w-full border border-gray-300 rounded px-2 py-1'; nameInput.value = t.name||'';
+          const stdInput = document.createElement('input'); stdInput.type='text'; stdInput.className='w-full border border-gray-300 rounded px-2 py-1'; stdInput.value = t.standard||'';
+          const condInput = document.createElement('input'); condInput.type='text'; condInput.className='w-full border border-gray-300 rounded px-2 py-1'; condInput.value = t.condition||'';
+          const progInput = document.createElement('input'); progInput.type='text'; progInput.className='w-full border border-gray-300 rounded px-2 py-1'; progInput.value = t.progress||'';
+          // Placeholders ví dụ cho bài test 1 (tự ẩn khi nhập)
+          if (idx === 0){
+            if (!nameInput.value) nameInput.placeholder = 'Bài test: ví dụ Độ bền áp suất động, chu kỳ';
+            if (!stdInput.value) stdInput.placeholder = 'Tiêu chuẩn: ví dụ 100000 chu kỳ';
+            if (!condInput.value) condInput.placeholder = 'Điều kiện: Áp suất biến động theo dải 0-150 psi. Thời gian tăng áp suất 1-10s, Áp suất <2 psi mới tăng áp lại (Theo NSF/ANSI 42). KPH rò rỉ';
+            if (!progInput.value) progInput.placeholder = 'Tiến độ: ví dụ 100 chu kỳ';
+          }
+          nameTd.appendChild(nameInput); stdTd.appendChild(stdInput); condTd.appendChild(condInput); progTd.appendChild(progInput);
+
+          const sel = document.createElement('select'); sel.className='border border-gray-300 rounded px-2 py-1';
+          ;['Done','Doing','Pending'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+          // Default action = Pending (trừ khi dữ liệu có trạng thái rõ ràng)
+          try{
+            const pickStatus = ()=>{
+              const raw = (row && (row[`Trạng thái ${idx+1}`] || row[`Trang thai ${idx+1}`] || row[`status${idx+1}`] || row[`t${idx+1}_status`])) || '';
+              const s = String(raw||'').toLowerCase();
+              if (s.includes('done')) return 'Done';
+              if (s.includes('doing')) return 'Doing';
+              if (s.includes('pending') || s.includes('chờ') || s.includes('cho')) return 'Pending';
+              return '';
+            };
+            const st = pickStatus();
+            sel.value = st || 'Pending';
+          }catch(_){ sel.value = 'Pending'; }
+          actTd.appendChild(sel);
+
+          tr.appendChild(nameTd); tr.appendChild(stdTd); tr.appendChild(condTd); tr.appendChild(progTd); tr.appendChild(actTd);
+          body.appendChild(tr);
+        });
+
+        const btnSaveAll = document.getElementById('f9-dur-save-all');
+        if (btnSaveAll){
+          if (!btnSaveAll._bound){
+            btnSaveAll.addEventListener('click', async (e)=>{
+              e.preventDefault();
+              try{
+                try{
+                  const ok = window.confirm('Bạn có chắc chắn muốn gửi dữ liệu test bền?');
+                  if (!ok) return;
+                }catch(_){ }
+                const rows = [];
+                const trList = Array.from(document.querySelectorAll('#f9-dur-body tr'));
+                trList.forEach((tr, i)=>{
+                  try{
+                    const inputs = tr.querySelectorAll('input');
+                    const sel = tr.querySelector('select');
+                    const test_name = inputs[0]?.value || '';
+                    const standard = inputs[1]?.value || '';
+                    const condition = inputs[2]?.value || '';
+                    const progress = inputs[3]?.value || '';
+                    const status = sel?.value || '';
+                    rows.push({ test_no: i+1, test_name, standard, condition, progress, status });
+                  }catch(_){ }
+                });
+                // Flatten tests into individual fields for easier routing on backend
+                const flat = {};
+                rows.forEach((t)=>{
+                  const i = t.test_no;
+                  flat[`test${i}_name`] = t.test_name || '';
+                  flat[`test${i}_standard`] = t.standard || '';
+                  flat[`test${i}_condition`] = t.condition || '';
+                  flat[`test${i}_progress`] = t.progress || '';
+                  flat[`test${i}_status`] = t.status || '';
+                });
+                const gateAStatus = (document.getElementById('f9-gatea-status')?.value||'')
+                const gateANote = (document.getElementById('f9-gatea-note')?.value||'')
+                const gateAFileEl = document.getElementById('f9-gatea-file');
+                const gateAHasFile = !!(gateAFileEl && gateAFileEl.files && gateAFileEl.files.length);
+
+                // Ràng buộc: Nếu Gate A trạng thái Done => bắt buộc có Bằng chứng
+                if ((gateAStatus||'').toLowerCase().includes('hoàn') || (gateAStatus||'').toLowerCase()==='done'){
+                  if (!gateAHasFile){ try{ showToast('Gate A: Trạng thái Hoàn thành/Done cần đính kèm Bằng chứng.','error'); }catch(_){ } return; }
+                }
+                // Nếu có file bằng chứng Gate A: gửi FormData; nếu không, gửi JSON thường
+                if (gateAHasFile){
+                  const fd = new FormData();
+                  fd.append('action','form9_update_tests_bulk');
+                  fd.append('taskId', row.taskId||'');
+                  fd.append('code', row.code||'');
+                  fd.append('assignee', row.assignee||'');
+                  fd.append('taskName', row.taskName||'');
+                  fd.append('tests', JSON.stringify(rows));
+                  try{ fd.append('gate', (document.getElementById('f9-gatea-wrap')?.style.display !== 'none') ? 'Gate A' : 'Gate B'); }catch(_){ }
+                  fd.append('gateAStatus', gateAStatus);
+                  fd.append('noteGateA', gateANote);
+                  fd.append('timestamp', new Date().toISOString());
+                  try{ fd.append('gateAEvidence', gateAFileEl.files[0]); }catch(_){ }
+                  // Append flattened test fields
+                  Object.keys(flat).forEach(k=>{ try{ fd.append(k, flat[k]); }catch(_){ } });
+                  await fetch(FORM9_POST_URL, { method:'POST', body: fd });
+                } else {
+                  // active gate info for backend
+                  const activeGate = (document.getElementById('f9-gatea-wrap')?.style.display !== 'none') ? 'Gate A' : 'Gate B';
+                  const payload = {
+                    action: 'form9_update_tests_bulk',
+                    taskId: row.taskId||'',
+                    code: row.code||'',
+                    assignee: row.assignee||'',
+                    taskName: row.taskName||'',
+                    tests: rows,
+                    gate: activeGate,
+                    gateAStatus,
+                    noteGateA: gateANote,
+                    timestamp: new Date().toISOString()
+                  };
+                  // Merge flattened fields into payload
+                  Object.assign(payload, flat);
+                  await fetch(FORM9_POST_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+                }
+                try{ showToast('Đã gửi dữ liệu.','success'); }catch(_){ }
+                try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ }
+              }catch(err){ try{ showToast('Lưu thất bại.','error'); }catch(_){ } }
+            });
+            btnSaveAll._bound = true;
+          }
+        }
+
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+        if (closeBtn && !closeBtn._bound){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }); closeBtn._bound = true; }
+        if (cancelBtn && !cancelBtn._bound){ cancelBtn.addEventListener('click', (e)=>{ e.preventDefault(); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }); cancelBtn._bound = true; }
+        if (!modal._bound){ modal.addEventListener('click', (e)=>{ if (e.target===modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); } }); modal._bound = true; }
+      }catch(_){ }
+    }
+
+    function restoreForm9FromCache(){
+      try{
+        const cached = LS.getJSON('f9.cache');
+        const name = LS.get('f9.selectedName')||'';
+        if (!cached || !Array.isArray(cached.rows) || !name) return false;
+        const body = document.getElementById('f9-body');
+        if (!body) return false;
+        renderForm9FromRows(cached.rows);
+        updateLastUpdatedNote('f9-search','f9.lastUpdated');
+        return true;
+      }catch(_){ return false; }
+    }
+
+    function renderForm9FromRows(rows){
+      const body = document.getElementById('f9-body');
+      if (!body) return;
+      if (!Array.isArray(rows) || !rows.length){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      body.innerHTML = '';
+      const name = (document.getElementById('f9-name')?.value || '').trim();
+      const monthFilter = (document.getElementById('f9-month')?.value || '').trim();
+      let filtered = Array.isArray(rows) ? rows.slice() : [];
+      if (monthFilter){
+        filtered = filtered.filter(r => {
+          const s = String(r.actualCompletionDate || '').trim();
+          if (!s) return false;
+          const d = (typeof toDateSafe==='function') ? toDateSafe(s) : new Date(s);
+          if (!d || isNaN(d)) return false;
+          const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          return ym === monthFilter;
+        });
+      }
+      if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      filtered.forEach((r, idx)=>{
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        // STT (ưu tiên từ dữ liệu nếu có)
+        const sttDisp = (r.rowNumber || r.STT || r.row_number || (idx+1));
+        addTdF9(tr, String(sttDisp));
+        // Tình trạng test bền (click để mở bảng phụ)
+        const tdDur = document.createElement('td');
+        tdDur.className = 'px-3 py-4 align-top text-gray-800 border-r border-gray-200';
+        const btnDur = document.createElement('button');
+        btnDur.className = 'text-primary-blue hover:underline';
+        btnDur.textContent = r.durability || '';
+        btnDur.title = 'Xem chi tiết test bền';
+        btnDur.onclick = (e)=>{
+          e.preventDefault();
+          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Không mở được bảng test bền.','error'); }catch(__){} }
+        };
+        tdDur.appendChild(btnDur);
+        tr.appendChild(tdDur);
+        // Mã
+        addTdF9(tr, r.code||'');
+        // Task Name
+        addTdF9(tr, r.taskName||'');
+        // Mã Báo cáo
+        addTdF9(tr, r.reportCode||'');
+        // Mã tác vụ
+        addTdF9(tr, r.taskId||'');
+        // Ngày hoàn thành thực tế
+        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.actualCompletionDate||'') : (r.actualCompletionDate||''));
+        // Assignee
+        addTdF9(tr, r.assignee||'');
+        // Dự kiến hoàn thành test bền
+        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.durabilityDue||'') : (r.durabilityDue||''));
+        // Ghi chú (Gate A)
+        addTdF9(tr, r.noteGateA || r.note || '');
+        // Khai báo test bền (button)
+        const tdAction = document.createElement('td');
+        tdAction.className = 'px-3 py-4 align-top text-gray-800 border-r border-gray-200';
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1 rounded text-white bg-primary-blue hover:brightness-105 text-sm font-medium';
+        btn.textContent = 'Sửa/khai báo';
+        btn.onclick = (e)=>{
+          e.preventDefault();
+          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
+        };
+        tdAction.appendChild(btn);
+        tr.appendChild(tdAction);
+        body.appendChild(tr);
+      });
+    }
+
+    async function renderForm9(){
+      const name = (document.getElementById('f9-name')?.value || '').trim();
+      const body = document.getElementById('f9-body');
+      if (!body) return;
+      if (!name){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Vui lòng chọn tên</td></tr>'; return; }
+      body.innerHTML = "<tr><td colspan='11' class='px-3 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      try{
+        const headerMapF9 = {
+          // Bảng chính
+          header_rowNumber: 'STT',
+          header_assignee: 'Assignee',
+          header_code: 'Mã',
+          header_taskName: 'Task Name',
+          header_reportCode: 'Mã Báo cáo',
+          header_taskId: 'Mã tác vụ',
+          header_result: 'Kết quả',
+          header_actualCompletionDate: 'Ngày hoàn thành thực tế',
+          header_durability: 'Tình trạng Test bền',
+          header_durabilityDue: 'Dự kiến hoàn thành test bền',
+          header_durabilityActual: 'Ngày hoàn thành test bền thực tế',
+          header_noteGateA: 'Ghi chú',
+          header_gateAStatus: 'Trạng thái Gate A',
+          header_gateAEvidence: 'Bằng chứng Gate A',
+          // Các trường test 1..4
+          header_test1: 'Bài test 1',
+          header_standard1: 'Tiêu chuẩn 1',
+          header_condition1: 'Điều kiện 1',
+          header_progress1: 'Tiến độ 1',
+          header_test2: 'Bài test 2',
+          header_standard2: 'Tiêu chuẩn 2',
+          header_condition2: 'Điều kiện 2',
+          header_progress2: 'Tiến độ 2',
+          header_test3: 'Bài test 3',
+          header_standard3: 'Tiêu chuẩn 3',
+          header_condition3: 'Điều kiện 3',
+          header_progress3: 'Tiến độ 3',
+          header_test4: 'Bài test 4',
+          header_standard4: 'Tiêu chuẩn 4',
+          header_condition4: 'Điều kiện 4',
+          header_progress4: 'Tiến độ 4',
+          // Field mapping phía client
+          field_rowNumber: 'rowNumber',
+          field_assignee: 'assignee',
+          field_code: 'code',
+          field_taskName: 'taskName',
+          field_reportCode: 'reportCode',
+          field_taskId: 'taskId',
+          field_result: 'result',
+          field_actualCompletionDate: 'actualCompletionDate',
+          field_durability: 'durability',
+          field_durabilityDue: 'durabilityDue',
+          field_durabilityActual: 'durabilityActual',
+          field_noteGateA: 'noteGateA',
+          field_gateAStatus: 'gateAStatus',
+          field_gateAEvidence: 'gateAEvidence',
+          field_test1: 'test1',
+          field_standard1: 'standard1',
+          field_condition1: 'condition1',
+          field_progress1: 'progress1',
+          field_test2: 'test2',
+          field_standard2: 'standard2',
+          field_condition2: 'condition2',
+          field_progress2: 'progress2',
+          field_test3: 'test3',
+          field_standard3: 'standard3',
+          field_condition3: 'condition3',
+          field_progress3: 'progress3',
+          field_test4: 'test4',
+          field_standard4: 'standard4',
+          field_condition4: 'condition4',
+          field_progress4: 'progress4'
+        };
+        const params = new URLSearchParams({
+          ...headerMapF9,
+          action: 'form9_lookup',
+          timestamp: new Date().toISOString()
+        });
+        if (name && name !== '__ALL__') params.append('person_name', name);
+        const url = `${FORM9_LOOKUP_URL}?${params.toString()}`;
+        const resp = await fetch(url, { method: 'GET' });
+        const text = await resp.text();
+        if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+        let data = null; try{ data = JSON.parse(text);}catch{ data = null; }
+        function pickRows(json){
+          if (!json) return [];
+          if (Array.isArray(json)) return json;
+          const candidates = ['data','rows','result','records','items','list'];
+          for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
+          try{
+            const queue=[json]; const seen=new Set();
+            while(queue.length){ const cur=queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for(const v of Object.values(cur)){ if(Array.isArray(v)&&v.length&&typeof v[0]==='object') return v; if(v&&typeof v==='object') queue.push(v);} }
+          }catch(_){ }
+          return [];
+        }
+        let rowsRaw = pickRows(data);
+        // Unwrap n8n format [{ json: {...} }]
+        if (Array.isArray(rowsRaw) && rowsRaw.length && rowsRaw.every(x=> x && typeof x==='object' && ('json' in x))){
+          rowsRaw = rowsRaw.map(x=> x.json);
+        }
+        // Convert table [[headers...], [...]] -> objects
+        if (Array.isArray(rowsRaw) && rowsRaw.length && Array.isArray(rowsRaw[0])){
+          try{
+            const header = rowsRaw[0].map(h=> String(h||'').trim());
+            rowsRaw = rowsRaw.slice(1).map(r=>{
+              const o={}; header.forEach((k,i)=>{ o[k]= Array.isArray(r)? r[i]: undefined; }); return o;
+            });
+          }catch(_){ }
+        }
+        // Helper: get value by flexible keys (diacritics/spacing insensitive)
+        const getV = (obj, keys)=>{
+          const sanitize = (s)=>{ try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }catch(_){ return String(s||'').toLowerCase().replace(/\s+/g,' ').trim(); } };
+          const lower = {};
+          Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=sanitize(k); lower[k1]=v; });
+          for (const k of keys){ const c=sanitize(k); if (c in lower) return lower[c]; }
+          // includes fallback
+          for (const k of keys){ const c=sanitize(k); const m = Object.keys(lower).find(kk=> kk.includes(c)); if (m) return lower[m]; }
+          return '';
+        };
+        let normRows = rowsRaw.map(item=>{
+          const code = getV(item,['code','mã','ma','taskcode','componentcode']);
+          const taskIdRaw = getV(item,['taskid','task_id','mã tác vụ','ma_tac_vu','requestid','id']);
+          const taskId = (typeof pickTaskIdPreferQA==='function') ? pickTaskIdPreferQA(taskIdRaw, code) : (taskIdRaw || code);
+          return {
+            rowNumber: getV(item,['row_number','stt','STT']),
+            assignee: getV(item,['Assignee','assignee','employee','người phụ trách','nguoi_phu_trach','nhanvien','nhân viên']),
+            code: code || getV(item,['Mã']),
+            taskName: getV(item,['Task Name','taskname','task name','tên tác vụ','ten_tac_vu','name','title']),
+            reportCode: getV(item,['Mã Báo cáo','reportcode','ma_bao_cao','report_id','reportid']),
+            taskId,
+            result: getV(item,['Kết quả','result','ket_qua']),
+            actualCompletionDate: getV(item,['Ngày hoàn thành thực tế','actualcompletiondate','ngay hoan thanh thuc te','ngày hoàn thành','ngay hoan thanh']),
+            durability: getV(item,['Tình trạng Test bền','test_ben','durability','has_durability','testben']),
+            durabilityDue: getV(item,['Dự kiến hoàn thành test bền','ngay_du_kien_tra_test_ben','du_kien_hoan_thanh_test_ben','testbenduedate']),
+            durabilityActual: getV(item,['Ngày hoàn thành test bền thực tế','ngay_hoan_thanh_test_ben_thuc_te','durability_actual']),
+            noteGateA: getV(item,['Ghi chú','ghi chú','note','ghi_chu','noteGateA','note_gate_a','ghi chú gate a','gate a note']),
+            gateAStatus: getV(item,['Trạng thái Gate A','gate a status','gatea status','gatea_status','status gate a']),
+            gateAEvidence: getV(item,['Bằng chứng Gate A','bang chung gate a','gate a evidence','gatea evidence','gatea_file','gateAEvidence'])
+          };
+        });
+        // Locally filter by assignee when not All
+        if (name && name !== '__ALL__'){
+          const key = (typeof vnLower==='function') ? vnLower(name) : name.toLowerCase();
+          normRows = normRows.filter(r => {
+            const a = String(r.assignee||'');
+            const ak = (typeof vnLower==='function') ? vnLower(a) : a.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+            return ak === key;
+          });
+        }
+        renderForm9FromRows(normRows);
+        try{ LS.setJSON('f9.cache', { name, rows: normRows, ts: Date.now() }); LS.set('f9.lastUpdated', String(Date.now())); updateLastUpdatedNote('f9-search','f9.lastUpdated'); }catch(_){ }
+      }catch(err){
+        body.innerHTML = `<tr><td colspan='11' class='px-3 py-4 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+      }
+    }
+
+    const f9SearchBtn = document.getElementById('f9-search');
+    if (f9SearchBtn){
+      let f9Busy = false;
+      f9SearchBtn.onclick = async (e)=>{
+        e.preventDefault();
+        if (f9Busy) return;
+        f9Busy = true;
+        f9SearchBtn.disabled = true;
+        const prev = f9SearchBtn.textContent;
+        f9SearchBtn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+        try{ await renderForm9(); }
+        finally{
+          f9Busy = false;
+          f9SearchBtn.disabled = false;
+          f9SearchBtn.textContent = prev || 'Tra cứu';
+        }
+      };
+    }
+    // Form 9: Month filter events
+    const f9MonthInput = document.getElementById('f9-month');
+    const f9ClearMonthBtn = document.getElementById('f9-clear-month');
+    if (f9MonthInput){
+      f9MonthInput.addEventListener('change', ()=>{
+        try{
+          const cached = LS.getJSON('f9.cache');
+          if (cached && Array.isArray(cached.rows)) renderForm9FromRows(cached.rows);
+        }catch(_){ }
+      });
+    }
+    if (f9ClearMonthBtn){
+      f9ClearMonthBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const el = document.getElementById('f9-month');
+        if (el){ el.value=''; }
+        try{
+          const cached = LS.getJSON('f9.cache');
+          if (cached && Array.isArray(cached.rows)) renderForm9FromRows(cached.rows);
+        }catch(_){ }
+      });
+    }
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -5107,8 +5890,10 @@
             if (actualIsZero) {
               statusByMan = 'Thiếu dữ liệu';
             } else if (hasDone && !isNaN(actualNum) && !isNaN(man)){
-              if (actualNum > man + EPS) statusByMan = 'Chậm tiến độ';
-              else if (Math.abs(actualNum - man) <= EPS) statusByMan = 'Đúng tiến độ';
+              // Áp dụng dung sai 10% cho "Đúng tiến độ"
+              const tolerance = Math.max(EPS, Math.abs(Number(man)) * 0.10);
+              if (actualNum > Number(man) + tolerance) statusByMan = 'Chậm tiến độ';
+              else if (Math.abs(actualNum - Number(man)) <= tolerance) statusByMan = 'Đúng tiến độ';
               else statusByMan = 'Vượt tiến độ';
             }
           }catch(_){ }
@@ -5328,6 +6113,16 @@
           // Tính Trạng thái theo công chuẩn bằng so sánh số giờ thực tế và công chuẩn (hỗ trợ dấu phẩy/dấu chấm)
           let statusByMan = '';
           try{
+            // Custom parse function to handle comma decimal separator
+            const parseNumberFlexible = (value) => {
+              if (!value) return NaN;
+              const str = String(value).trim();
+              // Replace comma with dot for decimal separator
+              const normalized = str.replace(',', '.');
+              const num = parseFloat(normalized);
+              return isNaN(num) ? NaN : num;
+            };
+            
             const manNum = parseNumberFlexible(man);
             const actualNum = parseNumberFlexible(actualHours);
             const EPS = 1e-4;
@@ -5335,9 +6130,17 @@
             if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
               statusByMan = 'Thiếu dữ liệu';
             } else if (hasDone && !isNaN(actualNum) && !isNaN(manNum)){
-              if (actualNum > manNum + EPS) statusByMan = 'Chậm tiến độ';
-              else if (Math.abs(actualNum - manNum) <= EPS) statusByMan = 'Đúng tiến độ';
-              else statusByMan = 'Vượt tiến độ';
+              // Cho phép sai lệch 10% cho "Đúng tiến độ"
+              const tolerance = manNum * 0.1; // 10% tolerance
+              const diff = Math.abs(actualNum - manNum);
+              
+              if (actualNum > manNum + tolerance) {
+                statusByMan = 'Chậm tiến độ';
+              } else if (diff <= tolerance) {
+                statusByMan = 'Đúng tiến độ';
+              } else {
+                statusByMan = 'Vượt tiến độ';
+              }
             }
           }catch(_){ }
           let statusVsWish = '';
@@ -5375,7 +6178,7 @@
               <td class="px-3 py-2">${tname}</td>
               <td class="px-3 py-2${(function(n){ const EPS=1e-4; return (Number.isFinite(parseNumberFlexible(actualHours)) && Math.abs(parseNumberFlexible(actualHours))<EPS) ? ' bg-amber-100 text-amber-800' : ''; })()}">${actualHoursDisp}</td>
               <td class="px-3 py-2">${manDisp}</td>
-              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan || status)}</td>
+              <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan && statusByMan.trim() ? statusByMan : status)}</td>
               <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus1Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +1: ${wishPlus1Disp}</div>`:''}</td>
               <td class="px-3 py-2">${doneDisp||done||''}</td>
               <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
@@ -7201,12 +8004,18 @@
         const byName = new Map();
         
         F5A_P3_RAW.forEach(r => {
-          const name = String(getV(r, [
+          let name = String(getV(r, [
             'assignee','employee','name',
             'nhân viên','nhan vien','nhanvien',
             'tên nhân viên','ten nhan vien','tennhanvien',
             'phụ trách','phu trac','phutrac'
           ])||'').trim();
+          if(!name){
+            const email = String(getV(r, ['EmailofAssignee','emailofassignee','email'])) || '';
+            if (email){
+              try{ name = email.split('@')[0] || email; }catch(_){ name = email; }
+            }
+          }
           
           if(!name || name.toLowerCase() === 'x') return;
           
@@ -8950,8 +9759,8 @@
         
         let processedCount = 0;
         let skippedNoName = 0;
-        let skippedNo4M = 0;
         let skippedWrongMonth = 0;
+        let skippedNotProduct = 0;
         
         F5A_P3_RAW.forEach(r => {
           const name = String(getV(r, [
@@ -8979,30 +9788,24 @@
           ]);
           
           const completionDate = parseDate(completionDateStr);
-          
-          // Filter by month if specified
-          if(monthVal && completionDate){
-            const taskMonth = formatYyyyMm(completionDate);
-            if(taskMonth !== monthVal) {
-              skippedWrongMonth++;
-              return;
-            }
-          } else if(monthVal && !completionDate) {
-            skippedWrongMonth++;
-            return;
+          // Prefer month filter by 'Ngày khai báo 4M' -> 'Ngày khai báo CE' -> completion date
+          const fourMDateStr = getV(r,[ 'Ngày khai báo 4M','ngay khai bao 4m','ngày khai báo 4m','4m_date','4mdate' ]);
+          const ceDateStr = getV(r,[ 'Ngày khai báo CE','ngay khai bao ce','ngày khai báo ce','cedate','ce_date' ]);
+          const fourMDate = parseDate(fourMDateStr);
+          const ceDate = parseDate(ceDateStr);
+          // Form 8 giống điều kiện: ưu tiên Ngày hoàn thành thực tế, thiếu mới fallback CE/4M
+          const refDate = completionDate || ceDate || fourMDate;
+          // Filter by selected month using refDate
+          if (monthVal){
+            if (!refDate){ skippedWrongMonth++; return; }
+            const taskMonth = formatYyyyMm(refDate);
+            if (taskMonth !== monthVal){ skippedWrongMonth++; return; }
           }
           
-          // Check "4M rà soát" - only count if NOT empty (for "Tổng tác vụ máy")
-          const rasoat4m = String(getV(r, [
-            '4M rà soát','4m rà soát','4m ra soat',
-            '4M','4m rasoat','rasoat4m'
-          ])||'').trim();
-          
-          // Skip if "4M rà soát" is empty
-          if(!rasoat4m) {
-            skippedNo4M++;
-            return;
-          }
+          // Chỉ lấy các tác vụ có "Phân loại" = "Sản phẩm"
+          const classification = String(getV(r,[ 'Phân loại','phan loai','phanloai','classification','loai','loại' ])||'').trim();
+          const clsNorm = (typeof vnLower==='function') ? vnLower(classification) : classification.toLowerCase();
+          if (clsNorm !== 'san pham' && clsNorm !== 'sản phẩm') { skippedNotProduct++; return; }
           
           processedCount++;
           
@@ -9015,7 +9818,8 @@
               hdktTotal: 0, hdktCompleted: 0,
               bbTotal: 0, bbCompleted: 0,
               jigTotal: 0, jigCompleted: 0,
-              khksclTotal: 0, khksclCompleted: 0
+              khksclTotal: 0, khksclCompleted: 0,
+              notNeeded4m: 0
             });
           }
           
@@ -9051,7 +9855,9 @@
           // Parse percentage values and accumulate (for average calculation)
           const parsePercent = (val) => {
             if(!val) return 0;
-            const v = String(val).replace('%','').trim();
+            let v = String(val).replace('%','').trim();
+            // Chuẩn hóa dấu phẩy thành dấu chấm
+            if (v.includes(',') && !v.includes('.')) v = v.replace(',', '.');
             const num = parseFloat(v);
             if(isNaN(num)) return 0;
             // Convert 0-1 range to 0-100 range
@@ -9066,30 +9872,23 @@
           }
           
           // Accumulate percentage values for average calculation
-          if(tckt) {
-            rec.tcktTotal += 1;
-            rec.tcktCompleted += parsePercent(tckt);
-          }
-          if(ce) {
-            rec.ceTotal += 1;
-            rec.ceCompleted += parsePercent(ce);
-          }
-          if(hdkt) {
-            rec.hdktTotal += 1;
-            rec.hdktCompleted += parsePercent(hdkt);
-          }
-          if(bb) {
-            rec.bbTotal += 1;
-            rec.bbCompleted += parsePercent(bb);
-          }
-          if(jig) {
-            rec.jigTotal += 1;
-            rec.jigCompleted += parsePercent(jig);
-          }
-          if(khkscl) {
-            rec.khksclTotal += 1;
-            rec.khksclCompleted += parsePercent(khkscl);
-          }
+          // Nếu 4M rà soát = "Không cần" => tính 100% cho tất cả hạng mục
+          const fourMStatus = String(getV(r, [ '4M rà soát','4m rà soát','4m ra soat','4M','4m rasoat','rasoat4m' ])||'').trim();
+          const fourMNorm = (typeof vnLower==='function') ? vnLower(fourMStatus) : fourMStatus.toLowerCase();
+          const isNotNeeded = (fourMNorm.includes('khong can') || fourMNorm.includes('không cần'));
+          if (isNotNeeded) rec.notNeeded4m += 1;
+          const pTCKT = isNotNeeded ? 100 : parsePercent(tckt);
+          const pCE = isNotNeeded ? 100 : parsePercent(ce);
+          const pHDKT = isNotNeeded ? 100 : parsePercent(hdkt);
+          const pBB = isNotNeeded ? 100 : parsePercent(bb);
+          const pJIG = isNotNeeded ? 100 : parsePercent(jig);
+          const pKH = isNotNeeded ? 100 : parsePercent(khkscl);
+          rec.tcktTotal += 1; rec.tcktCompleted += pTCKT;
+          rec.ceTotal += 1; rec.ceCompleted += pCE;
+          rec.hdktTotal += 1; rec.hdktCompleted += pHDKT;
+          rec.bbTotal += 1; rec.bbCompleted += pBB;
+          rec.jigTotal += 1; rec.jigCompleted += pJIG;
+          rec.khksclTotal += 1; rec.khksclCompleted += pKH;
         });
         
         // Debug: Log processing statistics
@@ -9097,7 +9896,7 @@
         console.log('  - Total rows:', F5A_P3_RAW.length);
         console.log('  - Processed:', processedCount);
         console.log('  - Skipped (no name):', skippedNoName);
-        console.log('  - Skipped (no 4M):', skippedNo4M);
+        console.log('  - Skipped (not product):', skippedNotProduct);
         console.log('  - Skipped (wrong month):', skippedWrongMonth);
         console.log('  - Employees found:', byName.size);
         
@@ -9155,7 +9954,7 @@
           rowsP4.push(`
             <tr>
               <td class="px-3 py-2 font-medium">${r.name}</td>
-              <td class="px-3 py-2 text-center font-semibold cursor-pointer hover:bg-blue-50" onclick="showP4TaskDetails('${r.name.replace(/'/g, "\\'")}', 'total', '${monthVal}')" title="Click để xem chi tiết">
+              <td class="px-3 py-2 text-center font-semibold cursor-pointer hover:bg-blue-50" onclick="openP4MachineModal('${r.name.replace(/'/g, "\\'")}', '${monthVal}')" title="Click để xem chi tiết tác vụ máy">
                 ${r.totalTasks}
               </td>
               <td class="px-3 py-2 text-center">
@@ -9192,6 +9991,7 @@
         const avgKhkscl = sorted.length > 0 ? (sumKhkscl / sorted.length).toFixed(2) : '0.00';
         const avgP4 = sorted.length > 0 ? (sumP4 / sorted.length).toFixed(2) : '0.00';
         
+        const totalNotNeeded = sorted.reduce((a,b)=> a + (b.notNeeded4m||0), 0);
         const totalRow = `
           <tr class="bg-blue-50 font-semibold">
             <td class="px-3 py-2">TỔNG</td>
@@ -9672,6 +10472,281 @@
         switchTab(initial);
       }catch(err){ console.warn('initF5aTabs failed', err); }
     })();
+
+    // Bind explicit click for "Tra cứu P4" to fetch P3-data and render P4 (avoid any legacy handlers)
+    (function initF5aSearchP4(){
+      try{
+        const btn = document.getElementById('f5a-search-p4');
+        if (btn && !btn._bound){
+          try{ btn.onclick = null; }catch(_){ }
+          btn.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            try{ e.stopImmediatePropagation(); }catch(_){ }
+            const monthInput = document.getElementById('f5a-month');
+            const month = monthInput ? (monthInput.value||'') : '';
+            const prev = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+            try{
+              await f5aFetchP3Data(month);
+              renderForm5P4();
+            }finally{
+              btn.disabled = false;
+              btn.textContent = prev || 'Tra cứu P4';
+            }
+          });
+          btn._bound = true;
+        }
+      }catch(_){ }
+    })();
+
+    // ===== P4 Machine Task Details Modal Functions =====
+    function openP4MachineModal(employeeName, month) {
+      try {
+        const modal = document.getElementById('p4-machine-modal');
+        const employeeEl = document.getElementById('p4-machine-employee');
+        const body = document.getElementById('p4-machine-modal-body');
+        
+        if (!modal || !employeeEl || !body) return;
+        
+        // Set employee name
+        employeeEl.textContent = employeeName || '';
+        
+        // Show loading state
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Đang tải dữ liệu...</td></tr>';
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        
+        // Load data
+        loadP4MachineTaskDetails(employeeName, month);
+        
+      } catch (err) {
+        console.error('[P4 Machine Modal] Open error:', err);
+      }
+    }
+
+    function closeP4MachineModal() {
+      try {
+        const modal = document.getElementById('p4-machine-modal');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      } catch (err) {
+        console.error('[P4 Machine Modal] Close error:', err);
+      }
+    }
+
+    async function loadP4MachineTaskDetails(employeeName, month) {
+      try {
+        const body = document.getElementById('p4-machine-modal-body');
+        if (!body) return;
+        
+        console.log('[P4 Machine Details] Loading for:', employeeName, 'month:', month);
+        
+        // Check if we have P3 data
+        if (!Array.isArray(F5A_P3_RAW) || !F5A_P3_RAW.length) {
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="13">Chưa có dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</td></tr>';
+          return;
+        }
+        
+        // Helper functions
+        const norm = (s) => String(s||'').toLowerCase().trim();
+        const getV = (obj, keys) => {
+          const lower = {};
+          Object.keys(obj||{}).forEach(k=>{ lower[norm(k)] = obj[k]; });
+          for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; }
+          return '';
+        };
+        
+        const parseDate = (value) => {
+          try{
+            if(!value) return null;
+            const s = String(value).trim();
+            let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if(m){ return new Date(+m[3], +m[2]-1, +m[1]); }
+            m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if(m){ return new Date(+m[1], +m[2]-1, +m[3]); }
+            return new Date(s);
+          }catch(_){ return null; }
+        };
+        
+        const formatYyyyMm = (d) => {
+          if(!d) return '';
+          return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        };
+        
+        const parsePercent = (v) => {
+          try{
+            if(!v) return 0;
+            const s = String(v).trim();
+            const num = parseFloat(s);
+            if(isNaN(num)) return 0;
+            if(num >= 0 && num <= 1) return num * 100;
+            if(num >= 0 && num <= 100) return num;
+            return 0;
+          }catch(_){ return 0; }
+        };
+        
+        // Filter tasks for this employee and month
+        const employeeTasks = F5A_P3_RAW.filter(r => {
+          const name = String(getV(r, [
+            'assignee','employee','name',
+            'nhân viên','nhan vien','nhanvien',
+            'tên nhân viên','ten nhan vien','tennhanvien',
+            'phụ trách','phu trac','phutrac'
+          ])||'').trim();
+          
+          if(!name || name.toLowerCase() === 'x') return false;
+          if(!sameName(name, employeeName)) return false;
+          
+          const completionDateStr = getV(r, [
+            'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
+            'ngày hoàn thành','ngay hoan thanh'
+          ]);
+          
+          const completionDate = parseDate(completionDateStr);
+          
+          if(month && completionDate){
+            const taskMonth = formatYyyyMm(completionDate);
+            if(taskMonth !== month) return false;
+          } else if(month && !completionDate) {
+            return false;
+          }
+          
+          // Only include tasks with 4M data
+          const rasoat4m = String(getV(r, [
+            '4M rà soát','4m rà soát','4m ra soat',
+            '4M','4m rasoat'
+          ])||'').trim();
+          
+          return !!rasoat4m;
+        });
+        
+        console.log('[P4 Machine Details] Found', employeeTasks.length, 'tasks for', employeeName);
+        
+        if (!employeeTasks.length) {
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có dữ liệu tác vụ máy</td></tr>';
+          return;
+        }
+        
+        // Render table rows
+        const rows = [];
+        let stt = 0;
+        
+        employeeTasks.forEach(task => {
+          stt++;
+          
+          const taskId = String(getV(task, ['taskid','task_id','ma_tac_vu','mã tác vụ','requestid','id'])||'').trim();
+          const taskName = String(getV(task, [
+            'taskname','ten_tac_vu','ten','name','title','tên tác vụ',
+            'Task Name','TaskName','task_name','taskName',
+            'Tên tác vụ','Tên Task','TênTask','ten_task',
+            'Công việc','cong_viec','congviec','work','job',
+            'Mô tả','mo_ta','mota','description','desc',
+            'Nội dung','noi_dung','noidung','content'
+          ])||'').trim();
+          
+          // Debug: Log task data if taskName is empty
+          if (!taskName && stt <= 3) {
+            console.log('[P4 Machine Debug] Task', stt, 'has empty taskName. Available fields:', Object.keys(task));
+            console.log('[P4 Machine Debug] Sample task data:', task);
+          }
+          
+          // Fallback: If taskName is still empty, try to find the longest text field
+          let finalTaskName = taskName;
+          if (!finalTaskName) {
+            const textFields = Object.entries(task).filter(([key, value]) => {
+              const str = String(value || '').trim();
+              return str.length > 5 && str.length < 200 && !str.match(/^\d+$/) && !str.match(/^\d{4}-\d{2}-\d{2}/);
+            });
+            
+            if (textFields.length > 0) {
+              // Sort by length and take the longest one
+              textFields.sort((a, b) => String(b[1]).length - String(a[1]).length);
+              finalTaskName = String(textFields[0][1]).trim();
+              console.log('[P4 Machine Debug] Using fallback taskName from field:', textFields[0][0], '=', finalTaskName);
+            }
+          }
+          const completionDateStr = getV(task, [
+            'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
+            'ngày hoàn thành','ngay hoan thanh'
+          ]);
+          const completionDate = parseDate(completionDateStr);
+          const formattedDate = completionDate ? formatDdMmYyyy(completionDate) : '';
+          
+          // Parse 4M percentages
+          const tckt = parsePercent(getV(task, ['TCKT(% hoàn thành)','tckt','tckt%']));
+          const ce = parsePercent(getV(task, ['CE(% hoàn thành)','ce','ce%']));
+          const hdkt = parsePercent(getV(task, ['HDKT(% hoàn thành)','hdkt','hdkt%']));
+          const bb = parsePercent(getV(task, ['BB đào tạo(% hoàn thành)','bb dao tao','bb%']));
+          const jig = parsePercent(getV(task, ['Jig tool(% hoàn thành)','jig tool','jig%']));
+          const khkscl = parsePercent(getV(task, ['KHKSCL(% hoàn thành)','khkscl','khkscl%']));
+          
+          // Get 4M review data
+          const rasoat4m = String(getV(task, [
+            '4M rà soát','4m rà soát','4m ra soat',
+            '4M','4m rasoat'
+          ])||'').trim();
+          
+          const ngayKhaiBao4m = String(getV(task, [
+            'ngày khai báo 4M','ngay khai bao 4m',
+            'ngày khai báo','ngay khai bao',
+            '4M ngày khai báo','4m ngay khai bao'
+          ])||'').trim();
+          
+          const ghiChu4m = String(getV(task, [
+            'ghi chú 4M','ghi chu 4m',
+            'ghi chú','ghi chu',
+            '4M ghi chú','4m ghi chu',
+            'note 4M','note 4m'
+          ])||'').trim();
+          
+          rows.push(`
+            <tr>
+              <td class="px-3 py-2 text-center">${stt}</td>
+              <td class="px-3 py-2 font-mono text-blue-600">${taskId}</td>
+              <td class="px-3 py-2">${finalTaskName || taskId || 'N/A'}</td>
+              <td class="px-3 py-2">${formattedDate}</td>
+              <td class="px-3 py-2 text-center">${tckt.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">${ce.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">${hdkt.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">${bb.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">${jig.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">${khkscl.toFixed(1)}%</td>
+              <td class="px-3 py-2 text-center">
+                <span class="px-2 py-1 rounded text-xs ${rasoat4m.toLowerCase().includes('đã') ? 'bg-green-100 text-green-800' : rasoat4m.toLowerCase().includes('chưa') ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}">
+                  ${rasoat4m || '-'}
+                </span>
+              </td>
+              <td class="px-3 py-2">${ngayKhaiBao4m || '-'}</td>
+              <td class="px-3 py-2">${ghiChu4m || '-'}</td>
+            </tr>
+          `);
+        });
+        
+        body.innerHTML = rows.join('');
+        
+      } catch (err) {
+        console.error('[P4 Machine Details] Load error:', err);
+        const body = document.getElementById('p4-machine-modal-body');
+        if (body) {
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="13">Lỗi tải dữ liệu</td></tr>';
+        }
+      }
+    }
+
+    // Helper function to compare names (same as used in P3)
+    function sameName(a, b) {
+      try {
+        const normalize = (s) => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+        return normalize(a) === normalize(b);
+      } catch (_) {
+        return String(a||'').toLowerCase().trim() === String(b||'').toLowerCase().trim();
+      }
+    }
   </script>
 
   <!-- Modal for P3 Task Details -->
@@ -9689,6 +10764,50 @@
         </div>
         <div class="flex items-center justify-end p-4 border-t bg-gray-50">
           <button onclick="closeP3TaskModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for P4 Machine Task Details -->
+  <div id="p4-machine-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b bg-gradient-to-r from-emerald-50 to-white">
+          <h3 id="p4-machine-modal-title" class="text-lg font-semibold text-emerald-800">Chi tiết tác vụ máy</h3>
+          <button onclick="closeP4MachineModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <div class="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div class="mb-4 text-sm text-gray-600">
+            <span class="font-medium">Nhân viên:</span> <span id="p4-machine-employee" class="text-emerald-700 font-semibold"></span>
+          </div>
+          <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <table class="min-w-[1600px] w-full text-sm table-zebra table-vdiv">
+              <thead class="bg-gradient-to-r from-emerald-100 to-emerald-50 sticky top-0">
+                <tr class="text-left text-gray-700">
+                  <th class="px-3 py-2">STT</th>
+                  <th class="px-3 py-2">Mã tác vụ</th>
+                  <th class="px-3 py-2">Tên tác vụ</th>
+                  <th class="px-3 py-2">Ngày hoàn thành</th>
+                  <th class="px-3 py-2">TCKT(%)</th>
+                  <th class="px-3 py-2">CE(%)</th>
+                  <th class="px-3 py-2">HDKT(%)</th>
+                  <th class="px-3 py-2">BB đào tạo(%)</th>
+                  <th class="px-3 py-2">Jig tool(%)</th>
+                  <th class="px-3 py-2">KHKSCL(%)</th>
+                  <th class="px-3 py-2">4M rà soát</th>
+                  <th class="px-3 py-2">Ngày khai báo 4M</th>
+                  <th class="px-3 py-2">Ghi chú 4M</th>
+                </tr>
+              </thead>
+              <tbody id="p4-machine-modal-body" class="divide-y divide-gray-100">
+                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="flex items-center justify-end p-4 border-t bg-gray-50">
+          <button onclick="closeP4MachineModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Đóng</button>
         </div>
       </div>
     </div>
