@@ -89,6 +89,7 @@
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form7">Form 7 · Triển khai CE</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form8">Form 8 · Triển khai 4M</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form9">Form 9 · Thống kê test bền</button>
+      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form10">Form 10 · Quản lý nhân sự</button>
       <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form0">Form 0 · Hướng dẫn sử dụng</button>
     </nav>
   </aside>
@@ -267,8 +268,8 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Công chuẩn <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
-            <input id="man-hour" required type="number" step="0.01" min="0" inputmode="decimal" placeholder="VD: 12,5" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-            <p class="text-gray-500 text-xs mt-1">Cho phép nhập 2 chữ số sau dấu thập phân</p>
+            <input id="man-hour" required type="text" min="0" placeholder="VD: 12,5" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+            <p class="text-gray-500 text-xs mt-1">Sử dụng dấu phẩy (,) cho số thập phân. VD: 12,5</p>
           </div>
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Đầu ra công việc <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
@@ -466,7 +467,7 @@
         </table>
           </div>
         </div>
-        <!-- Thẻ P2: cột 1,2,3,4 -->
+        <!-- Thẻ P2: cột 1,2,3,4 (đã đổi cột 4 -> Tổng giờ công đi làm) -->
         <div id="f5a-panel-p2" class="f5a-panel bg-white border border-gray-200 rounded-lg shadow-sm mt-2 hidden">
           <div class="px-3 py-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex items-center justify-center">
             <span class="font-semibold text-blue-800 mr-4">Thẻ P2</span>
@@ -479,7 +480,7 @@
                 <th class="px-3 py-2">Nhân viên</th>
                 <th class="px-3 py-2">Số tác vụ trong tháng</th>
                 <th class="px-3 py-2">Công chuẩn đã nhận</th>
-                <th class="px-3 py-2 cell-div">Công chuẩn cần nhận</th>
+                <th class="px-3 py-2 cell-div">Tổng giờ công đi làm</th>
                 <th class="px-3 py-2">Hệ số</th>
               </tr>
             </thead>
@@ -563,6 +564,43 @@
         <div id="f5a-chart-container-manhour" class="h-80" style="display:none">
           <canvas id="f5a-chart-manhour"></canvas>
         </div>
+      </div>
+    </section>
+
+    <!-- Form 10 · Quản lý nhân sự -->
+    <section id="form10" class="w-full max-w-7xl bg-white p-6 rounded-lg shadow-md hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-blue-800">Form 10 · Quản lý nhân sự</h2>
+    </div>
+      
+
+      <!-- Bảng công (theo tháng) -->
+      <div class="mt-8 flex items-center justify-between mb-2">
+        <h3 class="text-lg font-semibold text-blue-800">Bảng công (theo tháng)</h3>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-700">Tháng</label>
+          <input id="f10-att-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          <button id="f10-att-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+          <button id="f10-att-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto border border-gray-200 rounded-lg">
+        <table class="min-w-[800px] w-full text-sm border-collapse">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700 border-b border-gray-300">
+              <th class="px-3 py-2">Nhân sự</th>
+              <th class="px-3 py-2">Số ngày đi làm (tháng)</th>
+              <th class="px-3 py-2">Tổng giờ tăng ca (tháng)</th>
+              <th class="px-3 py-2">Tổng giờ công đi làm</th>
+            </tr>
+          </thead>
+          <tbody id="f10-att-body" class="divide-y divide-gray-200">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 flex items-center justify-end">
+        <a id="f10-att-detail-link" href="https://docs.google.com/spreadsheets/d/1vTaH-tOBv5GZ64Ij34mFyDH3r_7tkaVYCpheyOtDckU/" target="_blank" rel="noopener" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Giờ công chi tiết</a>
       </div>
     </section>
 
@@ -654,6 +692,8 @@
         </div>
         <p class="text-gray-500 text-xs">Để trống để hiển thị tất cả. Lọc theo cột "Ngày hoàn thành thực tế"</p>
       </div>
+      
+      <!-- Removed stray Form 9 controls from Form 7 -->
       <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
         <table class="min-w-[1600px] w-full text-sm border-collapse">
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
@@ -822,19 +862,24 @@
           <p class="text-gray-500 text-xs mt-1">Để trống để hiển thị tất cả. Lọc theo cột "Ngày hoàn thành thực tế"</p>
         </div>
       </div>
+      <!-- Removed old size/stat controls to avoid duplication -->
+      <div id="f9-controls" class="mt-2 flex items-center gap-2">
+        <button id="f9-open-stats" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700">Thống kê</button>
+        <button id="f9-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
+      </div>
       <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
         <table class="min-w-[1600px] w-full text-sm border-collapse">
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
               <th class="px-3 py-3 min-w-[60px] border border-gray-300">STT</th>
               <th class="px-3 py-3 min-w-[160px] border border-gray-300">Tình trạng test bền</th>
+              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Dự kiến hoàn thành test bền</th>
               <th class="px-3 py-3 min-w-[120px] border border-gray-300">Mã</th>
               <th class="px-3 py-3 min-w-[260px] border border-gray-300">Task Name</th>
+              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Assignee</th>
               <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã Báo cáo</th>
               <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã tác vụ</th>
               <th class="px-3 py-3 min-w-[180px] border border-gray-300">Ngày hoàn thành thực tế</th>
-              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Assignee</th>
-              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Dự kiến hoàn thành test bền</th>
               <th class="px-3 py-3 min-w-[220px] border border-gray-300">Ghi chú</th>
               <th class="px-3 py-3 min-w-[160px] border border-gray-300">Khai báo test bền</th>
             </tr>
@@ -868,7 +913,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white"><path d="M3 6a1 1 0 011-1h3.28a1 1 0 01.948.684l.498 1.493A2 2 0 0010.64 8H19a1 1 0 110 2h-8.36a2 2 0 00-1.914 1.277l-.498 1.493A1 1 0 016.28 13H4a1 1 0 110-2h1.84l.36-1.08A4 4 0 0110.64 8H19V6H10.64a4 4 0 01-3.8-2.723L6.28 2H4a1 1 0 00-1 1v3z"/></svg>
           </div>
           <div>
-            <h3 class="text-lg font-semibold leading-tight">Chi tiết Test bền</h3>
+        <h3 class="text-lg font-semibold leading-tight">Modal F9-1 · Chi tiết Test bền</h3>
             <div class="text-xs opacity-90">Khai báo/điều chỉnh thông tin 4 bài test và lưu một lần</div>
           </div>
         </div>
@@ -941,6 +986,19 @@
           <button id="f9-dur-save-all" class="px-5 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105 shadow">Gửi dữ liệu</button>
           <button id="f9-dur-cancel" class="px-5 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 hover:bg-gray-50">Đóng</button>
         </div>
+      </div>
+    </div>
+  </div>
+  <!-- Form 9: Modal thống kê -->
+  <div id="f9-stats-modal" class="modal" aria-hidden="true">
+    <div class="bg-white rounded-lg shadow-xl max-w-xl w-full mx-4 p-6 relative">
+      <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-blue-800">Modal F9-2 · Thống kê test bền</h3>
+        <button id="f9-stats-close" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+      </div>
+      <div class="p-4" id="f9-stats-body"></div>
+      <div class="px-4 py-3 border-t border-gray-200 flex justify-end">
+        <button id="f9-stats-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
       </div>
     </div>
   </div>
@@ -1447,6 +1505,8 @@
     const FORM5_ALL_NEW_URL = "https://iatzhxxuk.tino.page/webhook/2c62c918-413c-49c3-99f6-49466f13c6d6";
     // Form 5 P3 (CE Review data)
     const FORM5_P3_URL = "https://iatzhxxuk.tino.page/webhook/ef64c141-a8ba-4bf0-af32-837ffd6f75d1";
+    // Form 10 (Attendance) lookup endpoint - GET
+    const FORM10_ATTENDANCE_URL = "https://iatzhxxuk.tino.page/webhook/f2baf83d-98c3-44f0-8eb4-b207ca2873d3";
     // Version hoá cache để tránh xung đột/hiển thị sai giữa các máy hoặc lần triển khai
     const APP_CACHE_VERSION = "2025-09-25-f5a-v4";
     let F4_CHART = null;
@@ -1472,24 +1532,9 @@
     // Debug flag: bật/tắt bằng localStorage key "f5a.debug" = '1'
     function f5aIsDebug(){ try{ return (localStorage.getItem('f5a.debug')||'') === '1'; }catch(_){ return false; } }
     // Form 5: Công chuẩn cần nhận (có thể chỉnh tại đây)
-    const F5A_NEED_MANHOUR_DEFAULT = 200;
-    const F5A_NEED_MANHOUR_BY_NAME = {
-      "Bùi Đặng Quốc Huy": 248.40,
-      "Phạm Thành Trung Kiên": 248.40,
-      "Đỗ Quang Long": 280.80,
-      "Nguyễn Hữu Thịnh": 279.60,
-      "Lê Văn Sơn": 266.40,
-      "Nguyễn Thị Hiền": 246.00,
-      "Lại Quốc Lộc": 226.80,
-      "Vũ Thị Thanh Hiền": 252.00,
-      "Lê Ngọc Ánh": 218.40,
-      "Đào Tuấn Kỳ": 259.20,
-      "Vũ Thị Hằng": 230.40,
-      "Thái Thị Giang": 264.00,
-      "Trần Hiếu Nghĩa": 214.80,
-      "Phạm Thị Minh": 238.80,
-      "Lê Thị Thảo": 247.20,
-    };
+    // Form 5: Công chuẩn cần nhận (đã bỏ, thay bằng dữ liệu Form 10)
+    const F5A_NEED_MANHOUR_DEFAULT = 0;
+    const F5A_NEED_MANHOUR_BY_NAME = {};
     // Form 7 rendering (clone of Form 2 with wording changes)
     let f7AllData = []; // Lưu tất cả dữ liệu Form 7
     let f7CurrentName = ''; // Lưu tên hiện tại
@@ -1798,6 +1843,21 @@
         f7CurrentName = name;
         console.log('[Form7 Debug] Bắt đầu parse dữ liệu, tổng số rows:', rows.length);
         rows.forEach(item=>{
+          // Khớp theo tên "Assignee" từ server với lựa chọn trong ô tên Form 8
+          try{
+            const assignee = getV(item,[
+              'Assignee','assignee','employee','nhân viên','nhan vien','nhanvien',
+              'tên nhân viên','ten nhan vien','tennhanvien','phụ trách','phu trac','phutrac'
+            ]);
+            if (assignee && typeof sameName === 'function'){
+              if (!sameName(String(assignee||''), String(name||''))) return; // bỏ nếu không trùng tên chọn
+            } else {
+              // Fallback: so sánh không dấu/không phân biệt hoa thường
+              const a = String(assignee||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+              const b = String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+              if (a && b && a !== b) return;
+            }
+          }catch(_){ }
           // Lấy dữ liệu theo cấu trúc mới: Mã tác vụ, Ngày hoàn thành thực tế, Mã linh kiện/máy, Task Name, Mã Báo cáo, Kết quả đánh giá, Ghi chú, CE rà soát, Ngày khai báo CE, 4M rà soát, Ngày khai báo 4M
           const taskId = getV(item,['taskid','task_id','ma_tac_vu','mã tác vụ','requestid','id']);
           const actualCompletionDate = getV(item,['actualcompletiondate','actual_completion_date','ngay_hoan_thanh_thuc_te','ngày hoàn thành thực tế','completion_date','ngay hoan thanh','ngày hoàn thành','actual_date']);
@@ -2137,8 +2197,19 @@
           ...headerMapF8,
           action: 'form8_lookup', // Form 8 có action riêng
           person_name: name,
+          assignee: name,
           timestamp: new Date().toISOString()
         });
+        // Gửi kèm body meta để server dễ đọc (ngoài query)
+        try{
+          const meta = {
+            action: 'form8_lookup',
+            person_name: name,
+            assignee: name,
+            timestamp_iso: new Date().toISOString()
+          };
+          params.append('body', JSON.stringify(meta));
+        }catch(_){ }
         const url = `${FORM8_LOOKUP_URL}?${params.toString()}`;
         const resp = await fetch(url, { method: 'GET' });
         const text = await resp.text();
@@ -2198,7 +2269,7 @@
           return '';
         };
         
-        // Parse tất cả dữ liệu
+        // Parse tất cả dữ liệu (để server lọc theo person_name; không lọc tại chỗ theo Assignee)
         f8AllData = [];
         f8CurrentName = name;
         console.log('[Form8 Debug] Bắt đầu parse dữ liệu, tổng số rows:', rows.length);
@@ -2460,6 +2531,19 @@
           f8SearchBtn.textContent = prev;
         }
       };
+      // Đổi tên -> auto re-search
+      const f8Name = document.getElementById('f8-name');
+      if (f8Name && !f8Name._bound){
+        f8Name.addEventListener('change', async ()=>{
+          try{
+            if (f8Busy) return;
+            f8Busy = true;
+            const btn = f8SearchBtn; const prev = btn.textContent; btn.disabled=true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+            try{ await renderForm8(); } finally { btn.disabled=false; btn.textContent=prev; f8Busy=false; }
+          }catch(_){ }
+        });
+        f8Name._bound = true;
+      }
     }
     
     // Form 8: Event listeners cho lọc tháng
@@ -2478,6 +2562,7 @@
         }
       });
     }
+    // (Bỏ lọc tên tại chỗ theo yêu cầu)
     
     if (f8ClearMonthBtn) {
       f8ClearMonthBtn.addEventListener('click', (e) => {
@@ -2524,12 +2609,14 @@
 
     function f5aGetNeedManhour(name){
       try{
-        const norm = (s)=> String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-        const map = {};
-        Object.keys(F5A_NEED_MANHOUR_BY_NAME||{}).forEach(k=>{ map[norm(k)] = Number(F5A_NEED_MANHOUR_BY_NAME[k]); });
-        const v = map[norm(name)];
-        return (typeof v === 'number' && !isNaN(v)) ? v : F5A_NEED_MANHOUR_DEFAULT;
-      }catch(_){ return F5A_NEED_MANHOUR_DEFAULT; }
+        const monthEl = document.getElementById('f5a-month');
+        const month = monthEl ? (monthEl.value||'') : '';
+        const attMap = (typeof f5aGetAttendanceMapByMonth==='function') ? f5aGetAttendanceMapByMonth(month) : new Map();
+        const resolved = (typeof resolveAlias==='function') ? resolveAlias(name) : name;
+        const totalText = attMap.get(resolved) || attMap.get(name) || '';
+        const n = (typeof parseNumberFlexible==='function') ? parseNumberFlexible(totalText) : Number(totalText);
+        return Number.isFinite(n) ? n : '';
+      }catch(_){ return ''; }
     }
     // Form 5: whitelist tên hiển thị (có thể mở rộng)
     const F5A_WHITELIST = [
@@ -3238,7 +3325,7 @@
 
     // Sidebar navigation
     const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = ['form1','form2','form3','form4','form5','form6','form7','form8','form9','form0'].map(id=>document.getElementById(id));
+    const sections = ['form1','form2','form3','form4','form5','form6','form7','form8','form9','form10','form0'].map(id=>document.getElementById(id));
     function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
     navBtns.forEach((btn)=>{
       btn.onclick=()=>{
@@ -3281,6 +3368,9 @@
             restoreForm9FromCache();
           } catch(_){}
         }
+        if (target === 'form10') {
+          try { /* no-op */ } catch(_){ }
+        }
       }
     });
     // Default
@@ -3316,6 +3406,326 @@
       const filtered = base.filter(n => !exclude.has(n));
       add.forEach(n => { if (filtered.indexOf(n) === -1) filtered.push(n); });
       return filtered;
+    })();
+
+    // ===== Form 10: Quản lý nhân sự =====
+    // (Form 10 cũ: đã loại bỏ các bảng chức năng khác, chỉ giữ Bảng công)
+    // ==== Form 10: Attendance (Bảng công theo tháng) ====
+    let F10_ATT_ROWS = [];
+    let F10_ATT_META = { month: '' };
+
+    function f10BuildQuery(month){
+      try{
+        const qs = new URLSearchParams();
+        // Optional action (server có thể bỏ qua)
+        const action = 'form10_attendance';
+        qs.append('action', action);
+        // Header map (để server tạo đúng keys nếu cần)
+        const headers = {
+          employee: 'Nhân sự',
+          month: 'Tháng',
+          days: 'Số ngày đi làm (tháng)',
+          ot: 'Tổng giờ tăng ca (tháng)',
+          total: 'Tổng giờ công đi làm'
+        };
+        qs.append('header_employee', headers.employee);
+        qs.append('header_month', headers.month);
+        qs.append('header_days', headers.days);
+        qs.append('header_ot', headers.ot);
+        qs.append('header_total', headers.total);
+        // Standard field keys (fallback)
+        const fields = {
+          employee: 'employee',
+          month: 'month',
+          days: 'daysInMonth',
+          ot: 'overtimeHours',
+          total: 'totalWorkHours'
+        };
+        qs.append('field_employee', fields.employee);
+        qs.append('field_month', fields.month);
+        qs.append('field_days', fields.days);
+        qs.append('field_ot', fields.ot);
+        qs.append('field_total', fields.total);
+        // Month filter; if provided as YYYY-MM, also include from/to for convenience
+        const m = (month||'').trim();
+        let from = '', to = '';
+        if (m){
+          qs.append('month', m);
+          try{
+            const [yy, mm] = m.split('-');
+            const firstDay = `${yy}-${mm}-01`;
+            const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
+            const lastDay = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
+            qs.append('from', firstDay);
+            qs.append('to', lastDay);
+            from = firstDay; to = lastDay;
+          }catch(_){ }
+        }
+        // Add meta body so server vẫn đọc được nếu query bị strip
+        try{
+          const meta = {
+            action,
+            headers,
+            fields,
+            month: m,
+            from,
+            to,
+            timestamp_iso: new Date().toISOString()
+          };
+          qs.append('body', JSON.stringify(meta));
+        }catch(_){ }
+        // Cache buster
+        qs.append('_ts', Date.now().toString());
+        return qs.toString();
+      }catch(_){ return ''; }
+    }
+
+    async function f10FetchAttendance(month){
+      try{
+        // Try prod & test variants and GET/POST forms
+        const base = FORM10_ATTENDANCE_URL;
+        const q = f10BuildQuery(month);
+        const postOpts = (mode)=>({ method:'POST', mode, headers: { 'Content-Type':'application/x-www-form-urlencoded', 'Accept':'application/json, text/plain, */*' }, body: q });
+        const tryList = [
+          { url: `${base}?${q}`, opts: { method:'GET', headers:{ 'Accept':'application/json, text/plain, */*' } } },
+          { url: base, opts: postOpts('cors') },
+          // As last resort (opaque), still trigger server: result not readable
+          { url: base, opts: postOpts('no-cors') },
+        ];
+        let rows = [];
+        for (const t of tryList){
+          try{
+            const r = await fetch(t.url, t.opts);
+            // Skip unreadable opaque responses
+            let text = '';
+            try{ text = await r.text(); }catch(__){ text = ''; }
+            let data = null; try{ data = JSON.parse(text); }catch{ data = null; }
+            // Unwrap simple or deep nested
+            const picked = (function pickRows(json){
+              if (!json) return [];
+              if (Array.isArray(json)) return json;
+              const keys=['data','rows','result','records','items','list'];
+              for (const k of keys){ if (Array.isArray(json?.[k])) return json[k]; }
+              try{
+                const queue=[json]; const seen=new Set();
+                while(queue.length){
+                  const cur=queue.shift(); if(!cur||typeof cur!== 'object'||seen.has(cur)) continue; seen.add(cur);
+                  for (const v of Object.values(cur)){
+                    if (Array.isArray(v) && v.length && typeof v[0]==='object') return v;
+                    if (v && typeof v==='object') queue.push(v);
+                  }
+                }
+              }catch(_){ }
+              return [];
+            })(data ?? text);
+            if (Array.isArray(picked) && picked.length){ rows = picked; break; }
+          }catch(_){ /* next */ }
+        }
+        // Normalize sample single-object payload to array
+        if (!Array.isArray(rows) && rows && typeof rows==='object') rows = [rows];
+        // Store
+        F10_ATT_ROWS = Array.isArray(rows) ? rows : [];
+        F10_ATT_META = { month: month||'' };
+        try{ LS.setJSON('f10.att', { month: (month||''), rows: F10_ATT_ROWS, ts: Date.now() }); LS.set('f10.lastUpdated', String(Date.now())); }catch(_){ }
+        // Friendly message for likely CORS/file:// case
+        if (!F10_ATT_ROWS.length){
+          try{
+            const bodyEl = document.getElementById('f10-att-body');
+            if (bodyEl){
+              const isFile = (typeof location!=='undefined' && String(location.protocol||'').toLowerCase().startsWith('file'));
+              bodyEl.innerHTML = `
+                <tr>
+                  <td colspan="4" class="px-3 py-3 text-center">
+                    <div class="text-red-600 mb-2">⚠️ Không thể tải dữ liệu Form 10</div>
+                    <div class="text-sm text-gray-600 mb-2">${isFile ? 'Lỗi CORS do mở file trực tiếp (file://)' : 'Có thể do máy chủ chưa bật CORS'}</div>
+                    <div class="text-xs text-blue-600 text-left max-w-3xl mx-auto">
+                      <strong>Giải pháp:</strong><br>
+                      1) Mở file qua web server (ví dụ: VS Code Live Server, hoặc <code>python -m http.server 8080</code>) rồi truy cập <code>http://localhost:8080/index.html</code><br>
+                      2) Yêu cầu máy chủ thêm header CORS: <code>Access-Control-Allow-Origin: *</code> và <code>Access-Control-Allow-Headers: *</code><br>
+                      3) Nếu cần, cung cấp một endpoint proxy nội bộ có bật CORS
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }
+          }catch(_){ }
+        }
+        return F10_ATT_ROWS;
+      }catch(_){ F10_ATT_ROWS = []; return []; }
+    }
+
+    function f10GetV(obj, keys){
+      const lower = {}; Object.keys(obj||{}).forEach(k=>{ lower[String(k||'').toLowerCase().trim()] = obj[k]; });
+      for (const k of keys){ const v = lower[String(k||'').toLowerCase().trim()]; if (v!==undefined) return v; }
+      // Loose includes fallback
+      for (const key of Object.keys(lower)){ if (keys.some(k=> key.includes(String(k).toLowerCase()))) return lower[key]; }
+      return '';
+    }
+
+    function f10MonthMatches(textMonth, monthVal){
+      try{
+        if (!monthVal) return true;
+        const s = String(textMonth||'').trim();
+        if (!s) return true;
+        // MM/YYYY or M/YYYY
+        let m = s.match(/^(\d{1,2})\/(\d{4})$/);
+        if (m){
+          const yy = m[2]; const mm = String(m[1]).padStart(2,'0');
+          return `${yy}-${mm}` === monthVal;
+        }
+        // YYYY-MM or YYYY-MM-DD
+        m = s.match(/^(\d{4})[-\/](\d{1,2})(?:[-\/]\d{1,2})?$/);
+        if (m){
+          const yy = m[1]; const mm = String(m[2]).padStart(2,'0');
+          return `${yy}-${mm}` === monthVal;
+        }
+        // Fallback by parsing date
+        const d = parseDateFlexible(s);
+        if (d){
+          const yy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0');
+          return `${yy}-${mm}` === monthVal;
+        }
+        return true;
+      }catch(_){ return true; }
+    }
+
+    function renderForm10Attendance(){
+      try{
+        const body = document.getElementById('f10-att-body');
+        const monthEl = document.getElementById('f10-att-month');
+        if (!body) return;
+        const monthVal = (monthEl && monthEl.value) ? monthEl.value : '';
+        const rows = Array.isArray(F10_ATT_ROWS) ? F10_ATT_ROWS : [];
+        if (!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>'; return; }
+
+        // Helper parse number safely
+        const toNum = (v)=>{ try{ const n = (typeof parseNumberFlexible==='function') ? parseNumberFlexible(v) : Number(v); return Number.isFinite(n) ? n : 0; }catch(_){ return 0; } };
+
+        // Build filtered view by month, then sort by Total descending
+        const view = [];
+        rows.forEach(r=>{
+          const emp = f10GetV(r, ['nhân sự','nhan su','employee','name']);
+          const month = f10GetV(r, ['tháng','thang','month']);
+          const days = f10GetV(r, ['số ngày đi làm (tháng)','so ngay di lam (thang)','days','daysinmonth']);
+          const ot = f10GetV(r, ['tổng giờ tăng ca (tháng)','tong gio tang ca (thang)','overtime','overtimehours']);
+          const total = f10GetV(r, ['tổng giờ công đi làm','tong gio cong di lam','total','totalworkhours']);
+          if (f10MonthMatches(month, monthVal)){
+            view.push({ emp, days, ot, total, totalNum: toNum(total) });
+          }
+        });
+        view.sort((a,b)=> b.totalNum - a.totalNum);
+
+        if (view.length){
+          body.innerHTML = view.map(x=>`
+            <tr>
+              <td class="px-3 py-2">${x.emp||''}</td>
+              <td class="px-3 py-2">${x.days||''}</td>
+              <td class="px-3 py-2">${x.ot||''}</td>
+              <td class="px-3 py-2">${x.total||''}</td>
+            </tr>
+          `).join('');
+          return;
+        }
+
+        // Fallback: nếu không khớp tháng nhưng có dữ liệu -> hiển thị tất cả, vẫn sort giảm dần
+        if (!view.length && rows.length > 0){
+          const allView = rows.map(r=>{
+            const emp = f10GetV(r, ['nhân sự','nhan su','employee','name']);
+            const days = f10GetV(r, ['số ngày đi làm (tháng)','so ngay di lam (thang)','days','daysinmonth']);
+            const ot = f10GetV(r, ['tổng giờ tăng ca (tháng)','tong gio tang ca (thang)','overtime','overtimehours']);
+            const total = f10GetV(r, ['tổng giờ công đi làm','tong gio cong di lam','total','totalworkhours']);
+            return { emp, days, ot, total, totalNum: toNum(total) };
+          });
+          allView.sort((a,b)=> b.totalNum - a.totalNum);
+          body.innerHTML = `
+            <tr><td colspan="4" class="px-3 py-2 text-xs text-amber-700 bg-amber-50">Không khớp tháng lọc. Hiển thị tất cả kết quả trả về từ server (đã sắp xếp giảm dần theo Tổng giờ công đi làm).</td></tr>
+            ${allView.map(x=>`
+              <tr>
+                <td class="px-3 py-2">${x.emp||''}</td>
+                <td class="px-3 py-2">${x.days||''}</td>
+                <td class="px-3 py-2">${x.ot||''}</td>
+                <td class="px-3 py-2">${x.total||''}</td>
+              </tr>
+            `).join('')}
+          `;
+          return;
+        }
+
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Không có dữ liệu</td></tr>';
+      }catch(_){
+        try{ const body = document.getElementById('f10-att-body'); if (body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="4">Lỗi hiển thị dữ liệu</td></tr>'; }catch(__){}
+      }
+    }
+
+    function f10RowsToAOA(){
+      const head = ['Nhân sự','Tháng','Số ngày đi làm (tháng)','Tổng giờ tăng ca (tháng)','Tổng giờ công đi làm'];
+      const aoa = [head];
+      const rows = Array.isArray(F10_ATT_ROWS)? F10_ATT_ROWS: [];
+      rows.forEach(r=>{
+        const emp = f10GetV(r, ['nhân sự','nhan su','employee','name']);
+        const month = f10GetV(r, ['tháng','thang','month']);
+        const days = f10GetV(r, ['số ngày đi làm (tháng)','so ngay di lam (thang)','days','daysinmonth']);
+        const ot = f10GetV(r, ['tổng giờ tăng ca (tháng)','tong gio tang ca (thang)','overtime','overtimehours']);
+        const total = f10GetV(r, ['tổng giờ công đi làm','tong gio cong di lam','total','totalworkhours']);
+        aoa.push([emp, month, days, ot, total]);
+      });
+      return aoa;
+    }
+
+    function f10DownloadXLSX(){
+      try{
+        const rows = Array.isArray(F10_ATT_ROWS)? F10_ATT_ROWS: [];
+        if (!rows.length){ showToast('Form 10: Không có dữ liệu để xuất.','error'); return; }
+        const aoa = f10RowsToAOA();
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Form10');
+        const monthEl = document.getElementById('f10-att-month');
+        const mv = (monthEl && monthEl.value) ? monthEl.value.replace(/\s+/g,'_') : '';
+        XLSX.writeFile(wb, `Form10_Attendance_${mv||'export'}.xlsx`);
+      }catch(_){ showToast('Form 10: Xuất XLSX thất bại.','error'); }
+    }
+
+    (function initForm10(){
+      try{
+        // Default month = current
+        const m = document.getElementById('f10-att-month');
+        if (m && !m.value){
+          const d = new Date(); const yy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0');
+          m.value = `${yy}-${mm}`;
+        }
+        // Restore cache if exists
+        try{
+          const cached = LS.getJSON('f10.att');
+          if (cached && Array.isArray(cached.rows)){
+            F10_ATT_ROWS = cached.rows.slice();
+            F10_ATT_META = { month: cached.month || '' };
+            renderForm10Attendance();
+          }
+        }catch(_){ }
+        // Bind search
+        const btn = document.getElementById('f10-att-search');
+        if (btn && !btn._bound){
+          btn.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            if (btn.disabled) return;
+            const prev = btn.textContent; btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+            try{
+              const month = (document.getElementById('f10-att-month')?.value || '').trim();
+              await f10FetchAttendance(month);
+              renderForm10Attendance();
+              try{ updateLastUpdatedNote('f10-att-search','f10.lastUpdated'); }catch(_){ }
+            }finally{
+              btn.disabled = false; btn.textContent = prev || 'Tra cứu';
+            }
+          });
+          btn._bound = true;
+        }
+        // Bind XLSX export
+        const btnX1 = document.getElementById('f10-att-export-xlsx');
+        if (btnX1 && !btnX1._bound){ btnX1.addEventListener('click', (e)=>{ e.preventDefault(); f10DownloadXLSX(); }); btnX1._bound = true; }
+        // Chỉ giữ 1 nút Export ở phần Bảng công (f10-att-export-xlsx)
+      }catch(_){ }
     })();
 
     // ===== Form 5: P4 - Phân tích chi tiết (hiển thị tất cả nhân viên, giống điều kiện Form 8) =====
@@ -3452,6 +3862,21 @@
     }
     const f3AssigneeSel = document.getElementById('f3-assignee');
     if (f3AssigneeSel) fillSelect(f3AssigneeSel, FORM3_ASSIGNEES);
+    
+    // Form 3: Tự động chuyển đổi dấu chấm thành dấu phẩy cho trường Công chuẩn
+    const manHourInput = document.getElementById('man-hour');
+    if (manHourInput) {
+      manHourInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        // Chuyển đổi dấu chấm thành dấu phẩy
+        if (value.includes('.')) {
+          value = value.replace(/\./g, ',');
+          e.target.value = value;
+          // Hiển thị thông báo nhẹ cho người dùng
+          showToast('Đã tự động chuyển dấu chấm (.) thành dấu phẩy (,)', 'info');
+        }
+      });
+    }
     const f4PeopleSel = document.getElementById('f4-people');
     if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
     const f5EmployeeSel = document.getElementById('f5-employee');
@@ -3706,6 +4131,8 @@
       body.innerHTML = '';
       const name = (document.getElementById('f9-name')?.value || '').trim();
       const monthFilter = (document.getElementById('f9-month')?.value || '').trim();
+      // Page size fixed default (no external selector)
+      const pageSize = 50;
       let filtered = Array.isArray(rows) ? rows.slice() : [];
       if (monthFilter){
         filtered = filtered.filter(r => {
@@ -3718,39 +4145,43 @@
         });
       }
       if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
-      filtered.forEach((r, idx)=>{
+      const limited = filtered.slice(0, Math.max(1, pageSize));
+      limited.forEach((r, idx)=>{
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-gray-50';
-        // STT (ưu tiên từ dữ liệu nếu có)
+        try{
+          const dueStr = r.durabilityDue || '';
+          const d = (typeof toDateSafe==='function') ? toDateSafe(dueStr) : new Date(dueStr);
+          if (d && !isNaN(d)){
+            const today = new Date();
+            const dStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            const tStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            if (dStart.getTime() === tStart.getTime()){
+              tr.classList.add('bg-yellow-100');
+            } else if (dStart.getTime() < tStart.getTime()){
+              tr.classList.add('bg-red-100');
+            }
+          }
+        }catch(_){ }
+        // STT
         const sttDisp = (r.rowNumber || r.STT || r.row_number || (idx+1));
         addTdF9(tr, String(sttDisp));
-        // Tình trạng test bền (click để mở bảng phụ)
-        const tdDur = document.createElement('td');
-        tdDur.className = 'px-3 py-4 align-top text-gray-800 border-r border-gray-200';
-        const btnDur = document.createElement('button');
-        btnDur.className = 'text-primary-blue hover:underline';
-        btnDur.textContent = r.durability || '';
-        btnDur.title = 'Xem chi tiết test bền';
-        btnDur.onclick = (e)=>{
-          e.preventDefault();
-          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Không mở được bảng test bền.','error'); }catch(__){} }
-        };
-        tdDur.appendChild(btnDur);
-        tr.appendChild(tdDur);
+        // Tình trạng test bền (hiển thị text, không mở modal)
+        addTdF9(tr, r.durability || '');
+        // Dự kiến hoàn thành test bền
+        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.durabilityDue||'') : (r.durabilityDue||''));
         // Mã
         addTdF9(tr, r.code||'');
         // Task Name
         addTdF9(tr, r.taskName||'');
+        // Assignee
+        addTdF9(tr, r.assignee||'');
         // Mã Báo cáo
         addTdF9(tr, r.reportCode||'');
         // Mã tác vụ
         addTdF9(tr, r.taskId||'');
         // Ngày hoàn thành thực tế
         addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.actualCompletionDate||'') : (r.actualCompletionDate||''));
-        // Assignee
-        addTdF9(tr, r.assignee||'');
-        // Dự kiến hoàn thành test bền
-        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.durabilityDue||'') : (r.durabilityDue||''));
         // Ghi chú (Gate A)
         addTdF9(tr, r.noteGateA || r.note || '');
         // Khai báo test bền (button)
@@ -3770,7 +4201,11 @@
     }
 
     async function renderForm9(){
-      const name = (document.getElementById('f9-name')?.value || '').trim();
+      const rawName = (document.getElementById('f9-name')?.value || '').trim();
+      const norm = (s)=>{ try{ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }catch(_){ return String(s||'').toLowerCase().trim(); } };
+      const n = norm(rawName);
+      const isAll = (!rawName) ? false : (n === '__all__' || n === 'all' || n === 'tat ca' || n === 'tatca' || n === 'tất cả');
+      const name = isAll ? '__ALL__' : rawName;
       const body = document.getElementById('f9-body');
       if (!body) return;
       if (!name){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Vui lòng chọn tên</td></tr>'; return; }
@@ -3918,6 +4353,7 @@
           });
         }
         renderForm9FromRows(normRows);
+        try{ window.F9_LAST_ROWS = normRows; }catch(_){ }
         try{ LS.setJSON('f9.cache', { name, rows: normRows, ts: Date.now() }); LS.set('f9.lastUpdated', String(Date.now())); updateLastUpdatedNote('f9-search','f9.lastUpdated'); }catch(_){ }
       }catch(err){
         body.innerHTML = `<tr><td colspan='11' class='px-3 py-4 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
@@ -3942,14 +4378,143 @@
         }
       };
     }
+    // Form 9: Stats modal
+    (function initF9Stats(){
+      const btn = document.getElementById('f9-open-stats');
+      if (!btn || btn._bound) return;
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        try{
+          const cached = LS.getJSON('f9.cache');
+          let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : [];
+          if (!rows.length && Array.isArray(window.F9_LAST_ROWS)) rows = window.F9_LAST_ROWS;
+          openF9StatsModal(rows);
+        }catch(_){ openF9StatsModal([]); }
+      });
+      btn._bound = true;
+    })();
+
+    // Form 9: Export XLSX
+    (function initF9Export(){
+      const btn = document.getElementById('f9-export-xlsx');
+      if (!btn || btn._bound) return;
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        try{
+          const cached = LS.getJSON('f9.cache');
+          let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : (Array.isArray(window.F9_LAST_ROWS) ? window.F9_LAST_ROWS : []);
+          if (!rows.length){ try{ showToast('Form 9: Không có dữ liệu để xuất.','error'); }catch(_){ } return; }
+          const aoa = f9RowsToAOA(rows);
+          const ws = XLSX.utils.aoa_to_sheet(aoa);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Form9');
+          const name = (document.getElementById('f9-name')?.value||'').trim().replace(/\s+/g,'_');
+          XLSX.writeFile(wb, `Form9_${name||'export'}.xlsx`);
+        }catch(_){ try{ showToast('Form 9: Xuất XLSX thất bại.','error'); }catch(__){} }
+      });
+      btn._bound = true;
+    })();
+
+    function f9RowsToAOA(items){
+      const head = ['STT','Tình trạng test bền','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ngày hoàn thành thực tế','Ghi chú'];
+      const aoa = [head];
+      (Array.isArray(items)? items:[]).forEach((r, i)=>{
+        const row = [
+          r.rowNumber || i+1,
+          r.durability || '',
+          r.durabilityDue || '',
+          r.code || '',
+          r.taskName || '',
+          r.assignee || '',
+          r.reportCode || '',
+          r.taskId || '',
+          r.actualCompletionDate || '',
+          r.noteGateA || r.note || ''
+        ];
+        aoa.push(row);
+      });
+      return aoa;
+    }
+
+    function openF9StatsModal(rows){
+      try{
+        const modal = document.getElementById('f9-stats-modal');
+        const body = document.getElementById('f9-stats-body');
+        if (!modal || !body) return;
+        const name = (document.getElementById('f9-name')?.value || '').trim();
+        const monthFilter = (document.getElementById('f9-month')?.value || '').trim();
+        // Filter by person and month like table
+        let list = Array.isArray(rows) ? rows.slice() : [];
+        if (name && name !== '__ALL__'){
+          const key = (typeof vnLower==='function') ? vnLower(name) : name.toLowerCase();
+          list = list.filter(r=>{
+            const a = String(r.assignee||'');
+            const ak = (typeof vnLower==='function') ? vnLower(a) : a.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase();
+            return ak === key;
+          });
+        }
+        if (monthFilter){
+          list = list.filter(r=>{
+            const s = String(r.actualCompletionDate||'').trim();
+            if(!s) return false;
+            const d = (typeof toDateSafe==='function') ? toDateSafe(s) : new Date(s);
+            if (!d || isNaN(d)) return false;
+            const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            return ym === monthFilter;
+          });
+        }
+        // Build stats
+        const today = new Date();
+        const tStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        let total = 0, dueToday = 0, overdue = 0;
+        const byStatus = new Map();
+        list.forEach(r=>{
+          total++;
+          const k = String(r.durability||'').trim() || '(Trống)';
+          byStatus.set(k, (byStatus.get(k)||0)+1);
+          const ds = r.durabilityDue || '';
+          const d = (typeof toDateSafe==='function') ? toDateSafe(ds) : new Date(ds);
+          if (d && !isNaN(d)){
+            const dStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            if (dStart.getTime() === tStart.getTime()) dueToday++;
+            else if (dStart.getTime() < tStart.getTime()) overdue++;
+          }
+        });
+        // Render table
+        const rowsHtml = Array.from(byStatus.entries()).map(([st, cnt])=>`<tr><td class="px-3 py-2">${st}</td><td class="px-3 py-2 text-right">${cnt}</td></tr>`).join('');
+        body.innerHTML = `
+          <div class="mb-3 text-sm text-gray-700">Tổng tác vụ: <b>${total}</b> · Đến hạn hôm nay: <b class="text-amber-700">${dueToday}</b> · Quá hạn: <b class="text-red-700">${overdue}</b></div>
+          <div class="overflow-auto border border-gray-200 rounded-lg">
+            <table class="min-w-[420px] w-full text-sm">
+              <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0"><tr class="text-left text-gray-700"><th class="px-3 py-2">Tình trạng test bền</th><th class="px-3 py-2 text-right">Số lượng</th></tr></thead>
+              <tbody class="divide-y divide-gray-100">${rowsHtml || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="2">Không có dữ liệu</td></tr>'}</tbody>
+            </table>
+          </div>`;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+      }catch(_){ }
+    }
+    // Bind close for stats modal
+    (function bindF9StatsClose(){
+      try{
+        const modal = document.getElementById('f9-stats-modal');
+        const closeBtn = document.getElementById('f9-stats-close');
+        const cancelBtn = document.getElementById('f9-stats-cancel');
+        if (closeBtn && !closeBtn._bound){ closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }); closeBtn._bound = true; }
+        if (cancelBtn && !cancelBtn._bound){ cancelBtn.addEventListener('click', (e)=>{ e.preventDefault(); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }); cancelBtn._bound = true; }
+        if (modal && !modal._bound){ modal.addEventListener('click', (e)=>{ if (e.target===modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); } }); modal._bound = true; }
+      }catch(_){ }
+    })();
     // Form 9: Month filter events
     const f9MonthInput = document.getElementById('f9-month');
     const f9ClearMonthBtn = document.getElementById('f9-clear-month');
+    const f9SizeSel = document.getElementById('f9-size');
     if (f9MonthInput){
       f9MonthInput.addEventListener('change', ()=>{
         try{
           const cached = LS.getJSON('f9.cache');
           if (cached && Array.isArray(cached.rows)) renderForm9FromRows(cached.rows);
+          else if (Array.isArray(window.F9_LAST_ROWS)) renderForm9FromRows(window.F9_LAST_ROWS);
         }catch(_){ }
       });
     }
@@ -3961,9 +4526,69 @@
         try{
           const cached = LS.getJSON('f9.cache');
           if (cached && Array.isArray(cached.rows)) renderForm9FromRows(cached.rows);
+          else if (Array.isArray(window.F9_LAST_ROWS)) renderForm9FromRows(window.F9_LAST_ROWS);
         }catch(_){ }
       });
     }
+    if (f9SizeSel){
+      const onSizeChange = ()=>{
+        try{
+          const val = f9SizeSel.value || '10';
+          try{ if (typeof LS!=='undefined' && LS.set) LS.set('f9.pageSize', val); else localStorage.setItem('f9.pageSize', val); }catch(_){ }
+          const cached = LS.getJSON('f9.cache');
+          if (cached && Array.isArray(cached.rows)) renderForm9FromRows(cached.rows);
+          else if (Array.isArray(window.F9_LAST_ROWS)) renderForm9FromRows(window.F9_LAST_ROWS);
+        }catch(_){ }
+      };
+      f9SizeSel.addEventListener('change', onSizeChange);
+      f9SizeSel.addEventListener('input', onSizeChange);
+      // Apply saved value if present
+      try{
+        const saved = (typeof LS!=='undefined' && LS.get) ? LS.get('f9.pageSize') : localStorage.getItem('f9.pageSize');
+        if (saved && f9SizeSel.value !== saved){ f9SizeSel.value = saved; }
+      }catch(_){ }
+    }
+
+    // Delegated listeners to be extra robust
+    // Remove delegated size handler since size selector removed
+    document.addEventListener('click', (e)=>{
+      const t = e.target;
+      if (t && t.id === 'f9-open-stats'){
+        e.preventDefault();
+        try{
+          const cached = LS.getJSON('f9.cache');
+          let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : [];
+          if (!rows.length && Array.isArray(window.F9_LAST_ROWS)) rows = window.F9_LAST_ROWS;
+          openF9StatsModal(rows);
+        }catch(_){ openF9StatsModal([]); }
+      }
+    });
+
+    // Ensure Form 9 controls exist even if HTML cache is stale
+    (function ensureF9Controls(){
+      try{
+        const form = document.getElementById('form9');
+        if (!form) return;
+        let controls = document.getElementById('f9-controls');
+        if (!controls){
+          // Insert before the table container
+          const tableWrap = Array.from(form.children).find(el=> el && el.className && el.className.includes('overflow-x-auto'));
+          controls = document.createElement('div');
+          controls.id = 'f9-controls';
+          controls.className = 'mt-2 flex items-center gap-2';
+          controls.innerHTML = '<label class="text-sm text-gray-700">Hiển thị</label>'+
+            '<select id="f9-size" class="border border-blue-300 rounded-lg bg-slate-100 p-1 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">'+
+            '<option value="10" selected>10</option><option value="20">20</option><option value="50">50</option></select>'+
+            '<button id="f9-open-stats" class="ml-2 px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700">Thống kê</button>';
+          if (tableWrap && tableWrap.parentNode){ tableWrap.parentNode.insertBefore(controls, tableWrap); }
+          // Rebind events
+          const sizeEl = document.getElementById('f9-size');
+          if (sizeEl && !sizeEl._bound){ sizeEl.addEventListener('change', ()=>{ try{ const c=LS.getJSON('f9.cache'); if (c && Array.isArray(c.rows)) renderForm9FromRows(c.rows); }catch(_){ } }); sizeEl._bound=true; }
+          const statsBtn = document.getElementById('f9-open-stats');
+          if (statsBtn && !statsBtn._bound){ statsBtn.addEventListener('click', (e)=>{ e.preventDefault(); try{ const cached=LS.getJSON('f9.cache'); const rows=(cached&&Array.isArray(cached.rows))?cached.rows:[]; openF9StatsModal(rows);}catch(_){ openF9StatsModal([]);} }); statsBtn._bound=true; }
+        }
+      }catch(_){ }
+    })();
 
     // Toast
     const toastEl = document.getElementById('toast');
@@ -5129,7 +5754,7 @@
       const requesterEmail = (document.getElementById('rq-by-email')?.value || '').trim();
       const taskName = (document.getElementById('task-name')?.value || '').trim();
       const rqTime = document.getElementById('rq-time').value;
-      const manHourRaw = document.getElementById('man-hour').value;
+      let manHourRaw = document.getElementById('man-hour').value;
       const output = document.getElementById('output').value.trim();
       const assignee = (document.getElementById('f3-assignee').value || '').trim();
       const deadline = document.getElementById('deadline').value;
@@ -5137,7 +5762,14 @@
       const rqPurpose = (document.getElementById('rq-purpose')?.value || '').trim();
 
       if(!requester || !taskName || !output || !manHourRaw || !assignee){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
-      if(!/^\d+(\.\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân.','error'); return; }
+      
+      // Tự động chuyển đổi dấu chấm thành dấu phẩy cho số thập phân
+      manHourRaw = manHourRaw.replace(/\./g, ',');
+      
+      // Cập nhật giá trị trong input để người dùng thấy sự thay đổi
+      document.getElementById('man-hour').value = manHourRaw;
+      
+      if(!/^\d+(,\d{1,2})?$/.test(manHourRaw)){ showToast('Công chuẩn tối đa 2 chữ số thập phân. Sử dụng dấu phẩy (,) thay vì dấu chấm (.)','error'); return; }
 
       const btn = e.target.querySelector('button[type="submit"]');
       const prev = btn ? btn.textContent : '';
@@ -6414,6 +7046,8 @@
         f5aBtnP2.innerHTML = "<span class='spinner mr-1'></span>Đang tải...";
         try{ 
           await renderForm5All(); 
+          // Sau khi render P2, điều chỉnh cột theo dữ liệu Form 10
+          await adjustForm5P2WithAttendance();
           console.log('[F5A P2] Data loaded successfully.');
         }catch(err){ 
           console.error('[F5A P2] Search error:', err); 
@@ -6477,6 +7111,102 @@
           f5aBtnP4.textContent = prevText;
         }
       }); 
+    }
+
+    // ===== Form 5 P2: Adjust with Form 10 attendance =====
+    function f5aGetAttendanceMapByMonth(month){
+      try{
+        const map = new Map();
+        let rows = Array.isArray(window.F10_ATT_ROWS) ? window.F10_ATT_ROWS : [];
+        // Restore from localStorage cache if empty
+        if ((!rows || !rows.length) && typeof LS !== 'undefined'){
+          try{
+            const cached = LS.getJSON('f10.att');
+            if (cached && Array.isArray(cached.rows)){
+              rows = cached.rows.slice();
+              window.F10_ATT_ROWS = rows;
+              window.F10_ATT_META = { month: cached.month || '' };
+            }
+          }catch(_){ }
+        }
+        rows.forEach(r=>{
+          const emp = (typeof f10GetV==='function') ? f10GetV(r, ['nhân sự','nhan su','employee','name']) : (r['Nhân sự']||r['employee']||r['name']||'');
+          const m = (typeof f10GetV==='function') ? f10GetV(r, ['tháng','thang','month']) : (r['Tháng']||r['month']||'');
+          const total = (typeof f10GetV==='function') ? f10GetV(r, ['tổng giờ công đi làm','tong gio cong di lam','total','totalworkhours']) : (r['Tổng giờ công đi làm']||r['total']||r['totalWorkHours']||'');
+          const matches = (typeof f10MonthMatches==='function') ? f10MonthMatches(m, month) : true;
+          if (!emp || !matches) return;
+          const raw = String(emp).trim();
+          map.set(raw, total);
+          try{
+            const nk = (typeof vnKey==='function') ? vnKey(raw) : raw.toLowerCase().trim();
+            map.set(`__norm__:${nk}`, total);
+          }catch(_){ }
+        });
+        return map;
+      }catch(_){ return new Map(); }
+    }
+
+    async function adjustForm5P2WithAttendance(){
+      try{
+        const tbody = document.getElementById('f5a-body-p2');
+        if (!tbody) return;
+        const monthEl = document.getElementById('f5a-month');
+        const month = monthEl ? (monthEl.value||'') : '';
+        // Ensure attendance loaded for this month
+        const needFetch = !(window.F10_ATT_META && window.F10_ATT_META.month === (month||''));
+        if (needFetch && typeof f10FetchAttendance === 'function'){
+          try{ await f10FetchAttendance(month); }catch(_){ }
+        }
+        const attMap = f5aGetAttendanceMapByMonth(month);
+        // Iterate rows and rewrite 4th and 5th columns
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.forEach(tr=>{
+          const tds = tr.querySelectorAll('td');
+          if (!tds || tds.length < 5) return;
+          let name = (tds[0].textContent||'').trim();
+          // Clean decorations: take first segment before '(' or line-break or ' - '
+          try{ name = name.split('\n')[0]; }catch(_){ }
+          try{ name = name.split('(')[0]; }catch(_){ }
+          try{ name = name.split(' - ')[0]; }catch(_){ }
+          name = name.trim();
+          if (!name) return;
+          // Current manhour received (col 3)
+          const manText = (tds[2].textContent||'').trim();
+          // Try exact, then alias, then case-insensitive match
+          let totalText = attMap.get(name) || '';
+          if (!totalText && typeof resolveAlias==='function'){
+            const alias = resolveAlias(name);
+            totalText = attMap.get(alias) || '';
+          }
+          if (!totalText){
+            const key = (typeof vnKey==='function') ? vnKey(name) : String(name).toLowerCase().trim();
+            // Direct normalized key hit
+            totalText = attMap.get(`__norm__:${key}`) || '';
+            if (!totalText){
+              for (const k of attMap.keys()){
+                if (String(k).startsWith('__norm__:')){
+                  if (k === `__norm__:${key}`){ totalText = attMap.get(k); break; }
+                } else {
+                  const kk = (typeof vnKey==='function') ? vnKey(k) : String(k).toLowerCase().trim();
+                  if (kk === key){ totalText = attMap.get(k); break; }
+                }
+              }
+            }
+          }
+          // Update col 4: nếu không khớp thì để rỗng, không ghi 0
+          tds[3].textContent = totalText ? String(totalText) : '';
+          // Nếu vẫn rỗng, thử hiển thị debug ẩn (console) 1 lần đầu
+          if (!totalText){
+            try{ console.debug('[P2] No attendance match for:', name, 'month:', month, 'map keys:', Array.from(attMap.keys())); }catch(_){ }
+          }
+          // Compute Hệ số = manReceived / totalWorkHours
+          function toNum(v){ try{ return (typeof parseNumberFlexible==='function') ? parseNumberFlexible(v) : Number(String(v).replace(/[^0-9.,-]/g,'').replace('.', '').replace(',', '.')); }catch(_){ return NaN; } }
+          const man = toNum(manText);
+          const denom = toNum(totalText);
+          const coef = (Number.isFinite(man) && Number.isFinite(denom) && Math.abs(denom) > 1e-9) ? (man/denom) : NaN;
+          tds[4].textContent = Number.isFinite(coef) ? coef.toFixed(2) : '';
+        });
+      }catch(_){ }
     }
     
     // Auto render once when Form 5 first shows - DISABLED to prevent interference with Form 6
