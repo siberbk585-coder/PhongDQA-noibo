@@ -479,13 +479,14 @@
               <tr class="text-left text-gray-700">
                 <th class="px-3 py-2">Nhân viên</th>
                 <th class="px-3 py-2">Số tác vụ trong tháng</th>
+                <th class="px-3 py-2">Tổng giờ đánh giá thực tế</th>
                 <th class="px-3 py-2">Công chuẩn đã nhận</th>
                 <th class="px-3 py-2 cell-div">Tổng giờ công đi làm</th>
                 <th class="px-3 py-2">Hệ số</th>
               </tr>
             </thead>
             <tbody id="f5a-body-p2" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="5">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
           </div>
@@ -867,25 +868,25 @@
         <button id="f9-open-stats" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700">Thống kê</button>
         <button id="f9-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
       </div>
-      <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
-        <table class="min-w-[1600px] w-full text-sm border-collapse">
+      <div class="mt-4 space-y-6 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+        <table class="min-w-[1600px] w-full text-sm">
           <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
             <tr class="text-left text-gray-700">
-              <th class="px-3 py-3 min-w-[60px] border border-gray-300">STT</th>
-              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Tình trạng test bền</th>
-              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Dự kiến hoàn thành test bền</th>
-              <th class="px-3 py-3 min-w-[120px] border border-gray-300">Mã</th>
-              <th class="px-3 py-3 min-w-[260px] border border-gray-300">Task Name</th>
-              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Assignee</th>
-              <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã Báo cáo</th>
-              <th class="px-3 py-3 min-w-[140px] border border-gray-300">Mã tác vụ</th>
-              <th class="px-3 py-3 min-w-[180px] border border-gray-300">Ngày hoàn thành thực tế</th>
-              <th class="px-3 py-3 min-w-[220px] border border-gray-300">Ghi chú</th>
-              <th class="px-3 py-3 min-w-[160px] border border-gray-300">Khai báo test bền</th>
+              <th class="px-3 py-2 min-w-[60px] border border-gray-500">STT</th>
+              <th class="px-3 py-2 min-w-[160px] border border-gray-500">Khai báo test bền</th>
+              <th class="px-3 py-2 min-w-[180px] border border-gray-500">Ngày trả BC tức thời</th>
+              <th class="px-3 py-2 min-w-[160px] border border-gray-500">Tình trạng test bền</th>
+              <th class="px-3 py-2 min-w-[220px] border border-gray-500">Dự kiến hoàn thành test bền</th>
+              <th class="px-3 py-2 min-w-[120px] border border-gray-500">Mã</th>
+              <th class="px-3 py-2 min-w-[260px] border border-gray-500">Task Name</th>
+              <th class="px-3 py-2 min-w-[160px] border border-gray-500">Assignee</th>
+              <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã Báo cáo</th>
+              <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
+              <th class="px-3 py-2 min-w-[220px] border border-gray-500">Ghi chú</th>
             </tr>
           </thead>
-          <tbody id="f9-body" class="divide-y divide-gray-200">
-            <tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
+          <tbody id="f9-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -3917,7 +3918,7 @@
     })();
 
     // ===== Form 9: Test bền =====
-    function addTdF9(tr, text){ const td=document.createElement('td'); td.className='px-3 py-4 align-top text-gray-800 border-r border-gray-200'; td.textContent=text||''; tr.appendChild(td); }
+    function addTdF9(tr, text){ const td=document.createElement('td'); td.className='px-3 py-3 align-top text-gray-800 border border-gray-500'; td.textContent=text||''; tr.appendChild(td); }
 
     function openF9DurabilityModal(row){
       try{
@@ -4127,7 +4128,7 @@
     function renderForm9FromRows(rows){
       const body = document.getElementById('f9-body');
       if (!body) return;
-      if (!Array.isArray(rows) || !rows.length){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      if (!Array.isArray(rows) || !rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
       body.innerHTML = '';
       const name = (document.getElementById('f9-name')?.value || '').trim();
       const monthFilter = (document.getElementById('f9-month')?.value || '').trim();
@@ -4144,7 +4145,7 @@
           return ym === monthFilter;
         });
       }
-      if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
       const limited = filtered.slice(0, Math.max(1, pageSize));
       limited.forEach((r, idx)=>{
         const tr = document.createElement('tr');
@@ -4166,8 +4167,31 @@
         // STT
         const sttDisp = (r.rowNumber || r.STT || r.row_number || (idx+1));
         addTdF9(tr, String(sttDisp));
-        // Tình trạng test bền (hiển thị text, không mở modal)
-        addTdF9(tr, r.durability || '');
+        // Khai báo test bền (button)
+        const tdAction = document.createElement('td');
+        tdAction.className = 'px-3 py-3 align-top text-gray-800 border border-gray-500';
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1 rounded text-white bg-primary-blue hover:brightness-105 text-sm font-medium';
+        btn.textContent = 'Sửa/khai báo';
+        btn.onclick = (e)=>{
+          e.preventDefault();
+          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
+        };
+        tdAction.appendChild(btn);
+        tr.appendChild(tdAction);
+        // Ngày trả BC tức thời (đưa ngay sau cột Khai báo)
+        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.actualCompletionDate||'') : (r.actualCompletionDate||''));
+        // Tình trạng test bền (màu theo trạng thái)
+        (function(){
+          const td=document.createElement('td');
+          td.className='px-3 py-3 align-top text-gray-800 border border-gray-500';
+          const val = String(r.durability||'').trim();
+          td.textContent = val;
+          const v = val.toLowerCase();
+          if (v.includes('hoàn thành')){ td.classList.add('bg-green-50','text-green-800'); }
+          else if (v.includes('đang triển khai') || v.includes('dang trien khai')){ td.classList.add('bg-yellow-50','text-yellow-800'); }
+          tr.appendChild(td);
+        })();
         // Dự kiến hoàn thành test bền
         addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.durabilityDue||'') : (r.durabilityDue||''));
         // Mã
@@ -4180,22 +4204,8 @@
         addTdF9(tr, r.reportCode||'');
         // Mã tác vụ
         addTdF9(tr, r.taskId||'');
-        // Ngày hoàn thành thực tế
-        addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.actualCompletionDate||'') : (r.actualCompletionDate||''));
         // Ghi chú (Gate A)
         addTdF9(tr, r.noteGateA || r.note || '');
-        // Khai báo test bền (button)
-        const tdAction = document.createElement('td');
-        tdAction.className = 'px-3 py-4 align-top text-gray-800 border-r border-gray-200';
-        const btn = document.createElement('button');
-        btn.className = 'px-3 py-1 rounded text-white bg-primary-blue hover:brightness-105 text-sm font-medium';
-        btn.textContent = 'Sửa/khai báo';
-        btn.onclick = (e)=>{
-          e.preventDefault();
-          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
-        };
-        tdAction.appendChild(btn);
-        tr.appendChild(tdAction);
         body.appendChild(tr);
       });
     }
@@ -4415,12 +4425,15 @@
       btn._bound = true;
     })();
 
+
     function f9RowsToAOA(items){
-      const head = ['STT','Tình trạng test bền','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ngày hoàn thành thực tế','Ghi chú'];
+      const head = ['STT','Khai báo test bền','Ngày trả BC tức thời','Tình trạng test bền','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ghi chú'];
       const aoa = [head];
       (Array.isArray(items)? items:[]).forEach((r, i)=>{
         const row = [
           r.rowNumber || i+1,
+          'Sửa/khai báo',
+          r.actualCompletionDate || '',
           r.durability || '',
           r.durabilityDue || '',
           r.code || '',
@@ -4428,7 +4441,6 @@
           r.assignee || '',
           r.reportCode || '',
           r.taskId || '',
-          r.actualCompletionDate || '',
           r.noteGateA || r.note || ''
         ];
         aoa.push(row);
@@ -7793,8 +7805,8 @@
     async function renderForm5All(){
       const bodyP1 = document.getElementById('f5a-body-p1');
       const bodyP2 = document.getElementById('f5a-body-p2');
-      try{ if (bodyP1) bodyP1.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>"; }catch(_){ }
-      try{ if (bodyP2) bodyP2.innerHTML = "<tr><td colspan='4' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>"; }catch(_){ }
+      try{ if (bodyP1) bodyP1.innerHTML = "<tr><td colspan='10' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>"; }catch(_){ }
+      try{ if (bodyP2) bodyP2.innerHTML = "<tr><td colspan='6' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>"; }catch(_){ }
       const chartWrap = document.getElementById('f5a-chart-container');
       const chartCanvas = document.getElementById('f5a-chart');
       const chartWrapMan = document.getElementById('f5a-chart-container-manhour');
@@ -8232,10 +8244,20 @@
           const rNA = Number(item.rateNA||0);
           const clsCnt = Number(item.classifiedCnt|| (ahead+ontime+late));
           const need = f5aGetNeedManhour(name);
+        // Tính tổng giờ đánh giá thực tế cho nhân viên này
+        const totalActualHoursData = calculateTotalActualHours(name, fromVal, toVal);
+        const totalActualHours = totalActualHoursData.formatted;
+        
+        // Lưu vào Map để sử dụng sau này
+        if (!window.F5A_TOTAL_ACTUAL_HOURS_MAP) {
+          window.F5A_TOTAL_ACTUAL_HOURS_MAP = new Map();
+        }
+        window.F5A_TOTAL_ACTUAL_HOURS_MAP.set(name, totalActualHoursData);
           rowsP2.push(`
                   <tr>
                     <td class="px-3 py-2">${name}</td>
               <td class="px-3 py-2"><button class="text-primary-blue hover:underline" data-f5a-rqcount="${name}">${count}</button></td>
+              <td class="px-3 py-2">${totalActualHours}</td>
               <td class="px-3 py-2">${man.toFixed(2)}</td>
               <td class="px-3 py-2 cell-div">${need}</td>
               <td class="px-3 py-2">${(function(){ const v = (Number(need)||0) ? (Number(man)/Number(need)) : 0; return (Number.isFinite(v)? v.toFixed(2):''); })()}</td>
@@ -8255,7 +8277,7 @@
             </tr>`);
         });
         try{ const b1 = document.getElementById('f5a-body-p1'); if (b1) b1.innerHTML = rowsP1.join('') || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>'; }catch(_){ }
-        try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = rowsP2.join('') || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>'; }catch(_){ }
+        try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = rowsP2.join('') || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>'; }catch(_){ }
               // Hàng tổng cuối bảng
               const sumMan = sorted.reduce((a,it)=> a + Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0)), 0);
               const sumNeed = sorted.reduce((a,it)=> a + Number(f5aGetNeedManhour(it['Phụ trách'] || it.name || '')), 0);
@@ -8264,10 +8286,18 @@
               const sumOn = sorted.reduce((a,it)=> a + Number(it.ontime||0), 0);
               const sumLate = sorted.reduce((a,it)=> a + Number(it.late||0), 0);
               const sumDone = sorted.reduce((a,it)=> a + Number(it.doneCnt || ((Number(it.ahead||0) + Number(it.ontime||0) + Number(it.late||0)))), 0);
+              // Tính tổng giờ đánh giá thực tế từ Map (đã được tính toán ở trên)
+              const sumTotalActualHoursRaw = sorted.reduce((a,it)=> {
+                const name = it['Phụ trách'] || it.name || '';
+                const hoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(name)) || { raw: 0, formatted: '0,00' };
+                return a + Number(hoursData.raw);
+              }, 0);
+              const sumTotalActualHours = sumTotalActualHoursRaw.toFixed(2).replace('.', ',');
               const totalP2 = `
                   <tr class="bg-blue-50 font-semibold">
                     <td class="px-3 py-2">TỔNG</td>
                     <td class="px-3 py-2">${sumCount}</td>
+                    <td class="px-3 py-2">${sumTotalActualHours}</td>
                     <td class="px-3 py-2">${sumMan.toFixed(2)}</td>
                     <td class="px-3 py-2 cell-div">${sumNeed.toFixed(2)}</td>
                     <td class="px-3 py-2">${(function(){ const v=(Number(sumNeed)||0)? (Number(sumMan)/Number(sumNeed)) : 0; return (Number.isFinite(v)? v.toFixed(2):''); })()}</td>
@@ -8290,7 +8320,7 @@
         renderStackedChart(sorted);
       }catch(err){
         try{ const b1 = document.getElementById('f5a-body-p1'); if (b1) b1.innerHTML = `<tr><td colspan='10' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
-        try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = `<tr><td colspan='4' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
+        try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
         if (chartWrap) chartWrap.style.display = 'none';
       }
     }
@@ -8480,7 +8510,7 @@
         if (m){ const [yy,mm] = m.split('-'); fromVal = `${yy}-${mm}-01`; const last = new Date(Number(yy), Number(mm), 0).getDate(); toVal = `${yy}-${mm}-${String(last).padStart(2,'0')}`; }
       }catch(_){ }
       const headers = [
-        'Nhân viên','Số tác vụ trong tháng','Công chuẩn đã nhận','Công chuẩn cần nhận','Số hoàn thành trong tháng','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','%Vượt','%Đúng','%Chậm','%N/A'
+        'Nhân viên','Số tác vụ trong tháng','Tổng giờ đánh giá thực tế','Công chuẩn đã nhận','Công chuẩn cần nhận','Số hoàn thành trong tháng','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','%Vượt','%Đúng','%Chậm','%N/A'
       ];
       const aoa = [headers];
       // Lọc bỏ nhân viên test "x" 
@@ -8538,9 +8568,13 @@
         const rNA = Number(item.rateNA||0);
         const key = (function(){ try{ const raw = String(name||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(name||'').toLowerCase().trim(); } })();
         const count = Number(rqCountMap.get(key)||0);
+        // Lấy tổng giờ đánh giá thực tế từ Map (đã được tính toán)
+        const totalActualHoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(name)) || { raw: 0, formatted: '0,00' };
+        const totalActualHours = totalActualHoursData.formatted;
         aoa.push([
           name,
           count,
+          totalActualHours,
           man,
           need,
           done,
@@ -8562,7 +8596,14 @@
       const sumOn = list.reduce((a,it)=> a + Number(it.ontime||0), 0);
       const sumLate = list.reduce((a,it)=> a + Number(it.late||0), 0);
       const sumDone = list.reduce((a,it)=> a + Number(it.doneCnt || ((Number(it.ahead||0) + Number(it.ontime||0) + Number(it.late||0)))), 0);
-      aoa.push(['TỔNG', sumCount, +sumMan.toFixed(2), +sumNeed.toFixed(2), sumDone, sumAhead, sumOn, sumLate, '', '', '', '', '' ]);
+      // Tính tổng giờ đánh giá thực tế từ Map (đã được tính toán)
+      const sumTotalActualHoursRaw = list.reduce((a,it)=> {
+        const name = it['Phụ trách'] || it.name || '';
+        const hoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(name)) || { raw: 0, formatted: '0,00' };
+        return a + Number(hoursData.raw);
+      }, 0);
+      const sumTotalActualHours = sumTotalActualHoursRaw.toFixed(2).replace('.', ',');
+      aoa.push(['TỔNG', sumCount, sumTotalActualHours, +sumMan.toFixed(2), +sumNeed.toFixed(2), sumDone, sumAhead, sumOn, sumLate, '', '', '', '', '' ]);
       return aoa;
     }
     function f5aDownloadXLSX(rows){
@@ -8604,7 +8645,7 @@
             const doneKeys=['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
             const statusKeys=['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
             const isCanceled=(o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
-            const head=['Nhân viên','Nhóm theo ngày nhận','Mã','Tên tác vụ','Ngày yêu cầu','Số giờ đánh giá thực tế','Công chuẩn','Hạn mong muốn','Hạn +1','Ngày hoàn thành','Hiện trạng theo hạn mong muốn'];
+            const head=['Nhân viên','Nhóm theo ngày nhận','Mã','Tên tác vụ','Ngày yêu cầu','Số giờ đánh giá thực tế','Công chuẩn','Hạn mong muốn','Hạn +1','Ngày hoàn thành','Trạng thái theo công chuẩn','Hiện trạng theo hạn mong muốn'];
             const aoaD=[head];
             rowsRaw.forEach(o=>{
               if (isCanceled(o)) return;
@@ -8619,8 +8660,26 @@
               const wish=getV(o, wishKeys);
               let wishP1=''; try{ const dW=toDate(wish); if(dW){ const p1=new Date(dW.getFullYear(), dW.getMonth(), dW.getDate()+1); const pad=n=>String(n).padStart(2,'0'); wishP1=`${pad(p1.getDate())}/${pad(p1.getMonth()+1)}/${p1.getFullYear()}`; } }catch(_){ }
               const stByWish = getV(o,['Hiện trạng theo hạn mong muốn','status_by_wish','status_wish','statuswish','ht_theo_han_mong_muon']);
+              // Tính "Trạng thái theo công chuẩn" giống modal P1
+              const toNum=(s)=>{ try{ const t=String(s||'').trim().replace(/[^0-9.,-]/g,'').replace(',', '.'); const n=parseFloat(t); return Number.isFinite(n)? n: 0; }catch(_){ return 0; } };
+              let stByMan = '';
+              try{
+                const actualNum = toNum(act);
+                const manNum = toNum(man);
+                const EPS = 1e-4;
+                const hasDone = !!toDate(done);
+                const actualIsZero = Number.isFinite(actualNum) && Math.abs(actualNum) < 1e-9;
+                if (actualIsZero){
+                  stByMan = 'Thiếu dữ liệu';
+                } else if (hasDone && Number.isFinite(actualNum) && Number.isFinite(manNum)){
+                  const tolerance = Math.max(EPS, Math.abs(manNum) * 0.10);
+                  if (actualNum > manNum + tolerance) stByMan = 'Chậm tiến độ';
+                  else if (Math.abs(actualNum - manNum) <= tolerance) stByMan = 'Đúng tiến độ';
+                  else stByMan = 'Vượt tiến độ';
+                }
+              }catch(_){ }
               const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
-              aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP1, fmt(done), stByWish ]);
+              aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP1, fmt(done), stByMan, stByWish ]);
             });
             const ws = XLSX.utils.aoa_to_sheet(aoaD);
             XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ - Hoàn thành');
@@ -9047,7 +9106,83 @@
       if (closeBtn) closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } });
       if (modal) modal.addEventListener('click', (e)=>{ if(e.target===modal){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
       document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal && modal.classList.contains('open')){ try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ } } });
+      
+      
     })();
+    // Hàm tính tổng giờ đánh giá thực tế cho một nhân viên
+    function calculateTotalActualHours(empName, from, to) {
+      try {
+        const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+        function norm(s){ return String(s||'').trim(); }
+        function getV(obj, keys){ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; }
+        function vnNoAcc(s){ try{ return (typeof vnLower==='function')? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); } }
+        function sameName(a,b){ return vnNoAcc(a).replace(/\s+/g,' ').trim() === vnNoAcc(b).replace(/\s+/g,' ').trim(); }
+        function parseDate(v){ try{ return parseDateFlexible(v); } catch(_){ return null; } }
+        function iso(d){ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; }
+        function inRange(ds){ if(!from && !to) return true; if(!ds) return false; if(from && ds < from) return false; if(to && ds > to) return false; return true; }
+        
+        const assigneeKeys = ['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+        const rqKeys = [
+          '📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ',
+          'ngày yêu cầu','Ngày yêu cầu','Ngày yêu cầu ',
+          'requestdate','request_date','requestDate','date_request','rqdate','rq_date','requesteddate','requested_date',
+          'submissiondate','submitteddate','submitdate','submit_date',
+          'ngayyeucau','ngay_yeu_cau','ngay yeu cau',
+          'ngaygui','ngay_gui','ngày gửi','Ngày gửi',
+          'createddate','created_date','creationdate','created',
+          'ngaytao','ngay_tao','ngày tạo','Ngày tạo',
+          '📆 ngày gửi','📆 Ngày gửi',
+          'thời gian yêu cầu','thời điểm yêu cầu'
+        ];
+        const actualKeys = ['Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te'];
+        const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+        const doneKeys = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+        
+        const isCanceled = (o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
+        
+        let totalActualHours = 0;
+        rows.forEach(o=>{
+          if (isCanceled(o)) return;
+          const emp = norm(getV(o, assigneeKeys));
+          if(!sameName(emp, empName)) return;
+          
+          let rq = norm(getV(o, rqKeys)); let rqD = parseDate(rq); let rqIso = rqD? iso(rqD):'';
+          if(!rqD || !inRange(rqIso)){
+            let picked = '';
+            try{
+              const normKey = (s)=> String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+              const rqSet = new Set(rqKeys.map(normKey));
+              const wishSet = new Set(['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'].map(normKey));
+              for(const [k, v] of Object.entries(o||{})){
+                const kn = normKey(k);
+                if (!rqSet.has(kn) || wishSet.has(kn)) continue;
+                const d = parseDate(v); if(!d) continue; const ds = iso(d); if(inRange(ds)){ picked = v; rqD = d; rqIso = ds; break; }
+              }
+            }catch(_){ }
+            if (picked) rq = norm(picked); else if (!inRange(rqIso)) return;
+          }
+          
+          const actual = norm(getV(o, actualKeys));
+          // Parse giá trị actual một cách robust hơn
+          let actualStr = String(actual || '').trim();
+          actualStr = actualStr.replace(/[^\d.,]/g, '');
+          actualStr = actualStr.replace(',', '.');
+          const actualNum = parseFloat(actualStr) || 0;
+          totalActualHours += actualNum;
+        });
+        
+        // Làm tròn đến 2 chữ số thập phân và format với dấu phẩy
+        const totalActualHoursFormatted = totalActualHours.toFixed(2).replace('.', ',');
+        
+        return {
+          raw: totalActualHours,
+          formatted: totalActualHoursFormatted
+        };
+      } catch(_) {
+        return { raw: 0, formatted: '0,00' };
+      }
+    }
+
     function openRqDetailModal(empName, from, to){
       try{
         const modal = document.getElementById('rq-detail-modal');
@@ -9074,7 +9209,8 @@
           'ngaygui','ngay_gui','ngày gửi','Ngày gửi',
           'createddate','created_date','creationdate','created',
           'ngaytao','ngay_tao','ngày tạo','Ngày tạo',
-          '📆 ngày gửi','📆 Ngày gửi'
+          '📆 ngày gửi','📆 Ngày gửi',
+          'thời gian yêu cầu','thời điểm yêu cầu'
         ];
         const codeKeys = ['code','ma','taskcode','mã'];
         const nameKeys = ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title'];
@@ -9089,11 +9225,17 @@
           if (isCanceled(o)) return;
           const emp = norm(getV(o, assigneeKeys));
           if(!sameName(emp, empName)) return;
+          
           let rq = norm(getV(o, rqKeys)); let rqD = parseDate(rq); let rqIso = rqD? iso(rqD):'';
           if(!rqD || !inRange(rqIso)){
             let picked = '';
             try{
-              for(const v of Object.values(o||{})){
+              const normKey = (s)=> String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+              const rqSet = new Set(rqKeys.map(normKey));
+              const wishSet = new Set(['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'].map(normKey));
+              for(const [k, v] of Object.entries(o||{})){
+                const kn = normKey(k);
+                if (!rqSet.has(kn) || wishSet.has(kn)) continue;
                 const d = parseDate(v); if(!d) continue; const ds = iso(d); if(inRange(ds)){ picked = v; rqD = d; rqIso = ds; break; }
               }
             }catch(_){ }
@@ -9111,7 +9253,14 @@
         if (!items.length){ body.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); return; }
         const fmt = (v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
         let stt = 0;
-        body.innerHTML = items.map(it=>`
+        
+        // Lấy tổng giờ đánh giá thực tế từ Map (đã được tính toán khi render P2)
+        const totalActualHoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(empName)) || { raw: 0, formatted: '0,00' };
+        const totalActualHours = totalActualHoursData.raw;
+        const totalActualHoursFormatted = totalActualHoursData.formatted;
+        
+        // Render các hàng dữ liệu
+        const dataRows = items.map(it=>`
           <tr>
             <td class="px-3 py-2">${++stt}</td>
             <td class="px-3 py-2">${it.code}</td>
@@ -9124,6 +9273,18 @@
             <td class="px-3 py-2">${it.status}</td>
           </tr>
         `).join('');
+        
+        // Hàng tổng
+        const totalRow = `
+          <tr class="bg-blue-50 font-semibold">
+            <td class="px-3 py-2" colspan="5">TỔNG GIỜ ĐÁNH GIÁ THỰC TẾ</td>
+            <td class="px-3 py-2">${totalActualHoursFormatted}</td>
+            <td class="px-3 py-2" colspan="3"></td>
+          </tr>
+        `;
+        
+        body.innerHTML = dataRows + totalRow;
+        
         modal.classList.add('open');
         modal.setAttribute('aria-hidden','false');
       }catch(_){ }
