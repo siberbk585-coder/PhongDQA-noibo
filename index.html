@@ -73,6 +73,15 @@
         background: linear-gradient(135deg, rgba(90, 169, 255, 0.1), rgba(255, 255, 255, 0.1));
       }
     }
+    /* Sidebar effects for groups */
+    .group-btn{ position:relative; font-weight:600; color:#e5f0ff; background:rgba(90,169,255,.12); border:1px solid rgba(90,169,255,.35); border-radius:8px; }
+    .group-btn:hover{ background:rgba(90,169,255,.18); color:#ffffff; }
+    .group-btn.active{ background:linear-gradient(135deg,#2563eb 0%,#5aa9ff 100%); color:#ffffff; box-shadow:0 4px 10px rgba(37,99,235,.25); border-color:rgba(255,255,255,.35); }
+    .group-btn::after{ content:"▾"; position:absolute; right:10px; opacity:.9; transition: transform .2s ease; }
+    .group-btn.active::after{ transform: rotate(180deg); }
+    .group-items{ transition: all .2s ease; }
+    .group-items .nav-btn{ background: transparent; }
+    .group-items .nav-btn:hover{ background: rgba(255,255,255,0.06); }
   </style>
 </head>
 <body class="bg-muted min-h-screen flex text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
@@ -80,17 +89,39 @@
   <aside class="w-64 min-h-screen bg-sidebar text-white flex flex-col py-8 px-4 shadow-lg">
     <h1 class="text-xl font-bold tracking-wide pb-6 border-b border-blue-200 mb-4">Cổng Tác Vụ DQA</h1>
     <nav class="flex flex-col gap-2 mt-2">
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form1">Form 1 · Tra cứu tác vụ</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form2">Form 2 · Trả kế hoạch thử nghiệm</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form3">Form 3 · Giao việc</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form4">Form 4 · Bảng theo dõi (Doing)</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form5">Form 5 · Tất cả tác vụ</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form6">Form 6 · Ý tưởng cải tiến</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form7">Form 7 · Triển khai CE</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form8">Form 8 · Triển khai 4M</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form9">Form 9 · Thống kê test bền</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form10">Form 10 · Quản lý nhân sự</button>
-      <button class="nav-btn py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form0">Form 0 · Hướng dẫn sử dụng</button>
+      <div class="rounded-md">
+        <button class="group-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base">Trả báo cáo</button>
+        <div class="group-items hidden mt-1 pl-2 flex flex-col gap-1">
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form1">Form 1 · Tra cứu tác vụ</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form2">Form 2 · Trả kế hoạch thử nghiệm</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form3">Form 3 · Giao việc</button>
+        </div>
+      </div>
+      <div class="rounded-md">
+        <button class="group-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base">KPI nhóm cải tiến</button>
+        <div class="group-items hidden mt-1 pl-2 flex flex-col gap-1">
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form4">Form 4 · Bảng theo dõi (Doing)</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form5">Form 5 · Tất cả tác vụ</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form6">Form 6 · Ý tưởng cải tiến</button>
+        </div>
+      </div>
+      <div class="rounded-md">
+        <button class="group-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base">Khai báo</button>
+        <div class="group-items hidden mt-1 pl-2 flex flex-col gap-1">
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form7">Form 7 · Triển khai CE</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form8">Form 8 · Triển khai 4M</button>
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form9">Form 9 · Thống kê test bền</button>
+        </div>
+      </div>
+      <div class="rounded-md">
+        <button class="group-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base">Khác</button>
+        <div class="group-items hidden mt-1 pl-2 flex flex-col gap-1">
+          <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form10">Form 10 · Quản lý nhân sự</button>
+        </div>
+      </div>
+      <div class="pt-2 border-t border-white/10 mt-2">
+        <button class="nav-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form0">Form 0 · Hướng dẫn sử dụng</button>
+      </div>
     </nav>
   </aside>
 
@@ -139,6 +170,7 @@
             <tr class="text-left text-gray-700">
               <th class="px-3 py-2 min-w-[160px] border border-gray-500">Trả báo cáo</th>
               <th class="px-3 py-2 min-w-[140px] border border-gray-500">Tình trạng</th>
+              <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
               <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã</th>
               <th class="px-3 py-2 min-w-[390px] border border-gray-500">Tên tác vụ</th>
               <th class="px-3 py-2 min-w-[180px] border border-gray-500">Tgian nộp form</th>
@@ -155,7 +187,6 @@
               <th class="px-3 py-2 min-w-[260px] border border-gray-500">Form báo cáo đánh giá</th>
               <th class="px-3 py-2 min-w-[220px] border border-gray-500">Tên file đính kèm</th>
               <th class="px-3 py-2 min-w-[140px] border border-gray-500">Tải đính kèm</th>
-              <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
             </tr>
           </thead>
           <tbody id="f1-body" class="divide-y divide-gray-100">
@@ -1474,7 +1505,7 @@
   <script>
     // Constants
     const WEBHOOK_URL = "https://iatzhxxuk.tino.page/webhook/4cdacd75-92ce-4156-aa79-62fc60f51730";
-    const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/b843f631-2082-4b0a-b3ca-ba7fdf96f142";
+    const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook-test/b843f631-2082-4b0a-b3ca-ba7fdf96f142";
     const FORM7_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dc3b968a-2f2d-4746-98ac-48247555b9c9";
     // Riêng bảng phụ (subpanel) dùng kênh post này
     const FORM7_SUBPANEL_URL = "https://iatzhxxuk.tino.page/webhook/b33e7270-2817-4261-9936-2a217ef629b7";
@@ -4611,6 +4642,56 @@
       setTimeout(()=>toastEl.classList.remove('show'), 2600);
     }
 
+    // ==== Sidebar: Nhóm/Accordion + Điều hướng Form ====
+    (function initSidebarGroups(){
+      try{
+        const sections = Array.from(document.querySelectorAll('main section[id^="form"]'));
+        function showSection(id){
+          sections.forEach(sec=>{ if (!sec || !sec.id) return; sec.classList.toggle('hidden', sec.id !== id); });
+          try{ localStorage.setItem('app.lastForm', id); }catch(_){ }
+          // Mở nhóm chứa nút đang chọn
+          try{
+            const btn = document.querySelector(`.nav-btn[data-target="${id}"]`);
+            if (btn){
+              const group = btn.closest('.rounded-md');
+              const items = group && group.querySelector('.group-items');
+              if (items){ items.classList.remove('hidden'); }
+            }
+          }catch(_){ }
+        }
+        // Click item -> chuyển form
+        document.querySelectorAll('.nav-btn[data-target]').forEach(btn=>{
+          if (btn._boundNav) return; btn._boundNav = true;
+          btn.addEventListener('click', (e)=>{
+            e.preventDefault(); const id = btn.getAttribute('data-target'); if (!id) return; showSection(id);
+          });
+        });
+        // Toggle nhóm
+        document.querySelectorAll('.group-btn').forEach(h=>{
+          if (h._boundGrp) return; h._boundGrp = true;
+          h.addEventListener('click', (e)=>{
+            e.preventDefault(); const wrap = h.parentElement; if (!wrap) return; const items = wrap.querySelector('.group-items'); if (!items) return; const nowHidden = items.classList.toggle('hidden'); if (nowHidden){ h.classList.remove('active'); } else { h.classList.add('active'); }
+          });
+        });
+        // Khởi tạo: khôi phục form gần nhất hoặc mặc định form1
+        let last = '';
+        try{ last = localStorage.getItem('app.lastForm') || ''; }catch(_){ last=''; }
+        const defaultId = last || 'form1';
+        if (!document.getElementById(defaultId)){
+          // fallback nếu không tồn tại (ví dụ form1 đã ẩn/đổi id)
+          const any = sections.find(s=> s && s.id);
+          if (any) showSection(any.id);
+        } else {
+          showSection(defaultId);
+        }
+        // Đánh dấu active cho nhóm chứa form đang mở
+        try{
+          const activeBtn = document.querySelector(`.nav-btn[data-target="${defaultId}"]`);
+          if (activeBtn){ const wrap = activeBtn.closest('.rounded-md'); const head = wrap && wrap.querySelector('.group-btn'); const items = wrap && wrap.querySelector('.group-items'); if (items){ items.classList.remove('hidden'); } if (head){ head.classList.add('active'); } }
+        }catch(_){ }
+      }catch(_){ }
+    })();
+
     // Upload modal
     // ===== Form 1: Export helpers =====
     function f1BuildExportPayload(){
@@ -4649,7 +4730,7 @@
       return false;
     }
     function f1RowsToAOA(items){
-      const head = ['Mã','Tên tác vụ','Trạng thái','Tgian nộp form','Ngày cần trả BC','Người yêu cầu','Người nhận mẫu','Công chuẩn','Ngày yêu cầu','Hạn mong muốn','Hạn đáp ứng','Mục đích đánh giá','Note','Yêu cầu test đặc biệt','Form báo cáo','Tên file','Link','Mã tác vụ'];
+      const head = ['Trạng thái','Mã tác vụ','Mã','Tên tác vụ','Tgian nộp form','Ngày cần trả BC','Người yêu cầu','Người nhận mẫu','Công chuẩn','Ngày yêu cầu','Hạn mong muốn','Hạn đáp ứng','Mục đích đánh giá','Note','Yêu cầu test đặc biệt','Form báo cáo','Tên file','Link'];
       const aoa = [head];
       const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
       (Array.isArray(items)? items:[]).forEach(it=>{
@@ -4671,7 +4752,7 @@
         const fileName = getV(it,[ 'attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file' ]);
         const url = getV(it,[ 'attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url' ]);
         const taskId = getV(it,['taskid','task_id','ma_tac_vu','mã tác vụ','taskcode2','requestid','id']);
-        aoa.push([code,tname,statusText,submitTimeRaw,reportDue,requester,receiver,man,requestDate,wishDue,actualDue,purpose,note,special,reportForm,fileName,url,taskId]);
+        aoa.push([statusText,taskId,code,tname,submitTimeRaw,reportDue,requester,receiver,man,requestDate,wishDue,actualDue,purpose,note,special,reportForm,fileName,url]);
       });
       return aoa;
     }
@@ -5014,12 +5095,11 @@
         const extPdf = extOf(fPdf.name);
         if (okPdf.indexOf(extPdf)===-1){ showToast('File PDF không đúng định dạng.','error'); return; }
         let fXlsx = null;
-        if (bpsChecked){
-          if (!xlsxInput || !xlsxInput.files || xlsxInput.files.length===0){ showToast('Vui lòng chọn file Excel (.xlsx) khi gửi BPS.','error'); return; }
-          fXlsx = xlsxInput.files[0];
-          const extX = extOf(fXlsx.name);
-          if (okXlsx.indexOf(extX)===-1){ showToast('File Excel không đúng định dạng (.xlsx).','error'); return; }
-        }
+        // Bắt buộc phải nộp file Excel bất kể có gửi BPS hay không
+        if (!xlsxInput || !xlsxInput.files || xlsxInput.files.length===0){ showToast('Vui lòng chọn file Excel (.xlsx).','error'); return; }
+        fXlsx = xlsxInput.files[0];
+        const extX = extOf(fXlsx.name);
+        if (okXlsx.indexOf(extX)===-1){ showToast('File Excel không đúng định dạng (.xlsx).','error'); return; }
       isModalSubmitting = true;
       if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
         // Append with original field names
@@ -5336,6 +5416,7 @@
         else if (s.includes('hoàn') || s.includes('done')) badgeClass = 'bg-green-100 text-green-800';
         else if (s.includes('cancel') || s.includes('hủy') || s.includes('huỷ') || s.includes('chờ') || s.includes('pending')) badgeClass = 'bg-yellow-100 text-yellow-800';
         badge.className='px-2 py-1 rounded text-xs ' + badgeClass; badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
+        addTd(tr, taskId);
         addTd(tr, code);
         addTd(tr, tname);
         // New columns right after Task Name: Tgian nộp form & Ngày cần trả BC
@@ -5374,7 +5455,6 @@
         if (url) { const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105'; a.textContent = 'Tải về'; tdDl.appendChild(a); }
         else { const btn = document.createElement('button'); btn.disabled = true; btn.className = 'px-3 py-1 inline-block rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'; btn.textContent = 'Không có link'; tdDl.appendChild(btn); }
         tr.appendChild(tdDl);
-        addTd(tr, taskId);
         F1_ALL_ROWS.push(tr);
         try{ if (!window.F1_LAST_RAW) window.F1_LAST_RAW = []; window.F1_LAST_RAW.push(item); }catch(_){ }
         const statusNorm = vnLower(statusText);
@@ -12143,6 +12223,86 @@
           }
         });
       }
+    });
+
+    // ===== NAVIGATION AND FORM VISIBILITY CONTROL =====
+    // Hàm ẩn tất cả các form
+    function hideAllForms() {
+      const forms = document.querySelectorAll('section[id^="form"]');
+      forms.forEach(form => {
+        form.classList.add('hidden');
+      });
+    }
+
+    // Hàm hiển thị form theo ID
+    function showForm(formId) {
+      hideAllForms();
+      const targetForm = document.getElementById(formId);
+      if (targetForm) {
+        targetForm.classList.remove('hidden');
+      }
+    }
+
+    // Hàm đóng tất cả các nhóm sidebar
+    function closeAllSidebarGroups() {
+      const groupItems = document.querySelectorAll('.group-items');
+      groupItems.forEach(item => {
+        item.classList.add('hidden');
+      });
+    }
+
+    // Hàm mở/đóng nhóm sidebar
+    function toggleSidebarGroup(button) {
+      const groupItems = button.nextElementSibling;
+      if (groupItems && groupItems.classList.contains('group-items')) {
+        // Đóng tất cả các nhóm khác
+        closeAllSidebarGroups();
+        // Mở/đóng nhóm hiện tại
+        groupItems.classList.toggle('hidden');
+      }
+    }
+
+    // Khởi tạo navigation khi DOM loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[Navigation] Initializing navigation system...');
+      
+      // 1. Ẩn tất cả các form trước
+      hideAllForms();
+      
+      // 2. Không hiển thị form nào mặc định - người dùng phải chọn form để xem
+      
+      // 3. MỞ TẤT CẢ các nhóm sidebar để có thể click trực tiếp vào form
+      const groupItems = document.querySelectorAll('.group-items');
+      groupItems.forEach(item => {
+        item.classList.remove('hidden');
+      });
+      
+      // 4. Xử lý click vào các nút navigation (data-target)
+      const navButtons = document.querySelectorAll('.nav-btn[data-target]');
+      navButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetForm = this.getAttribute('data-target');
+          console.log('[Navigation] Switching to form:', targetForm);
+          
+          // Hiển thị form được chọn
+          showForm(targetForm);
+        });
+      });
+      
+      // 5. Vô hiệu hóa click vào các nút nhóm sidebar (group-btn) vì không cần thiết
+      const groupButtons = document.querySelectorAll('.group-btn');
+      groupButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Không làm gì cả - giữ nguyên trạng thái mở
+        });
+      });
+      
+      console.log('[Navigation] Navigation system initialized successfully');
+      console.log('[Navigation] Found', navButtons.length, 'navigation buttons');
+      console.log('[Navigation] Found', groupButtons.length, 'sidebar group buttons');
+      console.log('[Navigation] All sidebar groups are now OPEN for direct form access');
     });
   </script>
 </body>
