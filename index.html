@@ -504,6 +504,9 @@
             <span class="font-semibold text-blue-800 mr-4">Thẻ P2</span>
             <button id="f5a-search-p2" class="submit-btn px-3 py-1.5 text-white text-sm font-semibold transition">Tra cứu P2</button>
           </div>
+          <div class="mx-3 my-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-50 border border-amber-200 text-amber-700">
+            Nhấn tra cứu dữ liệu form 10 trước để nhận kết quả chính xác
+          </div>
           <div class="overflow-auto max-h-[60vh] p-2">
           <table class="min-w-[900px] w-full text-sm table-zebra table-vdiv">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
@@ -907,6 +910,7 @@
               <th class="px-3 py-2 min-w-[160px] border border-gray-500">Khai báo test bền</th>
               <th class="px-3 py-2 min-w-[180px] border border-gray-500">Ngày trả BC tức thời</th>
               <th class="px-3 py-2 min-w-[160px] border border-gray-500">Tình trạng test bền</th>
+              <th class="px-3 py-2 min-w-[160px] border border-gray-500">Link bằng chứng</th>
               <th class="px-3 py-2 min-w-[220px] border border-gray-500">Dự kiến hoàn thành test bền</th>
               <th class="px-3 py-2 min-w-[120px] border border-gray-500">Mã</th>
               <th class="px-3 py-2 min-w-[260px] border border-gray-500">Task Name</th>
@@ -917,7 +921,7 @@
             </tr>
           </thead>
           <tbody id="f9-body" class="divide-y divide-gray-100">
-            <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Chưa có dữ liệu</td></tr>
+            <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="12">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -4159,7 +4163,7 @@
     function renderForm9FromRows(rows){
       const body = document.getElementById('f9-body');
       if (!body) return;
-      if (!Array.isArray(rows) || !rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      if (!Array.isArray(rows) || !rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="12">Không có dữ liệu</td></tr>'; return; }
       body.innerHTML = '';
       const name = (document.getElementById('f9-name')?.value || '').trim();
       const monthFilter = (document.getElementById('f9-month')?.value || '').trim();
@@ -4176,7 +4180,7 @@
           return ym === monthFilter;
         });
       }
-      if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="11">Không có dữ liệu</td></tr>'; return; }
+      if (!filtered.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="12">Không có dữ liệu</td></tr>'; return; }
       const limited = filtered.slice(0, Math.max(1, pageSize));
       limited.forEach((r, idx)=>{
         const tr = document.createElement('tr');
@@ -4223,6 +4227,22 @@
           else if (v.includes('đang triển khai') || v.includes('dang trien khai')){ td.classList.add('bg-yellow-50','text-yellow-800'); }
           tr.appendChild(td);
         })();
+        // Link bằng chứng (giữa Trạng thái và Dự kiến hoàn thành)
+        (function(){
+          const td=document.createElement('td');
+          td.className='px-3 py-3 align-top text-gray-800 border border-gray-500';
+          const url = String(r.gateAEvidence||'').trim();
+          if (url){
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.className = 'text-primary-blue underline';
+            a.textContent = 'Mở';
+            td.appendChild(a);
+          }
+          tr.appendChild(td);
+        })();
         // Dự kiến hoàn thành test bền
         addTdF9(tr, (typeof formatDdMmYyyy==='function') ? formatDdMmYyyy(r.durabilityDue||'') : (r.durabilityDue||''));
         // Mã
@@ -4249,8 +4269,8 @@
       const name = isAll ? '__ALL__' : rawName;
       const body = document.getElementById('f9-body');
       if (!body) return;
-      if (!name){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="11">Vui lòng chọn tên</td></tr>'; return; }
-      body.innerHTML = "<tr><td colspan='11' class='px-3 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+      if (!name){ body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500" colspan="12">Vui lòng chọn tên</td></tr>'; return; }
+      body.innerHTML = "<tr><td colspan='12' class='px-3 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
       try{
         const headerMapF9 = {
           // Bảng chính
@@ -4397,7 +4417,7 @@
         try{ window.F9_LAST_ROWS = normRows; }catch(_){ }
         try{ LS.setJSON('f9.cache', { name, rows: normRows, ts: Date.now() }); LS.set('f9.lastUpdated', String(Date.now())); updateLastUpdatedNote('f9-search','f9.lastUpdated'); }catch(_){ }
       }catch(err){
-        body.innerHTML = `<tr><td colspan='11' class='px-3 py-4 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+        body.innerHTML = `<tr><td colspan='12' class='px-3 py-4 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
       }
     }
 
@@ -4458,7 +4478,7 @@
 
 
     function f9RowsToAOA(items){
-      const head = ['STT','Khai báo test bền','Ngày trả BC tức thời','Tình trạng test bền','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ghi chú'];
+      const head = ['STT','Khai báo test bền','Ngày trả BC tức thời','Tình trạng test bền','Link bằng chứng','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ghi chú'];
       const aoa = [head];
       (Array.isArray(items)? items:[]).forEach((r, i)=>{
         const row = [
@@ -4466,6 +4486,7 @@
           'Sửa/khai báo',
           r.actualCompletionDate || '',
           r.durability || '',
+          r.gateAEvidence || '',
           r.durabilityDue || '',
           r.code || '',
           r.taskName || '',
