@@ -3421,7 +3421,7 @@
 
     // Names
     const FORM1_NAMES = [
-      "Bùi Đặng Quốc Huy","Đào Tuấn Kỳ","Đỗ Quang Long","Đỗ Thế Cường","Hà Mỹ Linh","Lại Quốc Lộc",
+      "Bùi Đặng Quốc Huy","Đào Tuấn Kỳ","Đỗ Quang Long","Hà Mỹ Linh","Lại Quốc Lộc",
       "Lê Ngọc Ánh","Lê Thị Thanh Nhàn","Lê Thị Thảo","Lê Văn Sơn","Nguyễn Hữu Thịnh","Nguyễn Thị Hiền",
       "Phạm Thành Trung Kiên","Phạm Thị Minh","Thái Thị Giang","Trần Hiếu Nghĩa","Vũ Thị Hằng","Vũ Thị Thanh Hiền"
     ];
@@ -3962,6 +3962,14 @@
         const cancelBtn = document.getElementById('f9-dur-cancel');
         const body = document.getElementById('f9-dur-body');
         if (!modal || !body) return;
+        // Reset trạng thái nút gửi mỗi lần mở modal
+        try{
+          const btnSaveAll = document.getElementById('f9-dur-save-all');
+          if (btnSaveAll){
+            btnSaveAll.disabled = false;
+            btnSaveAll.innerHTML = 'Gửi dữ liệu';
+          }
+        }catch(_){ }
         // Fill header info
         try{ document.getElementById('f9-dur-assignee').textContent = row.assignee || ''; }catch(_){ }
         try{ document.getElementById('f9-dur-taskid').textContent = row.taskId || ''; }catch(_){ }
@@ -4173,9 +4181,25 @@
                   }
                 }
                 try{ showToast('Đã gửi dữ liệu.','success'); }catch(_){ }
-                try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ }
                 // Tự động tra cứu lại để làm mới dữ liệu Form 9
                 try{ if (typeof renderForm9 === 'function') { await renderForm9(); } }catch(_){ }
+                // Làm mới nội dung modal hiện tại (không đóng modal)
+                try{
+                  let updated = row;
+                  try{
+                    const cached = (typeof LS!=='undefined' && LS.getJSON) ? LS.getJSON('f9.cache') : null;
+                    let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : (Array.isArray(window.F9_LAST_ROWS) ? window.F9_LAST_ROWS : []);
+                    const tid = String(row.taskId||'').trim();
+                    const codeKey = String(row.code||'').trim();
+                    const assigneeKey = String(row.assignee||'').trim();
+                    const found = rows.find(x => String(x.taskId||'').trim()===tid || (String(x.code||'').trim()===codeKey && String(x.assignee||'').trim()===assigneeKey));
+                    if (found) updated = found;
+                  }catch(_){ }
+                  // Cập nhật lại nội dung modal với dữ liệu mới nhất
+                  try{ openF9DurabilityModal(updated); }catch(_){ }
+                }catch(_){ }
+                // Đổi trạng thái nút thành 'Đã gửi' và giữ khoá cho đến khi đóng modal
+                try{ btnSaveAll.innerHTML = 'Đã gửi'; btnSaveAll.disabled = true; }catch(_){ }
               }catch(err){
                 try{ showToast('Lưu thất bại.','error'); }catch(_){ }
                 // Mở khóa nút nếu lỗi
