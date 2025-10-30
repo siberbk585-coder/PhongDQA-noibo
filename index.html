@@ -4057,10 +4057,15 @@
           if (!btnSaveAll._bound){
             btnSaveAll.addEventListener('click', async (e)=>{
               e.preventDefault();
+              if (btnSaveAll.disabled) return;
+              // Khóa nút + spinner
+              const prevHtml = btnSaveAll.innerHTML;
+              btnSaveAll.disabled = true;
+              btnSaveAll.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
               try{
                 try{
                   const ok = window.confirm('Bạn có chắc chắn muốn gửi dữ liệu test bền?');
-                  if (!ok) return;
+                  if (!ok) { btnSaveAll.disabled = false; btnSaveAll.innerHTML = prevHtml; return; }
                 }catch(_){ }
                 const rows = [];
                 const trList = Array.from(document.querySelectorAll('#f9-dur-body tr'));
@@ -4096,6 +4101,32 @@
                   if (!gateAHasFile){ try{ showToast('Gate A: Trạng thái Hoàn thành/Done cần đính kèm Bằng chứng.','error'); }catch(_){ } return; }
                 }
                 // Nếu có file bằng chứng Gate A: gửi FormData; nếu không, gửi JSON thường
+                // Helper: fetch với timeout + fallback no-cors
+                async function fetchWithTimeout(url, opts, timeoutMs){
+                  const controller = (typeof AbortController!=='undefined') ? new AbortController() : null;
+                  if (controller) opts = { ...(opts||{}), signal: controller.signal };
+                  let tmo = null;
+                  try{
+                    const p = fetch(url, opts);
+                    if (Number.isFinite(timeoutMs) && timeoutMs>0){
+                      if (controller){
+                        tmo = setTimeout(()=>{ try{ controller.abort(); }catch(_){} }, timeoutMs);
+                      } else {
+                        return await Promise.race([
+                          p,
+                          new Promise((_,rej)=> setTimeout(()=> rej(new Error('Timeout')), timeoutMs))
+                        ]);
+                      }
+                    }
+                    const r = await p;
+                    return r;
+                  } finally {
+                    if (tmo) try{ clearTimeout(tmo); }catch(_){ }
+                  }
+                }
+
+                const TIMEOUT_MS = 30000;
+
                 if (gateAHasFile){
                   const fd = new FormData();
                   fd.append('action','form9_update_tests_bulk');
@@ -4111,7 +4142,12 @@
                   try{ fd.append('gateAEvidence', gateAFileEl.files[0]); }catch(_){ }
                   // Append flattened test fields
                   Object.keys(flat).forEach(k=>{ try{ fd.append(k, flat[k]); }catch(_){ } });
-                  await fetch(FORM9_POST_URL, { method:'POST', body: fd });
+                  try{
+                    await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'cors' }, TIMEOUT_MS);
+                  }catch(_){
+                    // Fallback: no-cors (không đọc được phản hồi nhưng vẫn kích hoạt server)
+                    await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'no-cors' }, 8000);
+                  }
                 } else {
                   // active gate info for backend
                   const activeGate = (document.getElementById('f9-gatea-wrap')?.style.display !== 'none') ? 'Gate A' : 'Gate B';
@@ -4129,11 +4165,25 @@
                   };
                   // Merge flattened fields into payload
                   Object.assign(payload, flat);
-                  await fetch(FORM9_POST_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+                  try{
+                    await fetchWithTimeout(FORM9_POST_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), mode:'cors' }, TIMEOUT_MS);
+                  }catch(_){
+                    // Fallback: no-cors (loại bỏ header để tránh bị chặn)
+                    await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: JSON.stringify(payload), mode:'no-cors' }, 8000);
+                  }
                 }
                 try{ showToast('Đã gửi dữ liệu.','success'); }catch(_){ }
                 try{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }catch(_){ }
-              }catch(err){ try{ showToast('Lưu thất bại.','error'); }catch(_){ } }
+                // Tự động tra cứu lại để làm mới dữ liệu Form 9
+                try{ if (typeof renderForm9 === 'function') { await renderForm9(); } }catch(_){ }
+              }catch(err){
+                try{ showToast('Lưu thất bại.','error'); }catch(_){ }
+                // Mở khóa nút nếu lỗi
+                btnSaveAll.disabled = false;
+                btnSaveAll.innerHTML = prevHtml;
+                return;
+              }
+              // Giữ trạng thái khóa cho đến khi modal đóng
             });
             btnSaveAll._bound = true;
           }
@@ -4208,10 +4258,14 @@
         const btn = document.createElement('button');
         btn.className = 'px-3 py-1 rounded text-white bg-primary-blue hover:brightness-105 text-sm font-medium';
         btn.textContent = 'Sửa/khai báo';
-        btn.onclick = (e)=>{
-          e.preventDefault();
-          try{ openF9DurabilityModal(r); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
-        };
+        (function(rowSnapshot){
+          // Ghim bản sao dữ liệu hàng để tránh bị thay đổi do render lại hoặc thay đổi mảng nguồn
+          btn.onclick = (e)=>{
+            e.preventDefault();
+            e.stopPropagation();
+            try{ openF9DurabilityModal(rowSnapshot); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
+          };
+        })({ ...r });
         tdAction.appendChild(btn);
         tr.appendChild(tdAction);
         // Ngày trả BC tức thời (đưa ngay sau cột Khai báo)
