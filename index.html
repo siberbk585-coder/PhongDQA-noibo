@@ -186,6 +186,7 @@
         </div>
         <div class="pt-2 border-t border-white/10 mt-2">
           <button class="nav-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base" data-target="form0">Form 0 · Hướng dẫn sử dụng</button>
+          <a href="https://siberbk585-coder.github.io/PhongDQA-noibo2/" target="_blank" class="nav-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base inline-block mt-2">Cổng tác vụ 2 - SPM</a>
         </div>
       </nav>
     </aside>
@@ -626,6 +627,7 @@
                   <tr class="text-left text-gray-700">
                     <th class="px-3 py-2">Tên nhân viên</th>
                     <th class="px-3 py-2">Tổng tác vụ máy</th>
+                    <th class="px-3 py-2">Tác vụ không cần khai báo</th>
                     <th class="px-3 py-2">TCKT(% hoàn thành)</th>
                     <th class="px-3 py-2">CE(% hoàn thành)</th>
                     <th class="px-3 py-2">HDKT(% hoàn thành)</th>
@@ -636,7 +638,7 @@
                   </tr>
                 </thead>
                 <tbody id="f5a-body-p4" class="divide-y divide-gray-100">
-                  <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
+                  <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2833,18 +2835,14 @@
         // Merge if both exist (prefer records fields, add missing rows from table by simple key)
         if (recs.length || tabObjs.length){
           if (recs.length && tabObjs.length){
-            const seenKeys = new Set();
-            const keyOf = (o)=>{
-              const code = (o['Mã tác vụ']||o['taskId']||o['TaskId']||o['Mã']||o['code']||o['Code']||'');
-              const tname = (o['Tên tác vụ']||o['taskName']||o['Task Name']||o['name']||'');
-              const rq = (o['Ngày yêu cầu']||o['requestDate']||o['requestdate']||o['📆 ngày yêu cầu']||o['📆 Ngày yêu cầu']||'');
-              // Dùng tổ hợp để không gộp nhầm các dòng trùng mã
-              return String(code)+'|'+String(tname)+'|'+String(rq);
-            };
+            // KHÔNG deduplicate - giữ lại TẤT CẢ các tác vụ, kể cả trùng mã/nhân viên/thời gian
+            // Vì có thể có nhiều tác vụ giống nhau nhưng khác nhân viên hoặc thời gian khác
             const out = [];
             try{ if (!window.F5A_LOG) window.F5A_LOG = {}; if (!window.F5A_LOG.dupKeys) window.F5A_LOG.dupKeys = []; }catch(_){ }
-            recs.forEach(r=>{ const k=keyOf(r); seenKeys.add(k); out.push(r); });
-            tabObjs.forEach(t=>{ const k=keyOf(t); if (!seenKeys.has(k)) { out.push(t); } else { try{ window.F5A_LOG.dupKeys.push({ reason:'duplicate_merge', key:k, row:t }); }catch(_){ } } });
+            // Thêm tất cả records
+            recs.forEach(r=>{ out.push(r); });
+            // Thêm tất cả table objects (không kiểm tra trùng)
+            tabObjs.forEach(t=>{ out.push(t); });
             try{ console.info('[F5A] Merge records+table:', { recs: recs.length, table: tabObjs.length, merged: out.length, dups: (window.F5A_LOG&&window.F5A_LOG.dupKeys)? window.F5A_LOG.dupKeys.length:0 }); }catch(_){ }
             return out;
           }
@@ -6372,8 +6370,24 @@
           async function fetchJson(url){
             const r = await fetch(url, { method: 'GET' });
             const text = await r.text();
-            let parsed = null; try { parsed = JSON.parse(text); } catch { parsed = null; }
-            return { ok: r.ok, ct: r.headers.get('content-type')||'', parsed, raw: text, status: r.status };
+            const contentType = r.headers.get('content-type') || '';
+            let parsed = null; 
+            // Kiểm tra nếu response có vẻ là HTML hoặc text thông thường (không phải JSON)
+            const trimmedText = text.trim();
+            if (trimmedText && !trimmedText.startsWith('{') && !trimmedText.startsWith('[') && 
+                (trimmedText.startsWith('<') || trimmedText.toLowerCase().includes('html') || 
+                 trimmedText.toLowerCase().includes('hệ thống'))) {
+              // Response có vẻ là HTML/text, không phải JSON
+              parsed = null;
+            } else {
+              // Thử parse JSON
+              try { 
+                parsed = JSON.parse(text); 
+              } catch (parseErr) { 
+                parsed = null; 
+              }
+            }
+            return { ok: r.ok, ct: contentType, parsed, raw: text, status: r.status };
           }
 
           let first = await fetchJson(`${urlTest}?${params.toString()}`);
@@ -6385,7 +6399,21 @@
           if(!first.ok){
             throw new Error(first.raw || `HTTP ${first.status}`);
           }
-          const data = Array.isArray(first.parsed) || first.parsed ? first.parsed : (first.raw ? JSON.parse(first.raw) : null);
+          // Kiểm tra nếu response không phải JSON
+          if (!first.parsed && first.raw && !first.raw.trim().startsWith('{') && !first.raw.trim().startsWith('[')) {
+            // Response có vẻ là HTML/text, không phải JSON
+            throw new Error(`Phản hồi từ server không phải JSON: ${first.raw.substring(0, 100)}...`);
+          }
+          let data = null;
+          if (Array.isArray(first.parsed) || (first.parsed && typeof first.parsed === 'object')) {
+            data = first.parsed;
+          } else if (first.raw) {
+            try {
+              data = JSON.parse(first.raw);
+            } catch (parseErr) {
+              throw new Error(`Lỗi phân tích JSON: ${parseErr.message}. Response: ${first.raw.substring(0, 200)}...`);
+            }
+          }
           function pickRowsDeep(json){
             if (!json) return [];
             if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
@@ -6627,7 +6655,13 @@
             });
           }
         }catch(err){
-          body.innerHTML = `<tr><td colspan='3' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message || err)}</td></tr>`;
+          const errMsg = String(err.message || err);
+          console.error('[Form 4] Error:', err);
+          // Hiển thị thông báo lỗi chi tiết hơn
+          const displayMsg = errMsg.includes('JSON') || errMsg.includes('parse') 
+            ? `Lỗi dữ liệu: Server trả về dữ liệu không đúng định dạng JSON. Vui lòng kiểm tra lại webhook hoặc thử lại sau.`
+            : `Lỗi tải dữ liệu: ${errMsg}`;
+          body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-red-600'>${displayMsg}</td></tr>`;
           if (chartWrap) chartWrap.style.display = 'none';
           if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
         }
@@ -8412,11 +8446,26 @@
                 await f5aFetchAllOnce(prevMonthVal, prevFrom, prevTo);
                 const rawPrev = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL.slice() : [];
                 const pick = (o, ks)=>{ try{ const L={}; Object.keys(o||{}).forEach(k=>{ const v=o[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); L[k1]=v; L[k2]=v; }); for(const k of ks){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=L[c1] ?? L[c2]; if(v!==undefined) return String(v||''); } }catch(_){ } return ''; };
-                const keyOf = (o)=>{ const code = pick(o,['code','ma','taskcode','mã']); if (code) return `C:${code}`; const tn = pick(o,['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title']); const rq = pick(o,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','📆 ngày yêu cầu']); return `N:${tn}|RQ:${rq}`; };
-                const map = new Map();
-                mergedRaw.forEach(o=>{ try{ map.set(keyOf(o), o); }catch(_){ } });
-                rawPrev.forEach(o=>{ try{ const k = keyOf(o); if (!map.has(k)) map.set(k, o); }catch(_){ } });
-                mergedRaw = Array.from(map.values());
+                // KHÔNG deduplicate - giữ lại TẤT CẢ các tác vụ
+                // Vì có thể có nhiều tác vụ giống nhau nhưng khác nhân viên hoặc thời gian
+                // Thêm tất cả dữ liệu từ tháng trước vào mergedRaw (không kiểm tra trùng)
+                const seenIndex = new Set();
+                mergedRaw.forEach((o, idx)=>{ seenIndex.add(idx); });
+                rawPrev.forEach(o=>{ 
+                  try{ 
+                    // Kiểm tra xem có tồn tại chính xác object này không (so sánh toàn bộ)
+                    const exists = mergedRaw.some(m => {
+                      try {
+                        return JSON.stringify(m) === JSON.stringify(o);
+                      } catch(_) { return false; }
+                    });
+                    // Chỉ thêm nếu object chính xác chưa tồn tại (tránh duplicate hoàn toàn giống hệt)
+                    // Nhưng vẫn giữ các tác vụ giống mã nhưng khác nhân viên/thời gian
+                    if (!exists) {
+                      mergedRaw.push(o);
+                    }
+                  }catch(_){ } 
+                });
               }catch(_){ }
             }
           }catch(_){ }
@@ -9277,6 +9326,11 @@
               return;
             }
             
+            // Chỉ lấy các tác vụ có "Phân loại" = "Sản phẩm"
+            const classification = String(getV(r, [ 'Phân loại','phan loai','phanloai','classification','loai','loại' ])||'').trim();
+            const clsNorm = classification.toLowerCase();
+            if (clsNorm !== 'san pham' && clsNorm !== 'sản phẩm') return;
+            
             // Check "4M rà soát"
             const rasoat4m = String(getV(r, [
               '4M rà soát','4m rà soát','4m ra soat',
@@ -9294,12 +9348,20 @@
                 hdktCompleted: 0, hdktTotal: 0,
                 bbCompleted: 0, bbTotal: 0,
                 jigCompleted: 0, jigTotal: 0,
-                khksclCompleted: 0, khksclTotal: 0
+                khksclCompleted: 0, khksclTotal: 0,
+                notNeeded4m: 0
               });
             }
             
             const rec = byName.get(name);
             rec.totalTasks++;
+            
+            // Check if "4M rà soát" = "Không cần"
+            const fourMStatus = String(rasoat4m).trim();
+            const fourMNorm = fourMStatus.toLowerCase();
+            if(fourMNorm.includes('khong can') || fourMNorm.includes('không cần')) {
+              rec.notNeeded4m += 1;
+            }
             
             // Parse percentages
             const tckt = parsePercent(getV(r, ['TCKT(% hoàn thành)','tckt','tckt%']));
@@ -9319,12 +9381,12 @@
           });
           
           // Build AOA
-          const headers = ['Tên nhân viên', 'Tổng tác vụ máy', 'TCKT(% hoàn thành)', 'CE(% hoàn thành)', 'HDKT(% hoàn thành)', 'BB đào tạo(% hoàn thành)', 'Jig tool(% hoàn thành)', 'KHKSCL(% hoàn thành)', 'Thẻ P4 (%)'];
+          const headers = ['Tên nhân viên', 'Tổng tác vụ máy', 'Tác vụ không cần khai báo', 'TCKT(% hoàn thành)', 'CE(% hoàn thành)', 'HDKT(% hoàn thành)', 'BB đào tạo(% hoàn thành)', 'Jig tool(% hoàn thành)', 'KHKSCL(% hoàn thành)', 'Thẻ P4 (%)'];
           const aoa = [headers];
           
           const sorted = Array.from(byName.values()).sort((a,b)=> a.name.localeCompare(b.name, 'vi'));
           
-          let sumTotal = 0, sumTckt = 0, sumCe = 0, sumHdkt = 0, sumBb = 0, sumJig = 0, sumKhkscl = 0, sumP4 = 0;
+          let sumTotal = 0, sumNotNeeded = 0, sumTckt = 0, sumCe = 0, sumHdkt = 0, sumBb = 0, sumJig = 0, sumKhkscl = 0, sumP4 = 0;
           
           sorted.forEach(r => {
             const tcktPercentage = r.tcktTotal > 0 ? (r.tcktCompleted / r.tcktTotal).toFixed(2) : '0.00';
@@ -9348,6 +9410,7 @@
             aoa.push([
               r.name,
               r.totalTasks,
+              r.notNeeded4m || 0,
               `${tcktPercentage}%`,
               `${cePercentage}%`,
               `${hdktPercentage}%`,
@@ -9358,6 +9421,7 @@
             ]);
             
             sumTotal += r.totalTasks;
+            sumNotNeeded += (r.notNeeded4m || 0);
             sumTckt += parseFloat(tcktPercentage);
             sumCe += parseFloat(cePercentage);
             sumHdkt += parseFloat(hdktPercentage);
@@ -9380,6 +9444,7 @@
           aoa.push([
             'TỔNG',
             sumTotal,
+            sumNotNeeded,
             `${avgTckt}%`,
             `${avgCe}%`,
             `${avgHdkt}%`,
@@ -10860,7 +10925,7 @@
           if(!F5A_P3_RAW || F5A_P3_RAW.length === 0){
             body.innerHTML = `
               <tr>
-                <td colspan="9" class="px-3 py-3 text-center">
+                <td colspan="10" class="px-3 py-3 text-center">
                   <div class="text-gray-500 mb-2">Chưa có dữ liệu</div>
                   <div class="text-sm text-blue-600">👆 Nhấn nút <b>"Tra cứu P4"</b> ở trên để tải dữ liệu</div>
                 </td>
@@ -11078,6 +11143,7 @@
             // Nếu 4M rà soát = "Không cần" => tính 100% cho tất cả hạng mục
             const fourMStatus = String(getV(r, [ '4M rà soát','4m rà soát','4m ra soat','4M','4m rasoat','rasoat4m' ])||'').trim();
             const fourMNorm = (typeof vnLower==='function') ? vnLower(fourMStatus) : fourMStatus.toLowerCase();
+            // Kiểm tra các biến thể: "không cần", "không cần rà soát", "không cần khai báo"
             const isNotNeeded = (fourMNorm.includes('khong can') || fourMNorm.includes('không cần'));
             if (isNotNeeded) rec.notNeeded4m += 1;
             const pTCKT = isNotNeeded ? 100 : parsePercent(tckt);
@@ -11160,6 +11226,7 @@
                 <td class="px-3 py-2 text-center font-semibold cursor-pointer hover:bg-blue-50" onclick="openP4MachineModal('${r.name.replace(/'/g, "\\'")}', '${monthVal}')" title="Click để xem chi tiết tác vụ máy">
                   ${r.totalTasks}
                 </td>
+                <td class="px-3 py-2 text-center font-semibold">${r.notNeeded4m || 0}</td>
                 <td class="px-3 py-2 text-center">
                   <span class="font-semibold ${parseFloat(tcktPercentage) >= 80 ? 'text-green-600' : parseFloat(tcktPercentage) >= 50 ? 'text-blue-600' : 'text-orange-600'}">${tcktPercentage}%</span>
                 </td>
@@ -11199,6 +11266,7 @@
             <tr class="bg-blue-50 font-semibold">
               <td class="px-3 py-2">TỔNG</td>
               <td class="px-3 py-2 text-center">${sumTotal}</td>
+              <td class="px-3 py-2 text-center">${totalNotNeeded}</td>
               <td class="px-3 py-2 text-center">
                 <span class="font-bold ${parseFloat(avgTckt) >= 80 ? 'text-green-600' : parseFloat(avgTckt) >= 50 ? 'text-blue-600' : 'text-orange-600'}">${avgTckt}%</span>
               </td>
@@ -11223,7 +11291,7 @@
             </tr>
           `;
           
-          body.innerHTML = (rowsP4.join('') + totalRow) || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>';
+          body.innerHTML = (rowsP4.join('') + totalRow) || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>';
           
           // Enable table drag
           try{ enableTableDrag('f5a-body-p4'); }catch(_){ }
@@ -11233,7 +11301,7 @@
         }catch(err){
           console.error('[F5A P4] Render error:', err);
           const body = document.getElementById('f5a-body-p4');
-          if(body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="9">Lỗi hiển thị dữ liệu</td></tr>';
+          if(body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="10">Lỗi hiển thị dữ liệu</td></tr>';
         }
       }
 
@@ -11313,6 +11381,72 @@
           // Unwrap n8n format: [{ json: {...} }]
           const unwrapped = Array.isArray(rows) ? rows.map(r => (r && typeof r === 'object' && ('json' in r)) ? r.json : r) : [];
           
+          // Debug: Kiểm tra xem có tác vụ trùng "Mã" không
+          // Đảm bảo lấy mã đúng định dạng (giữ nguyên số 0 đầu)
+          const codeCount = new Map();
+          const norm = (s) => String(s||'').toLowerCase().trim();
+          const getV = (obj, keys) => {
+            const lower = {};
+            Object.keys(obj||{}).forEach(k=>{ lower[norm(k)] = obj[k]; });
+            for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; }
+            return '';
+          };
+          
+          unwrapped.forEach((r, idx) => {
+            // Lấy mã - đảm bảo giữ nguyên định dạng (không parse số)
+            const codeRaw = getV(r, ['Mã','code','ma','taskcode','Mã tác vụ','mã tác vụ','taskid','TaskId']);
+            // Giữ nguyên định dạng gốc, chỉ trim khoảng trắng
+            const code = String(codeRaw||'').trim();
+            
+            if (code) {
+              if (!codeCount.has(code)) {
+                codeCount.set(code, []);
+              }
+              const taskName = getV(r, ['Task Name','taskname','tên tác vụ'])||'';
+              const assignee = getV(r, ['assignee','employee','name','nhân viên'])||'';
+              const completionDate = getV(r, ['ngày hoàn thành thực tế','completion date'])||'';
+              
+              codeCount.get(code).push({ 
+                idx, 
+                code: code,  // Giữ nguyên mã gốc (có thể có số 0 đầu)
+                taskName,
+                assignee,
+                completionDate,
+                rawData: r  // Giữ toàn bộ dữ liệu để debug
+              });
+            }
+          });
+          
+          // Log các mã trùng (bao gồm cả số 0 đầu)
+          const duplicateCodes = Array.from(codeCount.entries()).filter(([code, items]) => items.length > 1);
+          if (duplicateCodes.length > 0) {
+            console.log('[F5A P3] ⚠️ Phát hiện', duplicateCodes.length, 'mã trùng lặp (sẽ giữ lại TẤT CẢ):');
+            duplicateCodes.forEach(([code, items]) => {
+              console.log(`  - Mã "${code}" (độ dài: ${code.length}) xuất hiện ${items.length} lần:`);
+              items.forEach((item, i) => {
+                console.log(`    [${i+1}] idx:${item.idx}, assignee:"${item.assignee}", date:"${item.completionDate}", task:"${item.taskName}"`);
+              });
+            });
+            console.log('[F5A P3] ⚠️ Lưu ý: Tất cả các tác vụ trùng mã sẽ được giữ lại và hiển thị');
+          } else {
+            console.log('[F5A P3] ✓ Không có mã trùng lặp');
+          }
+          
+          // Kiểm tra đặc biệt mã "2010021450" và "201002145"
+          const code2010021450 = unwrapped.filter(r => {
+            const c = String(getV(r, ['Mã','code','ma','taskcode','Mã tác vụ','mã tác vụ'])||'').trim();
+            return c === '2010021450' || c === '201002145';
+          });
+          if (code2010021450.length > 0) {
+            console.log('[F5A P3] 🔍 Tìm thấy mã liên quan "2010021450"/"201002145":', code2010021450.length, 'tác vụ');
+            code2010021450.forEach((r, i) => {
+              const c = String(getV(r, ['Mã','code','ma','taskcode','Mã tác vụ','mã tác vụ'])||'').trim();
+              console.log(`  [${i+1}] Mã: "${c}" (độ dài: ${c.length}), assignee: "${getV(r, ['assignee','employee','name'])||''}"`);
+            });
+          }
+          
+          // Đảm bảo giữ lại TẤT CẢ các tác vụ, kể cả trùng "Mã"
+          // (Không deduplicate, vì có thể là các tác vụ khác nhau nhưng cùng mã)
           F5A_P3_RAW = unwrapped;
           F5A_P3_META = { month: month || '' };
           
@@ -11320,6 +11454,8 @@
           try{ LS.set('f5a.p3.lastUpdated', String(Date.now())); }catch(_){ }
           
           console.log('[F5A P3] Final result:', F5A_P3_RAW.length, 'records');
+          console.log('[F5A P3] ⚠️ QUAN TRỌNG: Tất cả tác vụ sẽ được giữ lại, kể cả trùng mã');
+          console.log('[F5A P3] Để debug mã "2010021450", kiểm tra console log phía trên');
           
           // If no data due to CORS, show helpful message
           if(!F5A_P3_RAW || F5A_P3_RAW.length === 0){
