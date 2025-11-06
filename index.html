@@ -21,6 +21,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.3/dist/chartjs-adapter-luxon.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -165,7 +167,7 @@
         <div class="rounded-md">
           <button class="group-btn w-full py-2 px-4 rounded transition hover:bg-sidebar-hover text-left text-base">KPI nhóm cải tiến</button>
           <div class="group-items hidden mt-1 pl-2 flex flex-col gap-1">
-            <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form4">Form 4 · Bảng theo dõi (Doing)</button>
+            <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form4">Form 4 · Kế hoạch công việc</button>
             <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form5">Form 5: KPI tháng</button>
             <button class="nav-btn py-2 px-3 rounded transition hover:bg-sidebar-hover text-left text-sm" data-target="form6">Form 6 · Ý tưởng cải tiến</button>
           </div>
@@ -404,115 +406,90 @@
         </form>
       </section>
 
-      <!-- Form 4 -->
+      <!-- Form 4: Kế hoạch công việc -->
       <section id="form4" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
         <div class="flex items-center justify-between mb-4">
-          <div class="section-title">
-            <h2 class="text-xl font-semibold text-blue-800">Form 4 · Bảng theo dõi</h2>
+          <h2 class="text-xl font-semibold text-blue-800">Form 4 · Kế hoạch công việc</h2>
+          <div class="flex items-center gap-3">
+            <select
+              id="f4-assigneeFilter"
+              class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="all">Tất cả nhân sự</option>
+            </select>
+            <button
+              id="f4-reloadButton"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary-blue px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-600 transition"
+              type="button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Tải lại
+            </button>
+            <p id="f4-statusText" class="text-xs text-gray-500"></p>
           </div>
-          <div class="flex items-center gap-2">
-            <input type="hidden" id="f4-status" value="Doing" />
-            <label class="text-sm text-gray-700">Tháng</label>
-            <input id="f4-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-            <button id="f4-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
-          </div>
         </div>
-        <div class="mb-2 flex items-center gap-2 flex-wrap">
-          <button id="f4-btn-all" class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">Tất cả thành viên</button>
-          <button id="f4-btn-linh" class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">Nhóm Linh</button>
-          <button id="f4-btn-hieu" class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50">Nhóm Hiếu</button>
-        </div>
-        <div id="f4-main-doing" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
-          <table class="min-w-[480px] w-full text-sm">
-            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-              <tr id="f4-head-row-static" class="text-left text-gray-700">
-                <th class="px-3 py-2 relative">
-                  <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">
-                    Nhân viên <span class="text-xs">▾</span>
-                  </button>
-                  <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
-                    <div class="flex items-center gap-2 mb-2">
-                      <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-                    </div>
-                    <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
-                      <div class="flex items-center gap-3">
-                        <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
-                        <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
-                      </div>
-                      <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
-                    </div>
-                    <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
-                      <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
-                    </div>
-                  </div>
-                </th>
-                <th class="px-3 py-2">Tổng công chuẩn</th>
-                <th class="px-3 py-2">Số tác vụ</th>
-                
-              </tr>
-            </thead>
-            <tbody id="f4-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="3">Chưa có dữ liệu</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <!-- Form 4: All tasks table (separate structure) -->
-        <div id="f4-main-all" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg hidden">
-          <table class="min-w-[1100px] w-full text-sm">
-            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-              <tr class="text-left text-gray-700">
-                <th class="px-3 py-2">Nhân viên</th>
-                <th class="px-3 py-2">Công chuẩn đã nhận</th>
-                <th class="px-3 py-2">Số tác vụ</th>
-                <th class="px-3 py-2">Số DONE</th>
-                <th class="px-3 py-2">Vượt tiến độ</th>
-                <th class="px-3 py-2">Đúng tiến độ</th>
-                <th class="px-3 py-2">Chậm tiến độ</th>
-                <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
-                <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
-                <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
-              </tr>
-            </thead>
-            <tbody id="f4-body-all" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <!-- Pivot Overdue View -->
-        <div id="f4-pivot-wrap" class="mt-4 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
-          <div class="flex items-center justify-between p-3">
-            <div class="text-sm text-gray-700">Bản tổng hợp việc quá hạn theo trạng thái</div>
-            <div class="flex items-center gap-2">
-              <button id="f4-pivot-refresh" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Làm mới</button>
+
+        <!-- Main Content: 2 Column Layout -->
+        <div class="flex h-[calc(100vh-200px)] overflow-hidden border border-gray-200 rounded-lg">
+          <!-- Left Sidebar: Task List -->
+          <aside class="w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-sm font-semibold text-gray-700 uppercase">Danh sách công việc</h2>
+                <span id="f4-recordCounter" class="text-xs text-gray-500"></span>
+              </div>
             </div>
+            <div class="flex-1 overflow-y-auto">
+              <div id="f4-taskList" class="p-2">
+                <!-- Task list sẽ được render ở đây -->
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Panel: Gantt Chart -->
+          <section class="flex-1 flex flex-col overflow-hidden bg-white">
+            <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-gray-700 uppercase">Timeline (Gantt Chart)</h2>
+              <div id="f4-legend" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="flex-1 overflow-hidden">
+              <div
+                id="f4-chartWrapper"
+                class="relative w-full h-full p-4 overflow-auto"
+              >
+                <!-- Chart sẽ được render ở đây -->
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Detail Table Modal (Optional) -->
+        <section id="f4-detailSection" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg max-h-96 overflow-auto">
+          <div class="p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+            <h2 class="text-sm font-semibold text-gray-700 uppercase">Chi tiết phân bổ công việc</h2>
+            <button id="f4-closeDetailBtn" class="text-gray-400 hover:text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <table id="f4-pivot-table" class="min-w-[760px] w-full text-sm">
-            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-              <tr class="text-left text-gray-700">
-                <th class="px-3 py-2">Assignee</th>
-                <th class="px-3 py-2">Mã</th>
-                <th class="px-3 py-2">Tên tác vụ</th>
-                <th class="px-3 py-2">Trạng thái</th>
-                <th class="px-3 py-2">Ngày yêu cầu</th>
-                <th class="px-3 py-2">Hạn mong muốn</th>
-                <th class="px-3 py-2">Hạn đáp ứng</th>
-              </tr>
-            </thead>
-            <tbody id="f4-pivot-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Chưa có dữ liệu</td></tr>
-            </tbody>
-            <tfoot>
-              <tr class="bg-blue-50 font-semibold text-blue-900">
-                <td class="px-3 py-2" colspan="6">Tổng số tác vụ quá hạn:</td>
-                <td class="px-3 py-2" id="f4-pivot-sum-total">0</td>
-              </tr>
-            </tfoot>
-          </table>
-          <div class="p-2 text-xs text-gray-500" id="f4-pivot-note"></div>
-        </div>
-        <div id="f4-chart-container" class="mt-4 h-80" style="display:none">
-          <canvas id="f4-chart"></canvas>
-        </div>
+          <div class="overflow-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-700">
+                  <th class="px-4 py-3">STT</th>
+                  <th class="px-4 py-3">Người phụ trách</th>
+                  <th class="px-4 py-3">Bắt đầu</th>
+                  <th class="px-4 py-3">Hoàn thành</th>
+                  <th class="px-4 py-3 text-right">Giờ công</th>
+                </tr>
+              </thead>
+              <tbody id="f4-scheduleTable" class="divide-y divide-gray-100 bg-white text-sm"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
       <!-- Form 5: KPI tháng -->
@@ -836,6 +813,7 @@
               </select>
               <button id="f8-search" class="px-3 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
               <a id="f8-template-link-top" href="https://drive.usercontent.google.com/download?id=1-8rjlAXi1x8lM235Smzd_jxoxmwT39kN&export=download&authuser=5&confirm=t&uuid=1f5e95c2-1291-4c15-a8d7-557f2a291549&at=AKSUxGNj-8k957V0Bj3nmNOF40aM:1760320142017" target="_blank" rel="noopener" class="px-3 py-2 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Form mẫu</a>
+              <button id="f8-export-xlsx" class="px-3 py-2 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
             </div>
             <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để hiển thị tác vụ cần trả 4M.</p>
           </div>
@@ -1590,6 +1568,195 @@
       </div>
     </div>
 
+  <!-- Modal Thống kê chi tiết -->
+  <div id="modal-stats" class="modal" aria-hidden="true">
+    <div class="w-full max-w-6xl bg-white rounded-xl shadow-lg p-6 flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between mb-4 flex-shrink-0">
+        <h3 class="text-xl font-semibold text-blue-800" id="stats-title">Thống kê chi tiết</h3>
+        <button data-close="modal-stats" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+      
+      <div id="stats-loading" class="text-center py-8 flex-shrink-0">
+        <div class="spinner mx-auto mb-2"></div>
+        <p class="text-gray-600">Đang tải dữ liệu...</p>
+      </div>
+      
+      <div id="stats-content" class="hidden overflow-y-auto flex-1 pr-2">
+        <!-- a. Thông tin cơ bản -->
+        <div class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">a. Thông tin cơ bản</h4>
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div><span class="font-medium">Mã:</span> <span id="stats-ma" class="text-blue-700"></span></div>
+              <div class="md:col-span-2"><span class="font-medium">Task Name:</span> <span id="stats-task-name" class="text-blue-700"></span></div>
+              <div class="md:col-span-3"><span class="font-medium">Kết luận (trang bìa):</span> <span id="stats-conclusion" class="text-blue-700"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- b. Công chuẩn -->
+        <div class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">b. Công chuẩn</h4>
+          <div class="bg-green-50 p-4 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div><span class="font-medium">Công ước lượng:</span> <span id="stats-cong-uoc-luong" class="text-green-700"></span></div>
+              <div><span class="font-medium">Công chuẩn đầy đủ:</span> <span id="stats-cong-chuan-day-du" class="text-green-700"></span></div>
+              <div><span class="font-medium">Công chuẩn thực tế:</span> <span id="stats-cong-chuan-thuc-te" class="text-green-700"></span></div>
+              <div><span class="font-medium">Công chuẩn phần PTC:</span> <span id="stats-cong-chuan-ptc" class="text-green-700"></span></div>
+              <div><span class="font-medium">Công chuẩn phần Bổ sung:</span> <span id="stats-cong-chuan-bo-sung" class="text-green-700"></span></div>
+              <div><span class="font-medium">Công chuẩn thêm:</span> <span id="stats-cong-chuan-them" class="text-green-700"></span></div>
+              <div><span class="font-medium">Tổng công chuẩn thực:</span> <span id="stats-tong-cong-chuan-thuc" class="text-green-700"></span></div>
+              <div><span class="font-medium">Số mẫu:</span> <span id="stats-so-mau" class="text-green-700"></span></div>
+              <div><span class="font-medium">Số mẫu Sheet Thêm:</span> <span id="stats-so-mau-sheet-them" class="text-green-700"></span></div>
+              <div class="md:col-span-4"><span class="font-medium">Nhận xét PIC:</span> <span id="stats-nhan-xet-pic" class="text-green-700"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- c. Test bền -->
+        <div id="stats-section-c" class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">c. Test bền</h4>
+          <div class="bg-yellow-50 p-4 rounded-lg mb-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+              <div><span class="font-medium">Test bền:</span> <span id="stats-test-ben" class="text-yellow-800"></span></div>
+              <div><span class="font-medium">Dự kiến hoàn thành test bền:</span> <span id="stats-test-ben-du-kien" class="text-yellow-800"></span></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="stats-test-ben-1" class="bg-yellow-50 p-3 rounded-lg hidden">
+              <div class="font-medium text-yellow-800 mb-1">Test bền bìa 1</div>
+              <div class="text-sm text-gray-700" id="stats-test-ben-1-content"></div>
+            </div>
+            <div id="stats-test-ben-2" class="bg-yellow-50 p-3 rounded-lg hidden">
+              <div class="font-medium text-yellow-800 mb-1">Test bền bìa 2</div>
+              <div class="text-sm text-gray-700" id="stats-test-ben-2-content"></div>
+            </div>
+            <div id="stats-test-ben-3" class="bg-yellow-50 p-3 rounded-lg hidden">
+              <div class="font-medium text-yellow-800 mb-1">Test bền bìa 3</div>
+              <div class="text-sm text-gray-700" id="stats-test-ben-3-content"></div>
+            </div>
+            <div id="stats-test-ben-4" class="bg-yellow-50 p-3 rounded-lg hidden">
+              <div class="font-medium text-yellow-800 mb-1">Test bền bìa 4</div>
+              <div class="text-sm text-gray-700" id="stats-test-ben-4-content"></div>
+            </div>
+            <div id="stats-test-ben-5" class="bg-yellow-50 p-3 rounded-lg hidden">
+              <div class="font-medium text-yellow-800 mb-1">Test bền bìa 5</div>
+              <div class="text-sm text-gray-700" id="stats-test-ben-5-content"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- d. Tiêu chuẩn kỹ thuật -->
+        <div id="stats-section-d" class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">d. Tiêu chuẩn kỹ thuật</h4>
+          <div class="bg-purple-50 p-4 rounded-lg">
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+              <div><span class="font-medium">Hạng mục đánh giá TCKT:</span> <span id="stats-total-tckt" class="text-purple-700"></span></div>
+              <div><span class="font-medium">Hạng mục OK:</span> <span id="stats-ok" class="text-green-700"></span></div>
+              <div><span class="font-medium">Hạng mục NG:</span> <span id="stats-ng" class="text-red-600"></span></div>
+              <div><span class="font-medium">Hạng mục test bền:</span> <span id="stats-test-ben-count" class="text-blue-600"></span></div>
+              <div><span class="font-medium">Hạng mục không đánh giá:</span> <span id="stats-not-eval" class="text-gray-600"></span></div>
+              <div><span class="font-medium">Hạng mục không kết luận:</span> <span id="stats-not-conclusion" class="text-yellow-600"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- e. Hạng mục thêm -->
+        <div id="stats-section-e" class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">e. Hạng mục thêm</h4>
+          <div class="bg-orange-50 p-4 rounded-lg">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-3">
+              <div><span class="font-medium">Hạng mục thêm:</span> <span id="stats-additional" class="text-orange-700"></span></div>
+              <div><span class="font-medium">Hạng mục thêm OK:</span> <span id="stats-additional-ok" class="text-green-700"></span></div>
+              <div><span class="font-medium">Hạng mục thêm NG:</span> <span id="stats-additional-ng" class="text-red-600"></span></div>
+              <div><span class="font-medium">Hạng mục thêm test bền:</span> <span id="stats-additional-test-ben" class="text-blue-600"></span></div>
+              <div><span class="font-medium">Hạng mục thêm NA:</span> <span id="stats-additional-na" class="text-gray-600"></span></div>
+              <div><span class="font-medium">Hạng mục thêm KDG:</span> <span id="stats-additional-kdg" class="text-gray-600"></span></div>
+              <div><span class="font-medium">Hạng mục thêm KKL:</span> <span id="stats-additional-kkl" class="text-gray-600"></span></div>
+            </div>
+            <div class="mt-2"><span class="font-medium">Nhận xét Hạng mục thêm:</span> <span id="stats-additional-comment" class="text-orange-800"></span></div>
+          </div>
+        </div>
+
+        <!-- f. Rủi ro và PTC -->
+        <div id="stats-section-f" class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">f. Rủi ro và PTC</h4>
+          <div class="bg-red-50 p-4 rounded-lg">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-3">
+              <div><span class="font-medium">Rủi ro và PTC:</span> <span id="stats-risk-ptc-total" class="text-red-700"></span></div>
+              <div><span class="font-medium">PTC OK:</span> <span id="stats-ptc-ok" class="text-green-700"></span></div>
+              <div><span class="font-medium">PTC NG:</span> <span id="stats-ptc-ng" class="text-red-600"></span></div>
+              <div><span class="font-medium">PTC test bền:</span> <span id="stats-ptc-test-ben" class="text-blue-600"></span></div>
+              <div><span class="font-medium">PTC NA:</span> <span id="stats-ptc-na" class="text-gray-600"></span></div>
+            </div>
+            <div class="mt-2"><span class="font-medium">Nhận xét PTC:</span> <span id="stats-ptc-comment" class="text-red-800"></span></div>
+          </div>
+        </div>
+
+        <!-- g. AI phân tích -->
+        <div id="stats-section-g" class="mb-6">
+          <h4 class="font-semibold text-gray-800 mb-3 text-lg">g. AI phân tích</h4>
+          <div class="space-y-4 mb-4">
+            <div id="stats-test-1" class="bg-gray-50 p-4 rounded-lg hidden">
+              <div class="font-semibold text-gray-800 mb-2">Bài test 1</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-medium">Bài test:</span> <span id="stats-test-1-name" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiêu chuẩn:</span> <span id="stats-test-1-standard" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Điều kiện:</span> <span id="stats-test-1-condition" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiến độ:</span> <span id="stats-test-1-progress" class="text-gray-700"></span></div>
+                <div class="md:col-span-2"><span class="font-medium">Tình trạng:</span> <span id="stats-test-1-status" class="text-gray-700"></span></div>
+              </div>
+            </div>
+            <div id="stats-test-2" class="bg-gray-50 p-4 rounded-lg hidden">
+              <div class="font-semibold text-gray-800 mb-2">Bài test 2</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-medium">Bài test:</span> <span id="stats-test-2-name" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiêu chuẩn:</span> <span id="stats-test-2-standard" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Điều kiện:</span> <span id="stats-test-2-condition" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiến độ:</span> <span id="stats-test-2-progress" class="text-gray-700"></span></div>
+                <div class="md:col-span-2"><span class="font-medium">Tình trạng:</span> <span id="stats-test-2-status" class="text-gray-700"></span></div>
+              </div>
+            </div>
+            <div id="stats-test-3" class="bg-gray-50 p-4 rounded-lg hidden">
+              <div class="font-semibold text-gray-800 mb-2">Bài test 3</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-medium">Bài test:</span> <span id="stats-test-3-name" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiêu chuẩn:</span> <span id="stats-test-3-standard" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Điều kiện:</span> <span id="stats-test-3-condition" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiến độ:</span> <span id="stats-test-3-progress" class="text-gray-700"></span></div>
+                <div class="md:col-span-2"><span class="font-medium">Tình trạng:</span> <span id="stats-test-3-status" class="text-gray-700"></span></div>
+              </div>
+            </div>
+            <div id="stats-test-4" class="bg-gray-50 p-4 rounded-lg hidden">
+              <div class="font-semibold text-gray-800 mb-2">Bài test 4</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-medium">Bài test:</span> <span id="stats-test-4-name" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiêu chuẩn:</span> <span id="stats-test-4-standard" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Điều kiện:</span> <span id="stats-test-4-condition" class="text-gray-700"></span></div>
+                <div><span class="font-medium">Tiến độ:</span> <span id="stats-test-4-progress" class="text-gray-700"></span></div>
+                <div class="md:col-span-2"><span class="font-medium">Tình trạng:</span> <span id="stats-test-4-status" class="text-gray-700"></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-purple-50 p-4 rounded-lg mb-3">
+            <h4 class="font-semibold text-purple-800 mb-2">Nhận xét AI</h4>
+            <div class="text-sm text-gray-700" id="stats-ai-comment"></div>
+          </div>
+          <div class="bg-red-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-red-800 mb-2">Bất thường AI</h4>
+            <div id="stats-abnormalities-list" class="space-y-2">
+              <div class="text-sm text-gray-500 italic">Không có bất thường nào được phát hiện</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 flex items-center justify-end gap-2 flex-shrink-0">
+        <button data-close="modal-stats" class="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Đóng</button>
+      </div>
+    </div>
+  </div>
+
     <div id="toast" class="toast"></div>
 
     <script>
@@ -1629,15 +1796,11 @@
       const FORM5_P3_URL = "https://iatzhxxuk.tino.page/webhook/ef64c141-a8ba-4bf0-af32-837ffd6f75d1";
       // Form 10 (Attendance) lookup endpoint - GET
       const FORM10_ATTENDANCE_URL = "https://iatzhxxuk.tino.page/webhook/f2baf83d-98c3-44f0-8eb4-b207ca2873d3";
+      // Stats Detail endpoint
+      const STATS_DETAIL_URL = 'https://iatzhxxuk.tino.page/webhook/fdf2d106-5b1c-46ca-bc8a-937ca7a9968d';  // action=stats_detail
       // Version hoá cache để tránh xung đột/hiển thị sai giữa các máy hoặc lần triển khai
       const APP_CACHE_VERSION = "2025-09-25-f5a-v4";
-      let F4_CHART = null;
       let F5_LAST_COUNT = 0;
-      let F4_PIVOT_BUSY = false;
-      let F4_PIVOT_TMO = null;
-      // Pivot cache (Form 4): lưu tất cả dòng quá hạn để lọc cục bộ khi chuyển nhóm
-      let F4_PIVOT_ROWS_ALL = [];
-      let F4_PIVOT_LAST_PARAMS = { from: '', to: '' };
       // Form 5 (All tasks) chart globals
       let F5A_CHART = null;
       let F5A_LAST_ROWS = [];
@@ -2484,6 +2647,345 @@
         }
       }
 
+      // ===== Form 8: Xuất XLSX =====
+      function f8RowsToAOA(items) {
+        // Helper function để format giá trị thành phần trăm
+        const formatPercent = (val) => {
+          if (!val || val === '') return '';
+          const str = String(val).trim();
+          // Nếu đã có ký hiệu %, giữ nguyên nhưng đảm bảo format đúng
+          if (str.includes('%')) {
+            const numStr = str.replace('%', '').trim();
+            const num = parseFloat(numStr);
+            if (isNaN(num)) return str;
+            return num.toFixed(2) + '%';
+          }
+          // Nếu là số, format thành phần trăm
+          const num = parseFloat(str);
+          if (isNaN(num)) return str;
+          // Nếu giá trị từ 0-1, chuyển thành 0-100%
+          if (num >= 0 && num <= 1) {
+            return (num * 100).toFixed(2) + '%';
+          }
+          // Nếu đã là giá trị 0-100, thêm ký hiệu %
+          return num.toFixed(2) + '%';
+        };
+
+        // Header: Người phụ trách, Mã tác vụ, Ngày hoàn thành thực tế, Mã linh kiện/máy, Task Name, Mã Báo cáo, 
+        // Kết quả đánh giá, Ghi chú, Tình trạng rà soát, Khai báo 4M, Ngày khai báo gần nhất,
+        // TCKT(% hoàn thành), CE(% hoàn thành), HDKT(% hoàn thành), BB đào tạo(% hoàn thành), 
+        // Jig tool(% hoàn thành), KHKSCL(% hoàn thành), Trung bình 4M
+        const head = [
+          'Người phụ trách',
+          'Mã tác vụ',
+          'Ngày hoàn thành thực tế',
+          'Mã linh kiện/máy',
+          'Task Name',
+          'Mã Báo cáo',
+          'Kết quả đánh giá',
+          'Ghi chú',
+          'Tình trạng rà soát',
+          'Khai báo 4M',
+          'Ngày khai báo gần nhất',
+          'TCKT(% hoàn thành)',
+          'CE(% hoàn thành)',
+          'HDKT(% hoàn thành)',
+          'BB đào tạo(% hoàn thành)',
+          'Jig tool(% hoàn thành)',
+          'KHKSCL(% hoàn thành)',
+          'Trung bình 4M'
+        ];
+        const aoa = [head];
+        
+        (Array.isArray(items) ? items : []).forEach(it => {
+          const row = [
+            it.personName || it.name || '',
+            it.taskId || '',
+            formatDdMmYyyy(it.actualCompletionDate) || it.actualCompletionDate || '',
+            it.code || '',
+            it.taskName || '',
+            it.reportCode || '',
+            it.evaluationResult || '',
+            it.notes || '',
+            it.fourMReview || '',
+            it.fourMDeclaration || '',
+            it.fourMDeclarationDate || '',
+            formatPercent(it.TCKT || it.tckt),
+            formatPercent(it.CE || it.ce),
+            formatPercent(it.HDKT || it.hdkt),
+            formatPercent(it['BB đào tạo'] || it.bbDaoTao),
+            formatPercent(it['Jig tool'] || it.jigTool),
+            formatPercent(it.KHKSCL || it.khkscl),
+            formatPercent(it.fourmAverage || it.fourMAverage || it['Trung bình 4M'])
+          ];
+          aoa.push(row);
+        });
+        return aoa;
+      }
+
+      async function f8DownloadXLSX() {
+        try {
+          const btnXlsx = document.getElementById('f8-export-xlsx');
+          if (!btnXlsx) return;
+          
+          // Disable button và hiển thị loading
+          btnXlsx.disabled = true;
+          const prevText = btnXlsx.textContent;
+          btnXlsx.innerHTML = "<span class='spinner mr-2'></span>Đang xuất...";
+          
+          // Lấy danh sách tất cả người
+          const allNames = Array.isArray(FORM8_NAMES) ? FORM8_NAMES.slice() : [];
+          if (!allNames.length) {
+            showToast('Form 8: Không có danh sách người để xuất.', 'error');
+            btnXlsx.disabled = false;
+            btnXlsx.textContent = prevText;
+            return;
+          }
+
+          // Fetch dữ liệu từng người
+          const allData = [];
+          const headerMapF8 = {
+            header_F8_taskId: 'Mã tác vụ',
+            header_F8_actualCompletionDate: 'Ngày hoàn thành thực tế',
+            header_F8_code: 'Mã linh kiện/máy',
+            header_F8_taskName: 'Task Name',
+            header_F8_reportCode: 'Mã Báo cáo',
+            header_F8_evaluationResult: 'Kết quả đánh giá',
+            header_F8_notes: 'Ghi chú',
+            header_F8_4mReview: 'Tình trạng rà soát',
+            header_F8_4mDeclaration: 'Khai báo 4M',
+            header_F8_4mDeclarationDate: 'Ngày khai báo gần nhất',
+            header_F8_tckt: 'TCKT(% hoàn thành)',
+            header_F8_ce: 'CE(% hoàn thành)',
+            header_F8_hdkt: 'HDKT(% hoàn thành)',
+            header_F8_bbDaoTao: 'BB đào tạo(% hoàn thành)',
+            header_F8_jigTool: 'Jig tool(% hoàn thành)',
+            header_F8_khkscl: 'KHKSCL(% hoàn thành)',
+            field_F8_taskId: 'taskId',
+            field_F8_actualCompletionDate: 'actualCompletionDate',
+            field_F8_code: 'code',
+            field_F8_taskName: 'taskName',
+            field_F8_reportCode: 'reportCode',
+            field_F8_evaluationResult: 'evaluationResult',
+            field_F8_notes: 'notes',
+            field_F8_4mReview: '4mReview',
+            field_F8_4mDeclaration: '4mDeclaration',
+            field_F8_4mDeclarationDate: '4mDeclarationDate',
+            field_F8_tckt: 'tckt',
+            field_F8_ce: 'ce',
+            field_F8_hdkt: 'hdkt',
+            field_F8_bbDaoTao: 'bbDaoTao',
+            field_F8_jigTool: 'jigTool',
+            field_F8_khkscl: 'khkscl'
+          };
+
+          // Helper functions để parse dữ liệu
+          const getV = (obj, keys) => {
+            const sanitize = (s) => {
+              try {
+                const noDiacritics = String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const noEmoji = noDiacritics.replace(/[^\p{L}\p{N}\s_:\-]/gu, '');
+                return noEmoji.toLowerCase().replace(/\s+/g, ' ').trim();
+              } catch (_) {
+                return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+              }
+            };
+            const lower = {};
+            Object.keys(obj || {}).forEach(k => {
+              const v = obj[k];
+              const k1 = String(k).toLowerCase();
+              const k2 = k1.replace(/\s+/g, ' ').trim();
+              const k3 = sanitize(k);
+              lower[k1] = v;
+              lower[k2] = v;
+              lower[k3] = v;
+            });
+            for (const k of keys) {
+              const c1 = String(k).toLowerCase();
+              const c2 = c1.replace(/\s+/g, ' ').trim();
+              const c3 = sanitize(k);
+              const v = (c1 in lower ? lower[c1] : (c2 in lower ? lower[c2] : lower[c3]));
+              if (v !== undefined) return v;
+            }
+            return '';
+          };
+
+          const findBySanitizedIncludes = (obj, needle) => {
+            const san = (s) => {
+              try {
+                return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+              } catch (_) {
+                return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+              }
+            };
+            const target = san(needle);
+            for (const k of Object.keys(obj || {})) {
+              const kk = san(k);
+              if (kk.includes(target)) return obj[k];
+            }
+            return '';
+          };
+
+          const pickRows = (json) => {
+            if (!json) return [];
+            if (Array.isArray(json)) return json;
+            const candidates = ['data', 'rows', 'result', 'records', 'items', 'list'];
+            for (const k of candidates) {
+              if (Array.isArray(json?.[k])) return json[k];
+            }
+            try {
+              const queue = [json];
+              const seen = new Set();
+              while (queue.length) {
+                const cur = queue.shift();
+                if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
+                seen.add(cur);
+                for (const v of Object.values(cur)) {
+                  if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v;
+                  if (v && typeof v === 'object') queue.push(v);
+                }
+              }
+            } catch (_) {}
+            return [];
+          };
+
+          // Fetch dữ liệu từng người
+          for (let i = 0; i < allNames.length; i++) {
+            const name = allNames[i];
+            try {
+              const params = new URLSearchParams({
+                ...headerMapF8,
+                action: 'form8_lookup',
+                person_name: name,
+                assignee: name,
+                timestamp: new Date().toISOString()
+              });
+              
+              try {
+                const meta = {
+                  action: 'form8_lookup',
+                  person_name: name,
+                  assignee: name,
+                  timestamp_iso: new Date().toISOString()
+                };
+                params.append('body', JSON.stringify(meta));
+              } catch (_) {}
+
+              const url = `${FORM8_LOOKUP_URL}?${params.toString()}`;
+              const resp = await fetch(url, { method: 'GET' });
+              const text = await resp.text();
+              
+              if (!resp.ok) {
+                console.warn(`[Form8 Export] Lỗi khi fetch dữ liệu của ${name}:`, text);
+                continue;
+              }
+
+              let data = null;
+              try {
+                data = JSON.parse(text);
+              } catch {
+                data = null;
+              }
+
+              const rows = pickRows(data);
+              if (!rows.length) continue;
+
+              // Parse dữ liệu giống như trong renderForm8
+              rows.forEach(item => {
+                const taskId = getV(item, ['Mã tác vụ', 'mã tác vụ', 'taskid', 'task_id', 'ma_tac_vu', 'requestid', 'id']);
+                const actualCompletionDate = getV(item, ['Ngày hoàn thành thực tế', 'ngày hoàn thành thực tế', 'actualcompletiondate', 'actual_completion_date', 'ngay_hoan_thanh_thuc_te', 'completion_date', 'ngay hoan thanh', 'ngày hoàn thành', 'actual_date']);
+                const code = getV(item, ['Mã linh kiện/máy', 'mã linh kiện/máy', 'code', 'ma', 'taskcode', 'mã', 'componentcode', 'ma_linh_kien', 'ma_linh_kien_may', 'ma linh kien may']);
+                let taskName = getV(item, ['Task Name', 'task name', 'taskname', 'ten_tac_vu', 'ten', 'name', 'title', 'tên tác vụ', 'task_name']);
+                if (!taskName) {
+                  taskName = findBySanitizedIncludes(item, 'task name') || findBySanitizedIncludes(item, 'ten tac vu');
+                }
+                const reportCode = getV(item, ['Mã Báo cáo', 'mã báo cáo', 'reportcode', 'ma_bao_cao', 'report_id', 'reportid', '🆔 Mã Báo cáo', 'ma bao cao']);
+                const evaluationResult = getV(item, ['Kết quả đánh giá', 'kết quả đánh giá', 'evaluationresult', 'ket_qua_danh_gia', 'ket qua danh gia', 'result', 'ket_qua', 'kết quả', '⁉️ Kết quả', 'ket qua']);
+                const notes = getV(item, ['Ghi chú', 'ghi chú', 'notes', 'ghi_chu', 'note', 'description', 'mô tả']);
+                const fourMReview = getV(item, ['Tình trạng rà soát', 'tình trạng rà soát', '4mreview', '4m_ra_soat', '4m rà soát', '4m review', '4m_review', '4m_status', '4M rà soát', 'tinh_trang_ra_soat', 'tinh trang ra soat']);
+                const fourMDeclaration = getV(item, ['Khai báo 4M', 'khai báo 4m', '4m_declaration', '4m declaration', 'khai_bao_4m', 'khai bao 4m']);
+                const fourMDeclarationDate = getV(item, ['Ngày khai báo gần nhất', 'ngày khai báo gần nhất', '4mdeclarationdate', 'ngay_khai_bao_4m', 'ngày khai báo 4m', 'ngay khai bao 4m', '4m_date', '4m_declaration', 'Ngày khai báo 4M']);
+
+                // Lấy các trường phần trăm 4M
+                const tckt = getV(item, ['TCKT(% hoàn thành)', 'tckt(% hoàn thành)', 'TCKT', 'tckt', 'tckt%']);
+                const ce = getV(item, ['CE(% hoàn thành)', 'ce(% hoàn thành)', 'CE', 'ce', 'ce%']);
+                const hdkt = getV(item, ['HDKT(% hoàn thành)', 'hdkt(% hoàn thành)', 'HDKT', 'hdkt', 'hdkt%']);
+                const bbDaoTao = getV(item, ['BB đào tạo(% hoàn thành)', 'bb đào tạo(% hoàn thành)', 'BB đào tạo', 'bb dao tao', 'bb%']);
+                const jigTool = getV(item, ['Jig tool(% hoàn thành)', 'jig tool(% hoàn thành)', 'Jig tool', 'jig tool', 'jig%']);
+                const khkscl = getV(item, ['KHKSCL(% hoàn thành)', 'khkscl(% hoàn thành)', 'KHKSCL', 'khkscl', 'khkscl%']);
+
+                // Tính toán "Trung bình 4M"
+                const parsePercent = (val) => {
+                  if (!val || val === '') return 0;
+                  const s = String(val).replace('%', '').trim();
+                  const num = parseFloat(s);
+                  if (isNaN(num)) return 0;
+                  if (num >= 0 && num <= 1) return num * 100;
+                  return num;
+                };
+
+                const avg4m = (parsePercent(tckt) + parsePercent(ce) + parsePercent(hdkt) +
+                  parsePercent(bbDaoTao) + parsePercent(jigTool) + parsePercent(khkscl)) / 6;
+
+                const taskIdBest = pickTaskIdPreferQA(taskId, code);
+                const rowData = {
+                  personName: name,
+                  taskId: taskIdBest,
+                  actualCompletionDate,
+                  code,
+                  taskName,
+                  reportCode,
+                  evaluationResult,
+                  notes,
+                  fourMReview,
+                  fourMDeclaration,
+                  fourMDeclarationDate,
+                  TCKT: tckt,
+                  CE: ce,
+                  HDKT: hdkt,
+                  'BB đào tạo': bbDaoTao,
+                  'Jig tool': jigTool,
+                  KHKSCL: khkscl,
+                  fourmAverage: avg4m.toFixed(2)
+                };
+
+                allData.push(rowData);
+              });
+            } catch (err) {
+              console.warn(`[Form8 Export] Lỗi khi xử lý dữ liệu của ${name}:`, err);
+            }
+          }
+
+          if (!allData.length) {
+            showToast('Form 8: Không có dữ liệu để xuất.', 'error');
+            btnXlsx.disabled = false;
+            btnXlsx.textContent = prevText;
+            return;
+          }
+
+          // Chuyển đổi sang mảng 2 chiều và xuất file
+          const aoa = f8RowsToAOA(allData);
+          const ws = XLSX.utils.aoa_to_sheet(aoa);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Form8');
+          
+          const now = new Date();
+          const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+          XLSX.writeFile(wb, `Form8_All_${dateStr}.xlsx`);
+          
+          showToast(`Form 8: Đã xuất ${allData.length} dòng dữ liệu từ ${allNames.length} người.`, 'success');
+        } catch (err) {
+          console.error('[Form8 Export] Lỗi:', err);
+          showToast('Form 8: Xuất XLSX thất bại.', 'error');
+        } finally {
+          const btnXlsx = document.getElementById('f8-export-xlsx');
+          if (btnXlsx) {
+            btnXlsx.disabled = false;
+            btnXlsx.textContent = 'Xuất XLSX';
+          }
+        }
+      }
+
       // ===== Form 5: Bảng phụ P4 - chi tiết tác vụ theo nhân viên =====
       window.showP4TaskDetails = function(empName, month){
         try{
@@ -2696,6 +3198,15 @@
               displayForm8Data();
             }
           }
+        });
+      }
+
+      // Event listener cho nút xuất XLSX Form 8
+      const f8ExportXlsxBtn = document.getElementById('f8-export-xlsx');
+      if (f8ExportXlsxBtn) {
+        f8ExportXlsxBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          f8DownloadXLSX();
         });
       }
       
@@ -3380,10 +3891,6 @@
         }catch(_){ }
       }
 
-      function f4SchedulePivot(delay = 80){
-        try { if (F4_PIVOT_TMO) clearTimeout(F4_PIVOT_TMO); } catch(_) {}
-        F4_PIVOT_TMO = setTimeout(()=>{ try{ renderF4Pivot(); }catch(_){ } }, delay);
-      }
 
       // Global helper: parse various date/time formats robustly (ISO/TZ, DD/MM/YYYY, YYYY-MM-DD, with optional time & AM/PM)
       function parseDateFlexible(value){
@@ -3456,17 +3963,14 @@
           if (sidebarNav && target) {
             sidebarNav.classList.add('collapsible');
           }
-          if (target === 'form6') { try { if(!restoreForm6FromCache()){ renderForm6List(); } } catch(_){} }
           if (target === 'form4') {
             try {
-              const restored = restoreForm4FromCache();
-              f4UpdateGroupButtonsUI();
-              f4SchedulePivot();
-              // Refresh ngầm: giữ UI hiện có, tải dữ liệu mới không hiển thị spinner
-              try { F4_SUPPRESS_LOADING = true; } catch(_) {}
-              renderForm4().finally(()=>{ try { F4_SUPPRESS_LOADING = false; } catch(_) {} });
+              if (typeof initForm4 === 'function') {
+                initForm4();
+              }
             } catch(_){}
           }
+          if (target === 'form6') { try { if(!restoreForm6FromCache()){ renderForm6List(); } } catch(_){} }
           if (target === 'form5') {
             try {
               const restored = restoreForm5FromCache();
@@ -4000,8 +4504,6 @@
           }
         });
       }
-      const f4PeopleSel = document.getElementById('f4-people');
-      if (f4PeopleSel) fillSelect(f4PeopleSel, FORM1_NAMES);
       const f5EmployeeSel = document.getElementById('f5-employee');
       if (f5EmployeeSel) fillSelect(f5EmployeeSel, FORM1_NAMES);
 
@@ -4828,6 +5330,48 @@
         setTimeout(()=>toastEl.classList.remove('show'), 2600);
       }
 
+      // Modal functions
+      function openModal(id){ 
+        const m = document.getElementById(id); 
+        if(m){ 
+          m.classList.add('open'); 
+          m.setAttribute('aria-hidden','false'); 
+        } 
+      }
+      function closeModal(id){ 
+        const m = document.getElementById(id); 
+        if(m){ 
+          m.classList.remove('open'); 
+          m.setAttribute('aria-hidden','true'); 
+        } 
+      }
+
+      // Bind modal close buttons
+      (function initModalCloseButtons(){
+        document.querySelectorAll('[data-close]').forEach(btn => {
+          if (!btn._modalBound) {
+            btn.addEventListener('click', (e) => {
+              e.preventDefault();
+              const modalId = btn.getAttribute('data-close');
+              if (modalId) closeModal(modalId);
+            });
+            btn._modalBound = true;
+          }
+        });
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+          if (!modal._clickBound) {
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                const modalId = modal.id;
+                closeModal(modalId);
+              }
+            });
+            modal._clickBound = true;
+          }
+        });
+      })();
+
       // ==== Sidebar: Nhóm/Accordion + Điều hướng Form ====
       (function initSidebarGroups(){
         try{
@@ -5648,7 +6192,25 @@
           badge.className='px-2 py-1 rounded text-xs ' + badgeClass; badge.textContent=statusText||''; tdStatus.appendChild(badge); tr.appendChild(tdStatus);
           addTd(tr, taskId);
           addTd(tr, code);
-          addTd(tr, tname);
+          // Tên tác vụ - có thể click để mở modal thống kê chi tiết
+          const tdTaskName = document.createElement('td');
+          tdTaskName.className = 'px-3 py-2 border border-gray-500';
+          if (taskId && taskId.trim()) {
+            const taskNameLink = document.createElement('a');
+            taskNameLink.href = '#';
+            taskNameLink.className = 'text-blue-600 hover:text-blue-800 hover:underline cursor-pointer';
+            taskNameLink.textContent = tname || '';
+            taskNameLink.onclick = (e) => {
+              e.preventDefault();
+              if (taskId && taskId.trim()) {
+                openStatsDetail(taskId);
+              }
+            };
+            tdTaskName.appendChild(taskNameLink);
+          } else {
+            tdTaskName.textContent = tname || '';
+          }
+          tr.appendChild(tdTaskName);
           // New columns right after Task Name: Tgian nộp form & Ngày cần trả BC
           (function(){
             const submitTimeRaw = getV(item,['submittime','submit_time','submitTime','tgian nop form','thoi_gian_nop_form','thời gian nộp form']);
@@ -5693,6 +6255,359 @@
         });
         applyForm1Paging();
         try{ applyForm1MonthFilter(); }catch(_){ }
+      }
+
+      // ===== Stats Detail Modal - Sử dụng Mã tác vụ làm id
+      async function openStatsDetail(taskId){
+        const modalId = 'modal-stats';
+        const titleEl = document.getElementById('stats-title');
+        const loadingEl = document.getElementById('stats-loading');
+        const contentEl = document.getElementById('stats-content');
+        
+        // Reset modal state
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (contentEl) contentEl.classList.add('hidden');
+        
+        // Reset tất cả các section về hiển thị (sẽ ẩn sau nếu không có dữ liệu)
+        const sections = ['stats-section-c', 'stats-section-d', 'stats-section-e', 'stats-section-f', 'stats-section-g'];
+        sections.forEach(sectionId => {
+          const section = document.getElementById(sectionId);
+          if (section) section.style.display = 'block';
+        });
+        
+        if (titleEl) titleEl.textContent = taskId ? `Thống kê chi tiết - ${taskId}` : 'Thống kê chi tiết';
+        
+        try {
+          // Fetch stats data - Header map đầy đủ
+          const headerMapStats = {
+            // a. Thông tin cơ bản
+            header_ma: 'Mã', field_ma: 'ma',
+            header_task_name: 'Task Name', field_task_name: 'task_name',
+            header_conclusion: 'Kết luận (trang bìa)', field_conclusion: 'conclusion',
+            // b. Công chuẩn
+            header_cong_uoc_luong: 'Công ước lượng', field_cong_uoc_luong: 'cong_uoc_luong',
+            header_cong_chuan_day_du: 'Công chuẩn đầy đủ', field_cong_chuan_day_du: 'cong_chuan_day_du',
+            header_cong_chuan_thuc_te: 'Công chuẩn thực tế', field_cong_chuan_thuc_te: 'cong_chuan_thuc_te',
+            header_cong_chuan_ptc: 'Công chuẩn phần PTC', field_cong_chuan_ptc: 'cong_chuan_ptc',
+            header_cong_chuan_them: 'Công chuẩn thêm', field_cong_chuan_them: 'cong_chuan_them',
+            header_tong_cong_chuan_thuc: 'Tổng công chuẩn thực', field_tong_cong_chuan_thuc: 'tong_cong_chuan_thuc',
+            header_so_mau: 'Số mẫu', field_so_mau: 'so_mau',
+            header_so_mau_sheet_them: 'Số mẫu Sheet Thêm', field_so_mau_sheet_them: 'so_mau_sheet_them',
+            header_nhan_xet_pic: 'Nhận xét PIC', field_nhan_xet_pic: 'nhan_xet_pic',
+            // c. Test bền
+            header_test_ben: 'Test bền', field_test_ben: 'test_ben',
+            header_test_ben_du_kien: 'Dự kiến hoàn thành test bền', field_test_ben_du_kien: 'test_ben_du_kien',
+            header_test_ben_1: 'Test bền bìa 1', field_test_ben_1: 'test_ben_1',
+            header_test_ben_2: 'Test bền bìa 2', field_test_ben_2: 'test_ben_2',
+            header_test_ben_3: 'Test bền bìa 3', field_test_ben_3: 'test_ben_3',
+            header_test_ben_4: 'Test bền bìa 4', field_test_ben_4: 'test_ben_4',
+            header_test_ben_5: 'Test bền bìa 5', field_test_ben_5: 'test_ben_5',
+            // d. Tiêu chuẩn kỹ thuật
+            header_total_tckt: 'Hạng mục đánh giá TCKT', field_total_tckt: 'total_tckt',
+            header_ok: 'Hạng mục OK', field_ok: 'ok',
+            header_ng: 'Hạng mục NG', field_ng: 'ng',
+            header_test_ben_count: 'Hạng mục test bền', field_test_ben_count: 'test_ben_count',
+            header_not_eval: 'Hạng mục không đánh giá', field_not_eval: 'not_eval',
+            header_not_conclusion: 'Hạng mục không kết luận', field_not_conclusion: 'not_conclusion',
+            // e. Hạng mục thêm
+            header_additional: 'Hạng mục thêm ', field_additional: 'additional',
+            header_additional_ok: 'Hạng mục thêm OK', field_additional_ok: 'additional_ok',
+            header_additional_ng: 'Hạng mục thêm NG', field_additional_ng: 'additional_ng',
+            header_additional_test_ben: 'Hạng mục thêm test bền', field_additional_test_ben: 'additional_test_ben',
+            header_additional_kdg: 'Hạng mục thêm KDG', field_additional_kdg: 'additional_kdg',
+            header_additional_kkl: 'Hạng mục thêm KKL', field_additional_kkl: 'additional_kkl',
+            header_additional_comment: 'Nhận xét Hạng mục thêm', field_additional_comment: 'additional_comment',
+            // f. Rủi ro và PTC
+            header_risk_ptc_total: 'Rủi ro và PTC', field_risk_ptc_total: 'risk_ptc_total',
+            header_ptc_ok: 'PTC OK', field_ptc_ok: 'ptc_ok',
+            header_ptc_ng: 'PTC NG', field_ptc_ng: 'ptc_ng',
+            header_ptc_test_ben: 'PTC test bền', field_ptc_test_ben: 'ptc_test_ben',
+            header_ptc_na: 'PTC NA', field_ptc_na: 'ptc_na',
+            header_ptc_comment: 'Nhận xét PTC', field_ptc_comment: 'ptc_comment',
+            // g. AI phân tích
+            header_test_1_name: 'Bài test 1', field_test_1_name: 'test_1_name',
+            header_test_1_standard: 'Tiêu chuẩn 1', field_test_1_standard: 'test_1_standard',
+            header_test_1_condition: 'Điều kiện 1', field_test_1_condition: 'test_1_condition',
+            header_test_1_progress: 'Tiến độ 1', field_test_1_progress: 'test_1_progress',
+            header_test_1_status: 'Tình trạng 1', field_test_1_status: 'test_1_status',
+            header_test_2_name: 'Bài test 2', field_test_2_name: 'test_2_name',
+            header_test_2_standard: 'Tiêu chuẩn 2', field_test_2_standard: 'test_2_standard',
+            header_test_2_condition: 'Điều kiện 2', field_test_2_condition: 'test_2_condition',
+            header_test_2_progress: 'Tiến độ 2', field_test_2_progress: 'test_2_progress',
+            header_test_2_status: 'Trình trạng 2', field_test_2_status: 'test_2_status',
+            header_test_3_name: 'Bài test 3', field_test_3_name: 'test_3_name',
+            header_test_3_standard: 'Tiêu chuẩn 3', field_test_3_standard: 'test_3_standard',
+            header_test_3_condition: 'Điều kiện 3', field_test_3_condition: 'test_3_condition',
+            header_test_3_progress: 'Tiến độ 3', field_test_3_progress: 'test_3_progress',
+            header_test_3_status: 'Tình trạng 3', field_test_3_status: 'test_3_status',
+            header_test_4_name: 'Bài test 4', field_test_4_name: 'test_4_name',
+            header_test_4_standard: 'Tiêu chuẩn 4', field_test_4_standard: 'test_4_standard',
+            header_test_4_condition: 'Điều kiện 4', field_test_4_condition: 'test_4_condition',
+            header_test_4_progress: 'Tiến độ 4', field_test_4_progress: 'test_4_progress',
+            header_test_4_status: 'Trình trạng 4', field_test_4_status: 'test_4_status',
+            header_ai_comment: 'Nhận xét AI', field_ai_comment: 'ai_comment',
+            header_abnormalities: 'Bất thường AI', field_abnormalities: 'abnormalities'
+          };
+          
+          const qs = new URLSearchParams({ 
+            action: 'stats_detail', 
+            id: String(taskId),
+            ...headerMapStats,
+            _ts: Date.now().toString() 
+          });
+          
+          async function fetchStatsJson(url) {
+            const full = `${url}?${qs.toString()}`;
+            const r = await fetch(full, { method: 'GET' });
+            const txt = await r.text();
+            let parsed = null;
+            try { parsed = JSON.parse(txt); } catch {}
+            return { ok: r.ok, parsed, raw: txt };
+          }
+          
+          let resp = await fetchStatsJson(STATS_DETAIL_URL);
+          if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message || ''))) {
+            resp = await fetchStatsJson(STATS_DETAIL_URL.replace('/webhook-test/', '/webhook/'));
+          }
+          
+          if (!resp.ok) {
+            throw new Error('Không thể tải dữ liệu thống kê');
+          }
+          
+          // Parse response data
+          const data = resp.parsed;
+          if (!data || !Array.isArray(data) || data.length === 0) {
+            throw new Error('Không có dữ liệu thống kê');
+          }
+          
+          const stats = data[0]; // Get first item
+          
+          // a. Populate Thông tin cơ bản
+          const maEl = document.getElementById('stats-ma');
+          const taskNameEl = document.getElementById('stats-task-name');
+          const conclusionEl = document.getElementById('stats-conclusion');
+          if (maEl) maEl.textContent = stats['Mã'] || '';
+          if (taskNameEl) taskNameEl.textContent = stats['Task Name'] || '';
+          if (conclusionEl) conclusionEl.textContent = stats['Kết luận (trang bìa)'] || '';
+          
+          // b. Populate Công chuẩn
+          const congUocLuongEl = document.getElementById('stats-cong-uoc-luong');
+          const congChuanDayDuEl = document.getElementById('stats-cong-chuan-day-du');
+          const congChuanThucTeEl = document.getElementById('stats-cong-chuan-thuc-te');
+          const congChuanPtcEl = document.getElementById('stats-cong-chuan-ptc');
+          const congChuanBoSungEl = document.getElementById('stats-cong-chuan-bo-sung');
+          const congChuanThemEl = document.getElementById('stats-cong-chuan-them');
+          const tongCongChuanThucEl = document.getElementById('stats-tong-cong-chuan-thuc');
+          const soMauEl = document.getElementById('stats-so-mau');
+          const soMauSheetThemEl = document.getElementById('stats-so-mau-sheet-them');
+          const nhanXetPicEl = document.getElementById('stats-nhan-xet-pic');
+          if (congUocLuongEl) congUocLuongEl.textContent = stats['Công ước lượng'] || '0';
+          if (congChuanDayDuEl) congChuanDayDuEl.textContent = stats['Công chuẩn đầy đủ'] || '0';
+          if (congChuanThucTeEl) congChuanThucTeEl.textContent = stats['Công chuẩn thực tế'] || '0';
+          if (congChuanPtcEl) congChuanPtcEl.textContent = stats['Công chuẩn phần PTC'] || '0';
+          // Xử lý cả trường cũ và mới để tương thích ngược
+          if (congChuanBoSungEl) {
+            const congChuanBoSung = stats['Công chuẩn phần Bổ sung'] || stats['Công chuẩn thêm'] || '0';
+            congChuanBoSungEl.textContent = congChuanBoSung;
+          }
+          if (congChuanThemEl) congChuanThemEl.textContent = stats['Công chuẩn thêm'] || '0';
+          if (tongCongChuanThucEl) tongCongChuanThucEl.textContent = stats['Tổng công chuẩn thực'] || '0';
+          if (soMauEl) soMauEl.textContent = stats['Số mẫu'] || '0';
+          if (soMauSheetThemEl) soMauSheetThemEl.textContent = stats['Số mẫu Sheet Thêm'] || '0';
+          if (nhanXetPicEl) nhanXetPicEl.textContent = stats['Nhận xét PIC'] || '';
+          
+          // c. Populate Test bền
+          const testBenEl = document.getElementById('stats-test-ben');
+          const testBenDuKienEl = document.getElementById('stats-test-ben-du-kien');
+          if (testBenEl) testBenEl.textContent = stats['Test bền'] || '';
+          if (testBenDuKienEl) testBenDuKienEl.textContent = stats['Dự kiến hoàn thành test bền'] || '';
+          
+          // Populate test ben sections (5 bìa)
+          let hasTestBenData = false;
+          const testBenValue = String(stats['Test bền'] || '').trim();
+          const testBenDuKien = String(stats['Dự kiến hoàn thành test bền'] || '').trim();
+          if (testBenValue || testBenDuKien) {
+            hasTestBenData = true;
+          }
+          
+          for (let i = 1; i <= 5; i++) {
+            const testBenKey = `Test bền bìa ${i}`;
+            const testBenContent = stats[testBenKey];
+            const testBenItemEl = document.getElementById(`stats-test-ben-${i}`);
+            const testBenContentEl = document.getElementById(`stats-test-ben-${i}-content`);
+            
+            if (testBenContent && String(testBenContent).trim()) {
+              hasTestBenData = true;
+              if (testBenItemEl) testBenItemEl.classList.remove('hidden');
+              if (testBenContentEl) testBenContentEl.textContent = testBenContent;
+            } else {
+              if (testBenItemEl) testBenItemEl.classList.add('hidden');
+            }
+          }
+          
+          // Ẩn section c nếu không có dữ liệu
+          const sectionC = document.getElementById('stats-section-c');
+          if (sectionC) {
+            sectionC.style.display = hasTestBenData ? 'block' : 'none';
+          }
+          
+          // d. Populate Tiêu chuẩn kỹ thuật
+          const totalTckt = parseInt(stats['Hạng mục đánh giá TCKT'] || '0');
+          const ok = parseInt(stats['Hạng mục OK'] || '0');
+          const ng = parseInt(stats['Hạng mục NG'] || '0');
+          const testBenCount = parseInt(stats['Hạng mục test bền'] || '0');
+          const notEval = parseInt(stats['Hạng mục không đánh giá'] || '0');
+          const notConclusion = parseInt(stats['Hạng mục không kết luận'] || '0');
+          
+          document.getElementById('stats-total-tckt').textContent = totalTckt || '0';
+          document.getElementById('stats-ok').textContent = ok || '0';
+          document.getElementById('stats-ng').textContent = ng || '0';
+          document.getElementById('stats-test-ben-count').textContent = testBenCount || '0';
+          document.getElementById('stats-not-eval').textContent = notEval || '0';
+          const notConclusionEl = document.getElementById('stats-not-conclusion');
+          if (notConclusionEl) notConclusionEl.textContent = notConclusion || '0';
+          
+          // Ẩn section d nếu tất cả đều 0 hoặc rỗng
+          const sectionD = document.getElementById('stats-section-d');
+          const hasDataD = totalTckt > 0 || ok > 0 || ng > 0 || testBenCount > 0 || notEval > 0 || notConclusion > 0;
+          if (sectionD) {
+            sectionD.style.display = hasDataD ? 'block' : 'none';
+          }
+          
+          // e. Populate Hạng mục thêm
+          const additional = parseInt(stats['Hạng mục thêm '] || '0');
+          const additionalOk = parseInt(stats['Hạng mục thêm OK'] || '0');
+          const additionalNg = parseInt(stats['Hạng mục thêm NG'] || '0');
+          const additionalTestBen = parseInt(stats['Hạng mục thêm test bền'] || '0');
+          const additionalNa = parseInt(stats['Hạng mục thêm NA'] || '0');
+          const additionalKdg = parseInt(stats['Hạng mục thêm KDG'] || '0');
+          const additionalKkl = parseInt(stats['Hạng mục thêm KKL'] || '0');
+          const additionalComment = stats['Nhận xét Hạng mục thêm'] || '';
+          
+          document.getElementById('stats-additional').textContent = additional || '0';
+          document.getElementById('stats-additional-ok').textContent = additionalOk || '0';
+          document.getElementById('stats-additional-ng').textContent = additionalNg || '0';
+          document.getElementById('stats-additional-test-ben').textContent = additionalTestBen || '0';
+          // Xử lý cả trường cũ và mới để tương thích ngược
+          const additionalNaEl = document.getElementById('stats-additional-na');
+          if (additionalNaEl) {
+            const naValue = additionalNa || additionalKdg || additionalKkl || '0';
+            additionalNaEl.textContent = naValue;
+          }
+          const additionalKdgEl = document.getElementById('stats-additional-kdg');
+          if (additionalKdgEl) additionalKdgEl.textContent = additionalKdg || '0';
+          const additionalKklEl = document.getElementById('stats-additional-kkl');
+          if (additionalKklEl) additionalKklEl.textContent = additionalKkl || '0';
+          document.getElementById('stats-additional-comment').textContent = additionalComment;
+          
+          // Ẩn section e nếu không có dữ liệu
+          const sectionE = document.getElementById('stats-section-e');
+          const hasDataE = additional > 0 || additionalOk > 0 || additionalNg > 0 || additionalTestBen > 0 || additionalNa > 0 || additionalKdg > 0 || additionalKkl > 0 || additionalComment.trim();
+          if (sectionE) {
+            sectionE.style.display = hasDataE ? 'block' : 'none';
+          }
+          
+          // f. Populate Rủi ro và PTC
+          const riskPtcTotal = parseInt(stats['Rủi ro và PTC'] || '0');
+          const ptcOk = parseInt(stats['PTC OK'] || '0');
+          const ptcNg = parseInt(stats['PTC NG'] || '0');
+          const ptcTestBen = parseInt(stats['PTC test bền'] || '0');
+          const ptcNa = parseInt(stats['PTC NA'] || '0');
+          const ptcComment = stats['Nhận xét PTC'] || '';
+          
+          document.getElementById('stats-risk-ptc-total').textContent = riskPtcTotal || '0';
+          document.getElementById('stats-ptc-ok').textContent = ptcOk || '0';
+          document.getElementById('stats-ptc-ng').textContent = ptcNg || '0';
+          document.getElementById('stats-ptc-test-ben').textContent = ptcTestBen || '0';
+          document.getElementById('stats-ptc-na').textContent = ptcNa || '0';
+          document.getElementById('stats-ptc-comment').textContent = ptcComment;
+          
+          // Ẩn section f nếu không có dữ liệu
+          const sectionF = document.getElementById('stats-section-f');
+          const hasDataF = riskPtcTotal > 0 || ptcOk > 0 || ptcNg > 0 || ptcTestBen > 0 || ptcNa > 0 || ptcComment.trim();
+          if (sectionF) {
+            sectionF.style.display = hasDataF ? 'block' : 'none';
+          }
+          
+          // g. Populate AI phân tích - Bài test 1-4
+          let hasTestData = false;
+          for (let i = 1; i <= 4; i++) {
+            const testName = stats[`Bài test ${i}`];
+            const testEl = document.getElementById(`stats-test-${i}`);
+            
+            if (testName && testName.trim()) {
+              hasTestData = true;
+              if (testEl) testEl.classList.remove('hidden');
+              document.getElementById(`stats-test-${i}-name`).textContent = testName;
+              document.getElementById(`stats-test-${i}-standard`).textContent = stats[`Tiêu chuẩn ${i}`] || '';
+              document.getElementById(`stats-test-${i}-condition`).textContent = stats[`Điều kiện ${i}`] || '';
+              document.getElementById(`stats-test-${i}-progress`).textContent = stats[`Tiến độ ${i}`] || '';
+              // Xử lý cả "Tình trạng" và "Trình trạng" (có thể có typo)
+              const statusKey = `Tình trạng ${i}`;
+              const statusKeyAlt = `Trình trạng ${i}`;
+              document.getElementById(`stats-test-${i}-status`).textContent = stats[statusKey] || stats[statusKeyAlt] || '';
+            } else {
+              if (testEl) testEl.classList.add('hidden');
+            }
+          }
+          
+          // Populate Nhận xét AI
+          const aiComment = stats['Nhận xét AI'] || '';
+          document.getElementById('stats-ai-comment').textContent = aiComment;
+          
+          // Populate Bất thường AI
+          const abnormalitiesList = document.getElementById('stats-abnormalities-list');
+          const abnormalities = stats['Bất thường AI'];
+          
+          let hasAbnormalities = false;
+          if (abnormalitiesList) {
+            abnormalitiesList.innerHTML = '';
+            
+            // Handle different data types for abnormalities
+            let abnormalityItems = [];
+            
+            if (Array.isArray(abnormalities)) {
+              abnormalityItems = abnormalities;
+            } else if (typeof abnormalities === 'string' && abnormalities.trim()) {
+              // If it's a string, split by common delimiters
+              abnormalityItems = abnormalities.split(/[;\n\r]+/).map(item => item.trim()).filter(item => item);
+            } else if (abnormalities && typeof abnormalities === 'object') {
+              // If it's an object, try to extract values
+              abnormalityItems = Object.values(abnormalities).filter(item => item && typeof item === 'string' && item.trim());
+            }
+            
+            if (abnormalityItems.length > 0) {
+              hasAbnormalities = true;
+              abnormalityItems.forEach((abnormality, index) => {
+                if (abnormality && abnormality.trim()) {
+                  const div = document.createElement('div');
+                  div.className = 'bg-red-50 p-3 rounded-lg border-l-4 border-red-400';
+                  div.innerHTML = `<div class="text-sm text-gray-700">${abnormality}</div>`;
+                  abnormalitiesList.appendChild(div);
+                }
+              });
+            } else {
+              abnormalitiesList.innerHTML = '<div class="text-sm text-gray-500 italic">Không có bất thường nào được phát hiện</div>';
+            }
+          }
+          
+          // Ẩn section g nếu không có dữ liệu (không có bài test nào, không có nhận xét AI, không có bất thường)
+          const sectionG = document.getElementById('stats-section-g');
+          const hasDataG = hasTestData || aiComment.trim() || hasAbnormalities;
+          if (sectionG) {
+            sectionG.style.display = hasDataG ? 'block' : 'none';
+          }
+          
+          // Show content and hide loading
+          if (loadingEl) loadingEl.style.display = 'none';
+          if (contentEl) contentEl.classList.remove('hidden');
+          
+        } catch (err) {
+          console.error('Error loading stats:', err);
+          if (loadingEl) loadingEl.innerHTML = '<div class="text-red-600">Lỗi tải dữ liệu: ' + err.message + '</div>';
+        }
+        
+        openModal(modalId);
       }
 
       async function renderForm1(){
@@ -6031,15 +6946,6 @@
       // Form 3 logic
       function setRqTime(){ const d=new Date(); const el=document.getElementById('rq-time'); if (el) el.value = formatDdMmYyyyHHmm(d); }
       setRqTime();
-      // Default Form 4 month = current month
-      (function setDefaultF4Month(){
-        const m = document.getElementById('f4-month');
-        if (!m) return;
-        const d = new Date();
-        const yy = d.getFullYear();
-        const mm = String(d.getMonth()+1).padStart(2,'0');
-        if (!m.value) m.value = `${yy}-${mm}`;
-      })();
       // Helper: set default date for Form 5 inputs
       function setF5DateDefault(){
         const el = document.getElementById('f5-date');
@@ -6154,594 +7060,7 @@
           if (btn) { btn.disabled = false; btn.textContent = prev || 'Giao việc'; }
         }
       };
-
-      // ===== Form 4: filter popover & selection =====
-      let F4_SELECTED_NAMES = new Set();
-      let F4_ALL_NAMES = [];
-      let F4_SUPPRESS_LOADING = false;
-
-      // Form 4: cache dữ liệu để lọc client-side (không refetch khi bấm nút nhóm)
-      let F4_LAST_NORMALIZED = [];
-      let F4_LAST_MERGED = [];
-      let F4_COUNTS_BY_NAME = new Map();
-      let F4_LAST_PARAMS = { status: '', from: '', to: '', month: '' };
-
-      // Predefined groups for Form 4 filters
-      // Loại bỏ: Hà Mỹ Linh, Đỗ Thế Cường, Lê Thị Thanh Nhàn
-      const F4_EXCLUDED = new Set(["Hà Mỹ Linh","Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
-      const F4_GROUP_LINH = [
-        "Bùi Đặng Quốc Huy","Nguyễn Hữu Thịnh","Trần Hiếu Nghĩa","Lại Quốc Lộc",
-        "Lê Ngọc Ánh","Lê Văn Sơn","Nguyễn Thị Hiền","Phạm Thị Minh"
-      ];
-      const F4_GROUP_HIEU = [
-        "Đỗ Quang Long","Phạm Thành Trung Kiên","Thái Thị Giang",
-        "Vũ Thị Hằng","Đào Tuấn Kỳ","Lê Thị Thảo","Vũ Thị Thanh Hiền"
-      ];
-      function f4SetGroupSelection(names){
-        if (!names || names.length === 0) {
-          F4_SELECTED_NAMES.clear();
-        } else {
-          F4_SELECTED_NAMES = new Set(names);
-        }
-        // Lọc cục bộ từ cache, không gọi server
-        renderForm4Local();
-        try { renderF4Pivot(); } catch(_) {}
-      }
-      function f4UpdateGroupButtonsUI(){
-        const btnAll = document.getElementById('f4-btn-all');
-        const btnLinh = document.getElementById('f4-btn-linh');
-        const btnHieu = document.getElementById('f4-btn-hieu');
-        const reset = (btn)=>{ if(!btn) return; btn.classList.remove('bg-primary-blue','text-white'); btn.classList.add('bg-blue-50/30','text-primary-blue'); };
-        const active = (btn)=>{ if(!btn) return; btn.classList.add('bg-primary-blue','text-white'); btn.classList.remove('bg-blue-50/30','text-primary-blue'); };
-        reset(btnAll); reset(btnLinh); reset(btnHieu);
-        const setEq = (a,b)=>{ if(a.size!==b.size) return false; for(const v of a){ if(!b.has(v)) return false; } return true; };
-        const setLinh = new Set(F4_GROUP_LINH);
-        const setHieu = new Set(F4_GROUP_HIEU);
-        if (F4_SELECTED_NAMES.size === 0) active(btnAll);
-        else if (setEq(F4_SELECTED_NAMES, setLinh)) active(btnLinh);
-        else if (setEq(F4_SELECTED_NAMES, setHieu)) active(btnHieu);
-      }
-
-      function f4BuildFilterList(names){
-        const list = document.getElementById('f4-filter-list');
-        if (!list) return;
-        list.innerHTML = '';
-        const uniq = Array.from(new Set(names)).sort((a,b)=> a.localeCompare(b,'vi'));
-        uniq.forEach(n=>{
-          const safe = n.replace(/"/g,'&quot;');
-          const checked = (F4_SELECTED_NAMES.size===0) || F4_SELECTED_NAMES.has(n);
-          const row = document.createElement('label');
-          row.className = 'flex items-center gap-2';
-          row.setAttribute('data-name', n);
-          row.innerHTML = `<input type="checkbox" value="${safe}" class="f4-filter-item h-4 w-4" ${checked?'checked':''}/><span>${safe}</span>`;
-          list.appendChild(row);
-        });
-      }
-      function f4SyncSelectionFromUI(){
-        const list = document.getElementById('f4-filter-list');
-        if (!list) return;
-        const boxes = list.querySelectorAll('input.f4-filter-item');
-        const picked = [];
-        boxes.forEach(b=>{ if (b.checked) picked.push(b.value); });
-        if (picked.length === boxes.length || picked.length === 0) {
-          F4_SELECTED_NAMES.clear();
-        } else {
-          F4_SELECTED_NAMES = new Set(picked);
-        }
-      }
-      (function f4InitFilterPopover(){
-        const btn = document.getElementById('f4-filter-toggle');
-        const pop = document.getElementById('f4-filter-pop');
-        const list = document.getElementById('f4-filter-list');
-        const search = document.getElementById('f4-filter-search');
-        const selAll = document.getElementById('f4-filter-select-all');
-        const clear = document.getElementById('f4-filter-clear');
-        const applyBtn = document.getElementById('f4-filter-apply');
-        if (!btn || !pop) return;
-        btn.addEventListener('click', (e)=>{ e.preventDefault(); pop.classList.toggle('hidden'); if(!pop.classList.contains('hidden')){ try{ search&&search.focus(); }catch(_){} }});
-        document.addEventListener('click', (e)=>{ if (!pop || pop.classList.contains('hidden')) return; if (btn.contains(e.target) || pop.contains(e.target)) return; pop.classList.add('hidden'); });
-        if (list) list.addEventListener('change', (e)=>{ /* không auto render khi tick */ });
-        if (search) search.addEventListener('input', (e)=>{
-          const q = (e.target.value||'').toLowerCase().trim();
-          pop.querySelectorAll('label[data-name]').forEach(el=>{
-            const nm = (el.getAttribute('data-name')||'').toLowerCase();
-            el.style.display = nm.includes(q) ? '' : 'none';
-          });
-        });
-        if (selAll) selAll.addEventListener('click',(e)=>{ e.preventDefault(); pop.querySelectorAll('input.f4-filter-item').forEach(cb=> cb.checked=true); });
-        if (clear) clear.addEventListener('click',(e)=>{ e.preventDefault(); pop.querySelectorAll('input.f4-filter-item').forEach(cb=> cb.checked=false); });
-        if (applyBtn) applyBtn.addEventListener('click',(e)=>{ e.preventDefault(); f4SyncSelectionFromUI(); pop.classList.add('hidden'); renderForm4(); f4SchedulePivot(); f4UpdateGroupButtonsUI(); });
-      })();
-
-      // Helper: đếm số tác vụ theo người với filter trạng thái
-      async function f4FetchTaskCount(name, statusVal, fromVal, toVal){
-        const headerMapF1 = {
-          header_code: 'Mã',
-          header_taskName: 'Tên tác vụ',
-          header_status: 'Trạng thái',
-          field_code: 'code',
-          field_taskName: 'taskName',
-          field_status: 'status'
-        };
-        const params = new URLSearchParams({
-          ...headerMapF1,
-          action: 'form1_lookup',
-          person_name: name,
-          timestamp: new Date().toISOString()
-        });
-        if (fromVal) params.append('from', fromVal);
-        if (toVal) params.append('to', toVal);
-        async function fetchJson(url){
-          const r = await fetch(url, { method: 'GET' });
-          const text = await r.text();
-          let parsed = null; try{ parsed = JSON.parse(text); }catch{ parsed = null; }
-          return { ok: r.ok, parsed, raw: text, status: r.status };
-        }
-        function pickRows(json){
-          if (!json) return [];
-          if (Array.isArray(json)) return json;
-          const candidates = ['data','rows','result','records','items','list'];
-          for (const k of candidates){ if (Array.isArray(json?.[k])) return json[k]; }
-          try{
-            const queue=[json]; const seen=new Set();
-            while(queue.length){
-              const cur=queue.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur);
-              for (const v of Object.values(cur)){
-                if (Array.isArray(v) && v.length && typeof v[0]==='object') return v;
-                if (v && typeof v==='object') queue.push(v);
-              }
-            }
-          }catch(_){}
-          return [];
-        }
-        function getV(obj, keys){
-          const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
-          for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
-          return '';
-        }
-        try{
-          const testUrl = `${WEBHOOK_URL}?${params.toString()}`;
-          let first = await fetchJson(testUrl);
-          if (!first.ok || (first.parsed && first.parsed.code === 0 && /could not be started/i.test(String(first.parsed.message||'')))){
-            const prodUrl = testUrl.replace('/webhook-test/', '/webhook/');
-            first = await fetchJson(prodUrl);
-          }
-          if (!first.ok) return 0;
-          let rows = pickRows(first.parsed ?? (first.raw ? JSON.parse(first.raw) : null));
-          if (statusVal === 'Doing'){
-            rows = rows.filter(item=>{
-              const s = String(getV(item,['status','trangthai','trang_thai','trạng thái'])||'').toLowerCase();
-              return s.includes('doing') || s.includes('đang');
-            });
-          }
-          return rows.length;
-        }catch(_){ return 0; }
-      }
-
-      // Form 4 logic: GET Doing data and render two columns
-      async function renderForm4(){
-        const body = document.getElementById('f4-body');
-        const bodyAll = document.getElementById('f4-body-all');
-        const chartWrap = document.getElementById('f4-chart-container');
-        if (!F4_SUPPRESS_LOADING){
-          if (chartWrap) chartWrap.style.display = 'none';
-          if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
-        }
-        const statusSelEl = document.getElementById('f4-status');
-        const statusValPreview = statusSelEl ? statusSelEl.value : 'Doing';
-        const colSpan = (statusValPreview === 'All') ? 10 : 3;
-        if (!F4_SUPPRESS_LOADING){
-          body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
-        }
-        try{
-          const urlTest = 'https://iatzhxxuk.tino.page/webhook/9cdcf54b-f98f-42b8-ab15-824d5b6da050';
-          const urlProd = urlTest.replace('/webhook-test/', '/webhook/');
-          const params = new URLSearchParams();
-          const statusEl = document.getElementById('f4-status');
-          const statusVal = (statusEl && statusEl.value) ? statusEl.value : 'Doing';
-          params.append('status', statusVal);
-          // Date range filter -> from month
-          const monthInput = document.getElementById('f4-month');
-          const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
-          let fromVal = '';
-          let toVal = '';
-          if (monthVal) {
-            try{
-              const [yy, mm] = monthVal.split('-');
-              const firstDay = `${yy}-${mm}-01`;
-              const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
-              const lastDay = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
-              fromVal = firstDay; toVal = lastDay;
-            }catch(_){ }
-          }
-          if (fromVal) params.append('from', fromVal);
-          if (toVal) params.append('to', toVal);
-          // Query mapping for 2 output columns
-          params.append('header_employee', 'Nhân viên');
-          params.append('header_current_manhour', 'Công chuẩn hiện tại');
-          params.append('field_employee', 'employee');
-          params.append('field_current_manhour', 'manhour');
-          params.append('header_task_count', 'Số tác vụ trong tháng');
-          params.append('field_task_count', 'taskCount');
-          params.append('_ts', Date.now().toString());
-          // Debug: log the exact URL being requested
-          try { console.log('Form4 GET (test):', `${urlTest}?${params.toString()}`); } catch(_) {}
-
-          async function fetchJson(url){
-            const r = await fetch(url, { method: 'GET' });
-            const text = await r.text();
-            const contentType = r.headers.get('content-type') || '';
-            let parsed = null; 
-            // Kiểm tra nếu response có vẻ là HTML hoặc text thông thường (không phải JSON)
-            const trimmedText = text.trim();
-            if (trimmedText && !trimmedText.startsWith('{') && !trimmedText.startsWith('[') && 
-                (trimmedText.startsWith('<') || trimmedText.toLowerCase().includes('html') || 
-                 trimmedText.toLowerCase().includes('hệ thống'))) {
-              // Response có vẻ là HTML/text, không phải JSON
-              parsed = null;
-            } else {
-              // Thử parse JSON
-              try { 
-                parsed = JSON.parse(text); 
-              } catch (parseErr) { 
-                parsed = null; 
-              }
-            }
-            return { ok: r.ok, ct: contentType, parsed, raw: text, status: r.status };
-          }
-
-          let first = await fetchJson(`${urlTest}?${params.toString()}`);
-          // Fallback to production webhook if test not active or server error like n8n "Can't determine which item to use"
-          if (!first.ok || /could not be started/i.test(String(first.parsed?.message||'')) || /Can't determine which item to use|Can't determine which item to use/i.test(first.raw||'')){
-            try { console.warn('Form4 GET fallback -> prod'); } catch(_){ }
-            first = await fetchJson(`${urlProd}?${params.toString()}`);
-          }
-          if(!first.ok){
-            throw new Error(first.raw || `HTTP ${first.status}`);
-          }
-          // Kiểm tra nếu response không phải JSON
-          if (!first.parsed && first.raw && !first.raw.trim().startsWith('{') && !first.raw.trim().startsWith('[')) {
-            // Response có vẻ là HTML/text, không phải JSON
-            throw new Error(`Phản hồi từ server không phải JSON: ${first.raw.substring(0, 100)}...`);
-          }
-          let data = null;
-          if (Array.isArray(first.parsed) || (first.parsed && typeof first.parsed === 'object')) {
-            data = first.parsed;
-          } else if (first.raw) {
-            try {
-              data = JSON.parse(first.raw);
-            } catch (parseErr) {
-              throw new Error(`Lỗi phân tích JSON: ${parseErr.message}. Response: ${first.raw.substring(0, 200)}...`);
-            }
-          }
-          function pickRowsDeep(json){
-            if (!json) return [];
-            if (Array.isArray(json) && json.length && typeof json[0] === 'object') return json;
-            const candidates = ['data','rows','result','records','items','list'];
-            for (const k of candidates){ if (Array.isArray(json?.[k]) && json[k].length && typeof json[k][0] === 'object') return json[k]; }
-            try{
-              const queue=[json]; const seen=new Set();
-              while(queue.length){
-                const cur = queue.shift();
-                if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
-                seen.add(cur);
-                for (const v of Object.values(cur)){
-                  if (Array.isArray(v) && v.length && typeof v[0] === 'object') return v;
-                  if (v && typeof v === 'object') queue.push(v);
-                }
-              }
-            }catch(_){ }
-            return [];
-          }
-          const rows = pickRowsDeep(data);
-          try{ LS.setJSON('f4.cache', { params: { status: statusVal, from: fromVal, to: toVal, month: monthVal }, rows, ts: Date.now() }); LS.set('f4.lastUpdated', String(Date.now())); }catch(_){ }
-          if(!rows.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
-          const getV = (obj, keys)=>{
-            const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{});
-            for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; }
-            return '';
-          };
-          const normalized = rows.map(r=>{
-            const name = getV(r,[
-              'field_employee','employee','employee_name','nhanvien','nhan_vien','nhân viên','họ tên','ho_ten','user','name',
-              'assignee','assignee_name','pic','nguoi_phu_trach','người phụ trách','người nhận','receiver','recipient'
-            ]).toString().trim();
-            const manRaw = getV(r,[
-              'field_current_manhour','manhour','manhour_current','current_manhour','current_manhours','man_hours','man_hour',
-              'congchuan','cong_chuan','công chuẩn hiện tại','công chuẩn nhận','công chuẩn tổng tháng','cong_chuan_thang','hours','score'
-            ]);
-            const man = Number(manRaw);
-            const countRaw = getV(r,[
-              'field_task_count','taskcount','task_count','count','sotacvu','so_tac_vu','số tác vụ','số tác vụ trong tháng',
-              'so_tac_vu_thang','sotacvu_thang','tasks','total_tasks','task_total','so_luong','so_luong_tac_vu','so_dau_muc',
-              'so_doing','doing_count','count_doing','so_luong_doing','in_month_count','count_in_month'
-            ]);
-            const count = Number(countRaw);
-            return { name: name || '-', manhour: isNaN(man) ? 0 : man, count: isNaN(count) ? null : count };
-          }).filter(x=>x.name && x.name !== '-');
-          // Bổ sung mọi nhân sự từ danh sách chuẩn để không bị thiếu tên (vd: "Hà Mỹ Linh")
-          const baseNames = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.filter(n=> !F4_EXCLUDED.has(n)) : [];
-          const unionNamesRaw = Array.from(new Set([ ...normalized.map(x=>x.name), ...baseNames ]));
-          const unionNames = unionNamesRaw.filter(n=> !F4_EXCLUDED.has(n));
-          const merged = unionNames.map(n=>{
-            const exist = normalized.find(x=>x.name===n);
-            return exist ? exist : { name: n, manhour: 0, count: null };
-          });
-          // Lưu cache để phục vụ lọc cục bộ không cần refetch
-          F4_LAST_NORMALIZED = normalized.slice();
-          F4_LAST_MERGED = merged.slice();
-          F4_LAST_PARAMS = { status: statusVal, from: fromVal, to: toVal, month: monthVal };
-          F4_COUNTS_BY_NAME = new Map();
-          // Cập nhật danh sách người trong popover
-          F4_ALL_NAMES = unionNames;
-          f4BuildFilterList(F4_ALL_NAMES);
-          // Lọc theo các tên đã chọn (Set rỗng = tất cả)
-          const selectedNames = Array.from(F4_SELECTED_NAMES);
-          const filtered = selectedNames.length ? merged.filter(x => F4_SELECTED_NAMES.has(x.name)) : merged;
-          if (!filtered.length) { body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; if(chartWrap) chartWrap.style.display='none'; return; }
-          const normalizedSorted = filtered.slice().sort((a,b)=> b.manhour - a.manhour);
-          // Nếu trạng thái là All, mở rộng cột theo yêu cầu và lấy dữ liệu server
-          const isAll = (statusVal === 'All');
-          async function fetchStatsFor(name){
-            try{
-              const qs = new URLSearchParams();
-              qs.append('action','form4_employee_stats');
-              qs.append('employee', name);
-              if (fromVal) qs.append('from', fromVal);
-              if (toVal) qs.append('to', toVal);
-              const r = await fetch(`${urlTest}?${qs.toString()}`);
-              const t = await r.text();
-              let j = null; try{ j = JSON.parse(t); }catch{}
-              const obj = (j && typeof j==='object') ? j : {};
-              const getN = (k)=>{ const v = obj[k]; const n = Number(v); return isNaN(n)?0:n; };
-              const done = getN('done');
-              const ahead = getN('ahead');
-              const ontime = getN('ontime');
-              const late = getN('late');
-              const rateOntime = getN('rate_ontime');
-              const rateLate = getN('rate_late');
-              const rateAhead = getN('rate_ahead');
-              return { done, ahead, ontime, late, rateOntime, rateLate, rateAhead };
-            }catch(_){ return { done:0,ahead:0,ontime:0,late:0,rateOntime:0,rateLate:0,rateAhead:0 }; }
-          }
-          // Cập nhật header động theo chế độ
-          (function updateHeader(){
-            const headRow = document.getElementById('f4-head-row');
-            if (!headRow) return;
-            const isAll = (statusVal === 'All');
-            try {
-              const mainTable = document.getElementById('f4-main-table');
-              if (mainTable) {
-                if (isAll) {
-                  mainTable.classList.add('min-w-[1100px]');
-                  mainTable.classList.remove('min-w-[480px]');
-                } else {
-                  mainTable.classList.add('min-w-[480px]');
-                  mainTable.classList.remove('min-w-[1100px]');
-                }
-              }
-            } catch(_) {}
-            headRow.innerHTML = `
-              <th class="px-3 py-2 relative">
-                <button id="f4-filter-toggle" class="inline-flex items-center gap-1 hover:text-primary-blue">Nhân viên <span class="text-xs">▾</span></button>
-                <div id="f4-filter-pop" class="absolute z-20 mt-2 left-0 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 hidden">
-                  <div class="flex items-center gap-2 mb-2">
-                    <input id="f4-filter-search" type="text" placeholder="Tìm người..." class="flex-1 border border-blue-300 rounded bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-                  </div>
-                  <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
-                    <div class="flex items-center gap-3">
-                      <button id="f4-filter-select-all" class="underline">Chọn tất cả</button>
-                      <button id="f4-filter-clear" class="underline">Bỏ chọn</button>
-                    </div>
-                    <button id="f4-filter-apply" class="px-2 py-1 rounded bg-primary-blue text-white text-xs">Lọc</button>
-                  </div>
-                  <div id="f4-filter-list" class="max-h-60 overflow-auto space-y-1 text-sm">
-                    <label class="flex items-center gap-2" data-name="(Chỗ trống)"><input type="checkbox" value="(Chỗ trống)" class="f4-filter-item h-4 w-4"/><span>(Chỗ trống)</span></label>
-                  </div>
-                </div>
-              </th>
-              <th class="px-3 py-2">Công chuẩn hiện tại</th>
-              <th class="px-3 py-2">Số tác vụ</th>
-              ${isAll ? `
-                <th class="px-3 py-2">Số DONE</th>
-                <th class="px-3 py-2">Vượt tiến độ</th>
-                <th class="px-3 py-2">Đúng tiến độ</th>
-                <th class="px-3 py-2">Chậm tiến độ</th>
-                <th class="px-3 py-2">Tỷ lệ vượt (%)</th>
-                <th class="px-3 py-2">Tỷ lệ đúng (%)</th>
-                <th class="px-3 py-2">Tỷ lệ chậm (%)</th>
-              `: ''}`;
-            // re-bind filter popover events
-            try { f4InitFilterPopover(); } catch(_) {}
-          })();
-
-          const html = await (async ()=>{
-            const rowsHtml = [];
-            for (const x of normalizedSorted){
-              if (!isAll){
-                rowsHtml.push(`
-                  <tr>
-              <td class="px-3 py-2">
-                <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
-              </td>
-              <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
-              <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}">${(x.count==null)?'<span class="spinner"></span>':String(x.count)}</span></td>
-                  </tr>`);
-                continue;
-              }
-              const st = await fetchStatsFor(x.name);
-              rowsHtml.push(`
-                <tr>
-                  <td class="px-3 py-2">${x.name}</td>
-                  <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
-                  <td class="px-3 py-2">${(x.count==null)?'':String(x.count)}</td>
-                  <td class="px-3 py-2">${(st.done ?? '')}</td>
-                  <td class="px-3 py-2">${(st.ahead ?? '')}</td>
-                  <td class="px-3 py-2">${(st.ontime ?? '')}</td>
-                  <td class="px-3 py-2">${(st.late ?? '')}</td>
-                  <td class="px-3 py-2">${isNaN(st.rateOntime)?'':(st.rateOntime.toFixed(0)+"%")}</td>
-                  <td class="px-3 py-2">${isNaN(st.rateLate)?'':(st.rateLate.toFixed(0)+"%")}</td>
-                  <td class="px-3 py-2">${isNaN(st.rateAhead)?'':(st.rateAhead.toFixed(0)+"%")}</td>
-                </tr>`);
-            }
-            return rowsHtml.join('');
-          })();
-          if (isAll) {
-            if (bodyAll) { bodyAll.innerHTML = html; try{ enableTableDrag('f4-body-all'); }catch(_){ } }
-          } else {
-          body.innerHTML = html; try{ enableTableDrag('f4-body'); }catch(_){ }
-          // Điền số tác vụ bất đồng bộ theo trạng thái hiện tại
-          const statusForCount = statusVal;
-          const names = normalizedSorted.filter(x=> x.count == null && !F4_COUNTS_BY_NAME.has(x.name)).map(x=>x.name);
-          const findCountEl = (n)=>{
-            const all = body.querySelectorAll('.emp-count');
-            for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; }
-            return null;
-          };
-          const promises = names.map(async n=>{
-            const c = await f4FetchTaskCount(n, statusForCount, fromVal, toVal);
-            const el = findCountEl(n);
-            if (el) {
-              el.textContent = String(c);
-              try { const tr = el.closest('tr'); if (tr) tr.setAttribute('data-task-count', String(c)); } catch(_) {}
-            }
-            try { F4_COUNTS_BY_NAME.set(n, c); } catch(_) {}
-          });
-          Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
-          }
-          // Render bar chart
-          const labels = normalizedSorted.map(x=> x.name);
-          const values = normalizedSorted.map(x=> x.manhour);
-          if (chartWrap) chartWrap.style.display = '';
-          const canvas = document.getElementById('f4-chart');
-          if (canvas && typeof Chart !== 'undefined'){
-            const ctx = canvas.getContext('2d');
-            if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} }
-            F4_CHART = new Chart(ctx, {
-              type: 'bar',
-              data: {
-                labels,
-                datasets: [{
-                  label: 'Công chuẩn nhận',
-                  data: values,
-                  backgroundColor: 'rgba(90, 169, 255, 0.6)',
-                  borderColor: '#5aa9ff',
-                  borderWidth: 1,
-                  hoverBackgroundColor: 'rgba(59, 130, 246, 0.7)'
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Công chuẩn nhận' }
-                  },
-                  x: {
-                    title: { display: true, text: 'Nhân viên' },
-                    ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
-                  }
-                },
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: (ctx)=> ` ${Number(ctx.raw).toFixed(2)}`
-                    }
-                  }
-                }
-              }
-            });
-          }
-        }catch(err){
-          const errMsg = String(err.message || err);
-          console.error('[Form 4] Error:', err);
-          // Hiển thị thông báo lỗi chi tiết hơn
-          const displayMsg = errMsg.includes('JSON') || errMsg.includes('parse') 
-            ? `Lỗi dữ liệu: Server trả về dữ liệu không đúng định dạng JSON. Vui lòng kiểm tra lại webhook hoặc thử lại sau.`
-            : `Lỗi tải dữ liệu: ${errMsg}`;
-          body.innerHTML = `<tr><td colspan='${colSpan}' class='px-3 py-3 text-center text-red-600'>${displayMsg}</td></tr>`;
-          if (chartWrap) chartWrap.style.display = 'none';
-          if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
-        }
-      }
-      function restoreForm4FromCache(){
-        try{
-          const cached = LS.getJSON('f4.cache');
-          if (!cached || !Array.isArray(cached.rows) || !cached.rows.length) return false;
-          // kích hoạt UI cơ bản và ghi chú thời gian
-          updateLastUpdatedNote('f4-search','f4.lastUpdated');
-          // Dùng pipeline render hiện tại: gán rows vào F4_LAST_MERGED để re-render nhanh
-          const rows = cached.rows;
-          const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((a,k)=>{ a[k.toLowerCase()] = obj[k]; return a; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
-          const normalized = rows.map(r=>({
-            name: getV(r,['employee','employee_name','nhanvien','nhân viên','name','assignee','pic']) || '-',
-            manhour: Number(getV(r,['manhour','current_manhour','congchuan']))||0,
-            count: null
-          })).filter(x=>x.name && x.name!=='-');
-          F4_LAST_MERGED = normalized;
-          renderForm4Local();
-          return true;
-        }catch(_){ return false; }
-      }
-      // Render lại Form 4 từ cache khi đổi nhóm (lọc client-side, không refetch)
-      function renderForm4Local(){
-        try{
-          const body = document.getElementById('f4-body');
-          const chartWrap = document.getElementById('f4-chart-container');
-          if (chartWrap) chartWrap.style.display = 'none';
-          if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} F4_CHART = null; }
-          if (!Array.isArray(F4_LAST_MERGED) || F4_LAST_MERGED.length===0){
-            // Chưa có cache -> tải một lần
-            return renderForm4();
-          }
-          const selected = Array.from(F4_SELECTED_NAMES);
-          const filtered = selected.length ? F4_LAST_MERGED.filter(x=> F4_SELECTED_NAMES.has(x.name)) : F4_LAST_MERGED.slice();
-          if (!filtered.length){ body.innerHTML = "<tr><td colspan='3' class='px-3 py-3 text-center text-gray-500'>Không có dữ liệu</td></tr>"; return; }
-          const normalizedSorted = filtered.slice().sort((a,b)=> b.manhour - a.manhour);
-          const rowsHtml = [];
-          for (const x of normalizedSorted){
-            const cached = F4_COUNTS_BY_NAME.get(x.name);
-            const baseCnt = (x.count==null) ? cached : x.count;
-            const cntText = (baseCnt==null || Number.isNaN(baseCnt)) ? "<span class='spinner'></span>" : String(baseCnt);
-            rowsHtml.push(`
-              <tr>
-                <td class="px-3 py-2">
-                  <button class="text-primary-blue hover:underline" data-emp="${x.name}">${x.name}</button>
-                </td>
-                <td class="px-3 py-2">${x.manhour.toFixed(2)}</td>
-                <td class="px-3 py-2"><span class="emp-count" data-emp-count="${x.name}">${cntText}</span></td>
-              </tr>`);
-          }
-          body.innerHTML = rowsHtml.join('');
-          try{ enableTableDrag('f4-body'); }catch(_){ }
-          // Bổ sung: tải số tác vụ bất đồng bộ cho các tên chưa có
-          const statusForCount = (F4_LAST_PARAMS && F4_LAST_PARAMS.status) ? F4_LAST_PARAMS.status : 'Doing';
-          const fromVal = F4_LAST_PARAMS?.from || '';
-          const toVal = F4_LAST_PARAMS?.to || '';
-          const namesNeed = normalizedSorted.filter(x=> (x.count==null) && !F4_COUNTS_BY_NAME.has(x.name)).map(x=> x.name);
-          const findCountEl = (n)=>{ const all = body.querySelectorAll('.emp-count'); for (const el of all){ if ((el.getAttribute('data-emp-count')||'') === n) return el; } return null; };
-          const promises = namesNeed.map(async n=>{ const c = await f4FetchTaskCount(n, statusForCount, fromVal, toVal); const el = findCountEl(n); if (el) { el.textContent = String(c); try { const tr = el.closest('tr'); if (tr) tr.setAttribute('data-task-count', String(c)); } catch(_) {} } try { F4_COUNTS_BY_NAME.set(n, c); } catch(_) {} });
-          Promise.allSettled(promises).then(()=>{ try { f4ApplyCountFilter(); } catch(_) {} }).catch(()=>{});
-          // Vẽ chart theo dữ liệu đã lọc
-          const labels = normalizedSorted.map(x=> x.name);
-          const values = normalizedSorted.map(x=> x.manhour);
-          if (chartWrap) chartWrap.style.display = '';
-          const canvas = document.getElementById('f4-chart');
-          if (canvas && typeof Chart !== 'undefined'){
-            const ctx = canvas.getContext('2d');
-            if (F4_CHART) { try { F4_CHART.destroy(); } catch(_) {} }
-            F4_CHART = new Chart(ctx, {
-              type: 'bar',
-              data: { labels, datasets: [{ label: 'Công chuẩn nhận', data: values, backgroundColor: 'rgba(90, 169, 255, 0.6)', borderColor: '#5aa9ff', borderWidth: 1, hoverBackgroundColor: 'rgba(59, 130, 246, 0.7)' }] },
-              options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: 'Công chuẩn nhận' } }, x: { title: { display: true, text: 'Nhân viên' }, ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx)=> ` ${Number(ctx.raw).toFixed(2)}` } } } }
-            });
-          }
-          try { f4ApplyCountFilter(); } catch(_) {}
-        }catch(_){}
-      }
-      // ===== Form 4: Modal chi tiết theo nhân viên =====
+      
       const detailModal = document.getElementById('detail-modal');
       const detailBody = document.getElementById('detail-body');
       const detailNameEl = document.getElementById('detail-name');
@@ -7190,139 +7509,6 @@
           catch(_) { /* ignore copy error to not block open */ }
         });
       }
-      // Trigger fetch only when nhấn Tra cứu ở Form 4
-      const f4Btn = document.getElementById('f4-search');
-      if (f4Btn) {
-        f4Btn.addEventListener('click', (e)=>{ e.preventDefault(); renderForm4(); f4UpdateGroupButtonsUI(); });
-      }
-      // Pivot handlers
-      (function initF4Pivot(){
-        const refresh = document.getElementById('f4-pivot-refresh');
-        if (refresh) refresh.addEventListener('click', (e)=>{ e.preventDefault(); F4_PIVOT_ROWS_ALL = []; renderF4Pivot(); });
-        // auto render once when form loads
-        try { renderF4Pivot(); } catch(_) {}
-      })();
-
-      // Render detailed list of overdue Doing tasks (mirrors Form 1 highlight)
-      async function renderF4Pivot(){
-        if (F4_PIVOT_BUSY) return;
-        F4_PIVOT_BUSY = true;
-        const body = document.getElementById('f4-pivot-body');
-        const sumTotal = document.getElementById('f4-pivot-sum-total');
-        const note = document.getElementById('f4-pivot-note');
-        if (!body) return;
-        body.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-center text-gray-500"><span class='spinner mr-2'></span>Đang tải...</td></tr>`;
-        const fromVal = document.getElementById('f4-from')?.value || '';
-        const toVal = document.getElementById('f4-to')?.value || '';
-        const base = F4_ALL_NAMES && F4_ALL_NAMES.length ? F4_ALL_NAMES : (FORM1_NAMES || []);
-        const names = base.filter(n=> !F4_EXCLUDED.has(n));
-        const selected = Array.from(F4_SELECTED_NAMES);
-        const targetNames = selected.length ? names.filter(n => F4_SELECTED_NAMES.has(n)) : names.slice();
-
-        // Nếu cache chưa có hoặc phạm vi thời gian đổi -> tải và xây cache
-        const needRefetch = (!Array.isArray(F4_PIVOT_ROWS_ALL) || !F4_PIVOT_ROWS_ALL.length
-          || F4_PIVOT_LAST_PARAMS.from !== fromVal || F4_PIVOT_LAST_PARAMS.to !== toVal);
-
-        if (needRefetch){
-          F4_PIVOT_ROWS_ALL = [];
-          F4_PIVOT_LAST_PARAMS = { from: fromVal, to: toVal };
-          await Promise.all(names.map(async (name)=>{
-            try{
-              const headerMap = {
-                header_requestDate: 'Ngày yêu cầu', header_wishDue: 'Hạn mong muốn', header_actualDue: 'Hạn đáp ứng',
-                header_status: 'Trạng thái', header_code: 'Mã', header_taskName: 'Tên tác vụ',
-                field_requestDate: 'requestDate', field_wishDue: 'wishDue', field_actualDue: 'actualDue',
-                field_status: 'status', field_code: 'code', field_taskName: 'taskName'
-              };
-              const qs = new URLSearchParams({ ...headerMap, action:'form1_lookup', person_name: name, timestamp: new Date().toISOString() });
-              if (fromVal) qs.append('from', fromVal);
-              if (toVal) qs.append('to', toVal);
-              const u = `${WEBHOOK_URL}?${qs.toString()}`;
-              const r = await fetch(u);
-              const t = await r.text();
-              let json = null; try{ json = JSON.parse(t); }catch{ json = null; }
-              let rows = [];
-              if (Array.isArray(json)) rows = json; else if (json && typeof json==='object'){
-                const keys = ['data','rows','result','records','items','list'];
-                for (const k of keys){ if (Array.isArray(json[k])) { rows = json[k]; break; } }
-              }
-              function getV(o, keys){ const L = Object.keys(o||{}).reduce((a,k)=>{a[k.toLowerCase()]=o[k];return a;},{}); for(const k of keys){ const v=L[k.toLowerCase()]; if(v!==undefined) return v; } return ''; }
-              rows.forEach(it=>{
-                const statusText = String(getV(it,['status','trangthai','trang_thai','trạng thái'])||'');
-                const s = statusText.toLowerCase();
-                const isDoing = s.includes('doing') || s.includes('đang');
-                if (!isDoing) return;
-                const wish = getV(it,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-                const act = getV(it,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
-                const due = parseDateFlexible(act || wish || '');
-                if (!due) return;
-                const now = new Date();
-                if (now.getTime() >= due.getTime()){
-                  F4_PIVOT_ROWS_ALL.push({
-                    assignee: name,
-                    code: getV(it,['code','ma','taskcode','mã']),
-                    taskName: getV(it,['taskname','ten_tac_vu','ten','name','title','tên tác vụ']),
-                    status: statusText,
-                    requestDate: getV(it,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']),
-                    wishDue: wish,
-                    actualDue: act
-                  });
-                }
-              });
-            }catch(_){ /* skip one name */ }
-          }));
-        }
-
-        // Lọc cục bộ từ cache theo nhóm đang chọn
-        let rowsOut = F4_PIVOT_ROWS_ALL.filter(r => targetNames.includes(r.assignee));
-        rowsOut.sort((a,b)=>{
-          const byName = a.assignee.localeCompare(b.assignee,'vi');
-          if (byName !== 0) return byName;
-          const da = parseDateFlexible(a.actualDue || a.wishDue || '') || new Date(0);
-          const db = parseDateFlexible(b.actualDue || b.wishDue || '') || new Date(0);
-          return da.getTime() - db.getTime();
-        });
-
-        if (!rowsOut.length){
-          body.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-center text-gray-500">Không có dữ liệu</td></tr>`;
-        } else {
-          const todayStart = (()=>{ const d=new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
-          function toDate(v){ try{ return parseDateFlexible(v||''); }catch(_){ return null; } }
-          body.innerHTML = rowsOut.map(r=>{
-            const due = toDate(r.actualDue || r.wishDue || '');
-            let trClass = 'bg-red-50';
-            if (due){
-              const dueStart = new Date(due.getFullYear(), due.getMonth(), due.getDate());
-              if (dueStart.getTime() === todayStart.getTime()) trClass = 'bg-yellow-100';
-              else if (dueStart.getTime() < todayStart.getTime()) trClass = 'bg-red-100';
-            }
-            return `<tr class="${trClass}">
-            <td class="px-3 py-2">${r.assignee}</td>
-            <td class="px-3 py-2">${r.code}</td>
-            <td class="px-3 py-2">${r.taskName}</td>
-            <td class="px-3 py-2">${r.status}</td>
-            <td class="px-3 py-2">${r.requestDate}</td>
-            <td class="px-3 py-2">${r.wishDue}</td>
-            <td class="px-3 py-2">${r.actualDue}</td>
-            </tr>`;
-          }).join('');
-          try{ enableTableDrag('f4-pivot-body'); }catch(_){ }
-        }
-        if (sumTotal) sumTotal.textContent = String(rowsOut.length);
-        if (note) note.textContent = 'Danh sách tác vụ Doing bị quá hạn (cache cục bộ; nhấn Làm mới để tải lại)';
-        F4_PIVOT_BUSY = false;
-      }
-      // Group filter buttons
-      (function initF4GroupButtons(){
-        const btnAll = document.getElementById('f4-btn-all');
-        const btnLinh = document.getElementById('f4-btn-linh');
-        const btnHieu = document.getElementById('f4-btn-hieu');
-        if (btnAll) btnAll.addEventListener('click', (e)=>{ e.preventDefault(); f4SetGroupSelection([]); f4UpdateGroupButtonsUI(); f4SchedulePivot(); });
-        if (btnLinh) btnLinh.addEventListener('click', (e)=>{ e.preventDefault(); f4SetGroupSelection(F4_GROUP_LINH); f4UpdateGroupButtonsUI(); f4SchedulePivot(); });
-        if (btnHieu) btnHieu.addEventListener('click', (e)=>{ e.preventDefault(); f4SetGroupSelection(F4_GROUP_HIEU); f4UpdateGroupButtonsUI(); f4SchedulePivot(); });
-        // set initial visual state
-        f4UpdateGroupButtonsUI();
-      })();
       // Trigger fetch only when nhấn Tra cứu ở Form 6
       const f6Btn = document.getElementById('f6-search');
       if (f6Btn) {
@@ -7582,52 +7768,6 @@
           refreshBtn._bound = true;
         }
       } catch(_) {}
-      // Tự động render khi đổi trạng thái
-      const f4StatusHidden = document.getElementById('f4-status');
-      if (f4StatusHidden) f4StatusHidden.value = 'Doing';
-      const f4FromInput = document.getElementById('f4-from');
-      const f4ToInput = document.getElementById('f4-to');
-      if (f4FromInput) f4FromInput.addEventListener('change', ()=>{ renderForm4(); f4SchedulePivot(); });
-      if (f4ToInput) f4ToInput.addEventListener('change', ()=>{ renderForm4(); f4SchedulePivot(); });
-      const f4CountFilterInput = document.getElementById('f4-count-filter');
-      if (f4CountFilterInput) f4CountFilterInput.addEventListener('input', ()=> f4ApplyCountFilter());
-      const f4PeopleSel2 = document.getElementById('f4-people');
-      if (f4PeopleSel2) f4PeopleSel2.addEventListener('change', ()=> renderForm4());
-      // Click tên nhân viên để xem chi tiết
-      const f4Body = document.getElementById('f4-body');
-      if (f4Body) {
-        f4Body.addEventListener('click', (e)=>{
-          const btn = e.target.closest('[data-emp]');
-          if (!btn) return;
-          const name = btn.getAttribute('data-emp') || '';
-          const filter = (document.getElementById('f4-status')?.value === 'Doing') ? 'Doing' : 'All';
-          const fromVal = (document.getElementById('f4-from')?.value || '');
-          const toVal = (document.getElementById('f4-to')?.value || '');
-          if (name) openDetailModal(name, filter, fromVal, toVal);
-        });
-      }
-
-      // Form 4: filter rows by "số tác vụ" (>= input)
-      function f4ApplyCountFilter(){
-        const input = document.getElementById('f4-count-filter');
-        const body = document.getElementById('f4-body');
-        if (!input || !body) return;
-        const raw = (input.value || '').trim();
-        const threshold = raw === '' ? NaN : parseInt(raw, 10);
-        const rows = body.querySelectorAll('tr');
-        rows.forEach(tr=>{
-          const cEl = tr.querySelector('.emp-count');
-          if (!cEl) return;
-          const val = parseInt((cEl.textContent || '').trim(), 10);
-          if (isNaN(threshold)) {
-            tr.style.display = '';
-          } else if (isNaN(val)) {
-            tr.style.display = '';
-          } else {
-            tr.style.display = (val >= threshold) ? '' : 'none';
-          }
-        });
-      }
 
       // ===== Form 6: submit and list ideas =====
       async function renderForm6List(){
@@ -12682,6 +12822,715 @@
         console.log('[Navigation] Found', groupButtons.length, 'sidebar group buttons');
         console.log('[Navigation] All sidebar groups are now OPEN for direct form access');
       });
+
+      // ===== FORM 4: Kế hoạch công việc (Dashboard Gantt Chart) =====
+      (function initForm4() {
+        const ZONE = 'Asia/Ho_Chi_Minh';
+        const WORKING_BLOCKS = [
+          { start: { hour: 8, minute: 0 }, end: { hour: 12, minute: 30 } },
+          { start: { hour: 13, minute: 30 }, end: { hour: 17, minute: 0 } },
+        ];
+        const WORKING_DAYS = [1, 2, 3, 4, 5, 6]; // Monday - Saturday
+        const palette = [
+          '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1',
+        ];
+        const { DateTime } = luxon;
+
+        const statusText = document.getElementById('f4-statusText');
+        const assigneeFilter = document.getElementById('f4-assigneeFilter');
+        const tableBody = document.getElementById('f4-scheduleTable');
+        const recordCounter = document.getElementById('f4-recordCounter');
+        const legendContainer = document.getElementById('f4-legend');
+        const chartWrapper = document.getElementById('f4-chartWrapper');
+        const taskList = document.getElementById('f4-taskList');
+        const detailSection = document.getElementById('f4-detailSection');
+        const closeDetailBtn = document.getElementById('f4-closeDetailBtn');
+        const reloadButton = document.getElementById('f4-reloadButton');
+
+        let rawData = [];
+        let scheduleRows = [];
+        let segments = [];
+        const colorCache = new Map();
+        const expandedCategories = new Set();
+
+        const dateFormatter = new Intl.DateTimeFormat('vi-VN', {
+          timeZone: ZONE,
+          weekday: 'short',
+          day: '2-digit',
+          month: '2-digit',
+        });
+        const timeFormatter = new Intl.DateTimeFormat('vi-VN', {
+          timeZone: ZONE,
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        function parseDateInput(value) {
+          if (!value) return null;
+          if (value instanceof Date) {
+            return DateTime.fromJSDate(value, { zone: ZONE });
+          }
+          if (typeof value === 'string') {
+            const normalised = value.includes('T') ? value : value.replace(' ', 'T');
+            return DateTime.fromISO(normalised, { zone: ZONE });
+          }
+          return DateTime.fromISO(String(value), { zone: ZONE });
+        }
+
+        function formatDateTime(dt) {
+          if (!dt) return '';
+          const dateText = dateFormatter.format(dt.toJSDate());
+          const timeText = timeFormatter.format(dt.toJSDate());
+          return `${dateText} ${timeText}`;
+        }
+
+        function getColorForAssignee(name) {
+          if (!colorCache.has(name)) {
+            colorCache.set(name, palette[colorCache.size % palette.length]);
+          }
+          return colorCache.get(name);
+        }
+
+        function isWorkingDay(dt) {
+          return WORKING_DAYS.includes(dt.weekday);
+        }
+
+        function startOfBlock(dt, block) {
+          return dt.set({
+            hour: block.start.hour,
+            minute: block.start.minute,
+            second: 0,
+            millisecond: 0,
+          });
+        }
+
+        function endOfBlock(dt, block) {
+          return dt.set({
+            hour: block.end.hour,
+            minute: block.end.minute,
+            second: 0,
+            millisecond: 0,
+          });
+        }
+
+        function nextWorkingDayStart(dt) {
+          let probe = dt.plus({ days: 1 }).startOf('day');
+          while (!isWorkingDay(probe)) {
+            probe = probe.plus({ days: 1 });
+          }
+          return startOfBlock(probe, WORKING_BLOCKS[0]);
+        }
+
+        function alignToWorkingWindow(dt) {
+          let pointer = dt.set({ second: 0, millisecond: 0 });
+          while (true) {
+            if (!isWorkingDay(pointer)) {
+              pointer = nextWorkingDayStart(pointer);
+              continue;
+            }
+            const morningStart = startOfBlock(pointer, WORKING_BLOCKS[0]);
+            const morningEnd = endOfBlock(pointer, WORKING_BLOCKS[0]);
+            const afternoonStart = startOfBlock(pointer, WORKING_BLOCKS[1]);
+            const afternoonEnd = endOfBlock(pointer, WORKING_BLOCKS[1]);
+
+            if (pointer < morningStart) {
+              pointer = morningStart;
+              continue;
+            }
+            if (pointer < morningEnd) {
+              return pointer;
+            }
+            if (pointer < afternoonStart) {
+              pointer = afternoonStart;
+              continue;
+            }
+            if (pointer < afternoonEnd) {
+              return pointer;
+            }
+            pointer = nextWorkingDayStart(pointer);
+          }
+        }
+
+        function currentBlockEnd(dt) {
+          const morningStart = startOfBlock(dt, WORKING_BLOCKS[0]);
+          const morningEnd = endOfBlock(dt, WORKING_BLOCKS[0]);
+          const afternoonStart = startOfBlock(dt, WORKING_BLOCKS[1]);
+          const afternoonEnd = endOfBlock(dt, WORKING_BLOCKS[1]);
+
+          if (dt >= morningStart && dt < morningEnd) {
+            return morningEnd;
+          }
+          if (dt >= afternoonStart && dt < afternoonEnd) {
+            return afternoonEnd;
+          }
+          return alignToWorkingWindow(dt);
+        }
+
+        function calculateEndTime(startTime, points) {
+          let currentTime = startTime;
+          let remainingHours = points;
+          
+          const dayStartMinutes = 8 * 60;
+          const lunchStartMinutes = 12 * 60 + 30;
+          const lunchEndMinutes = 13 * 60 + 30;
+          const dayEndMinutes = 17 * 60;
+          
+          while (remainingHours > 0) {
+            const currentHour = currentTime.hour;
+            const currentMinute = currentTime.minute;
+            const currentTotalMinutes = currentHour * 60 + currentMinute;
+            
+            let workingStartMinutes, workingEndMinutes;
+            
+            if (currentTotalMinutes < dayStartMinutes) {
+              currentTime = currentTime.set({ hour: 8, minute: 0, second: 0, millisecond: 0 });
+              continue;
+            } else if (currentTotalMinutes >= dayStartMinutes && currentTotalMinutes < lunchStartMinutes) {
+              workingStartMinutes = currentTotalMinutes;
+              workingEndMinutes = lunchStartMinutes;
+            } else if (currentTotalMinutes >= lunchStartMinutes && currentTotalMinutes < lunchEndMinutes) {
+              currentTime = currentTime.set({ hour: 13, minute: 30, second: 0, millisecond: 0 });
+              continue;
+            } else if (currentTotalMinutes >= lunchEndMinutes && currentTotalMinutes < dayEndMinutes) {
+              workingStartMinutes = currentTotalMinutes;
+              workingEndMinutes = dayEndMinutes;
+            } else {
+              currentTime = currentTime.plus({ days: 1 }).set({ hour: 8, minute: 0, second: 0, millisecond: 0 });
+              continue;
+            }
+            
+            const availableMinutes = workingEndMinutes - workingStartMinutes;
+            const availableHours = availableMinutes / 60;
+            
+            if (remainingHours <= availableHours) {
+              const minutesToAdd = remainingHours * 60;
+              currentTime = currentTime.plus({ minutes: minutesToAdd });
+              remainingHours = 0;
+            } else {
+              remainingHours -= availableHours;
+              currentTime = currentTime.plus({ days: 1 }).set({ hour: 8, minute: 0, second: 0, millisecond: 0 });
+            }
+          }
+          
+          return currentTime;
+        }
+
+        function createSimpleSchedule(data) {
+          const rows = [];
+          const segments = [];
+          
+          const tasksByAssignee = {};
+          data.forEach((task, index) => {
+            const startTime = parseDateInput(task.start_time);
+            if (!startTime || !startTime.isValid) return;
+            
+            const points = Number(task.points) || 0;
+            if (!points) return;
+            
+            if (!tasksByAssignee[task.assignee]) {
+              tasksByAssignee[task.assignee] = [];
+            }
+            
+            tasksByAssignee[task.assignee].push({
+              originalIndex: index,
+              assignee: task.assignee,
+              originalStartTime: startTime,
+              points: points,
+              task_code: task.task_code || '',
+              task_name: task.task_name || '',
+            });
+          });
+          
+          Object.keys(tasksByAssignee).forEach(assignee => {
+            tasksByAssignee[assignee].sort((a, b) => 
+              a.originalStartTime.toMillis() - b.originalStartTime.toMillis()
+            );
+          });
+          
+          Object.keys(tasksByAssignee).forEach(assignee => {
+            const assigneeTasks = tasksByAssignee[assignee];
+            let currentEndTime = null;
+            
+            assigneeTasks.forEach((task, index) => {
+              // Task đầu tiên: dùng originalStartTime
+              // Task tiếp theo: LUÔN bắt đầu ngay sau khi task trước kết thúc (không có khoảng cách)
+              let actualStartTime = currentEndTime || task.originalStartTime;
+              
+              // Đảm bảo task tiếp theo luôn nối tiếp với task trước
+              if (currentEndTime) {
+                actualStartTime = currentEndTime;
+              }
+              
+              // Tính end time dựa trên giờ làm việc
+              const endTime = calculateEndTime(actualStartTime, task.points);
+              
+              rows.push({
+                order: task.originalIndex + 1,
+                assignee: task.assignee,
+                start: actualStartTime,
+                end: endTime,
+                points: task.points,
+                originalStart: task.originalStartTime,
+                task_code: task.task_code || '',
+                task_name: task.task_name || '',
+              });
+              
+              segments.push({
+                assignee: task.assignee,
+                start: actualStartTime,
+                end: endTime,
+                points: task.points,
+                order: task.originalIndex + 1,
+                originalStart: task.originalStartTime,
+                task_code: task.task_code || '',
+                task_name: task.task_name || '',
+              });
+              
+              // Cập nhật currentEndTime cho task tiếp theo
+              currentEndTime = endTime;
+            });
+          });
+          
+          rows.sort((a, b) => a.order - b.order);
+          segments.sort((a, b) => a.order - b.order);
+          
+          return { rows, segments };
+        }
+
+        function getDateRange(segments) {
+          if (segments.length === 0) return [];
+          
+          const dates = segments.map(seg => seg.start.startOf('day').toMillis());
+          const minDate = Math.min(...dates);
+          const maxDate = Math.max(...dates);
+          
+          const dateRange = [];
+          let current = DateTime.fromMillis(minDate, { zone: ZONE }).startOf('day');
+          const end = DateTime.fromMillis(maxDate, { zone: ZONE }).startOf('day');
+          
+          while (current <= end) {
+            const weekdays = ['CN', 'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7'];
+            const weekdayIndex = current.weekday === 7 ? 0 : current.weekday;
+            const weekday = weekdays[weekdayIndex];
+            
+            dateRange.push({
+              date: current.toFormat('dd/MM'),
+              weekday: weekday,
+              fullDate: `${weekday}, ${current.toFormat('dd/MM')}`,
+              dateObj: current,
+            });
+            
+            current = current.plus({ days: 1 });
+          }
+          
+          return dateRange;
+        }
+
+        function getTaskPosition(segment, dateRange) {
+          const startDate = segment.start.startOf('day');
+          const endDate = segment.end.startOf('day');
+          const startDateObj = dateRange[0].dateObj;
+          
+          const startDayIndex = Math.floor(startDate.diff(startDateObj, 'days').days);
+          const endDayIndex = Math.floor(endDate.diff(startDateObj, 'days').days);
+          
+          const startHour = segment.start.hour;
+          const startMin = segment.start.minute;
+          const endHour = segment.end.hour;
+          const endMin = segment.end.minute;
+          
+          const startMinutes = startHour * 60 + startMin;
+          const endMinutes = endHour * 60 + endMin;
+          
+          const dayStartMinutes = 8 * 60;
+          const dayEndMinutes = 17 * 60;
+          const lunchStartMinutes = 12 * 60 + 30;
+          const lunchEndMinutes = 13 * 60 + 30;
+          
+          const morningMinutes = lunchStartMinutes - dayStartMinutes; // 270 phút
+          const afternoonMinutes = dayEndMinutes - lunchEndMinutes; // 210 phút
+          const totalWorkingMinutes = morningMinutes + afternoonMinutes; // 480 phút = 8 giờ
+          
+          const dayWidth = 100 / dateRange.length;
+          
+          // Tính offset trong ngày đầu tiên
+          let normalizedStart = Math.max(dayStartMinutes, Math.min(dayEndMinutes, startMinutes));
+          if (normalizedStart >= lunchStartMinutes && normalizedStart < lunchEndMinutes) {
+            normalizedStart = lunchEndMinutes;
+          }
+          
+          let startOffset = 0;
+          if (normalizedStart < lunchStartMinutes) {
+            startOffset = normalizedStart - dayStartMinutes;
+          } else {
+            startOffset = morningMinutes + (normalizedStart - lunchEndMinutes);
+          }
+          
+          // Tính offset trong ngày cuối cùng
+          let normalizedEnd = Math.max(dayStartMinutes, Math.min(dayEndMinutes, endMinutes));
+          if (normalizedEnd > lunchStartMinutes && normalizedEnd <= lunchEndMinutes) {
+            normalizedEnd = lunchStartMinutes;
+          }
+          
+          let endOffset = 0;
+          if (normalizedEnd <= lunchStartMinutes) {
+            endOffset = normalizedEnd - dayStartMinutes;
+          } else {
+            endOffset = morningMinutes + (normalizedEnd - lunchEndMinutes);
+          }
+          
+          // Tính left position
+          const left = startDayIndex * dayWidth + (startOffset / totalWorkingMinutes) * dayWidth;
+          
+          // Tính right position (vị trí kết thúc)
+          const right = endDayIndex * dayWidth + (endOffset / totalWorkingMinutes) * dayWidth;
+          
+          // Width = khoảng cách từ left đến right
+          const width = right - left;
+          
+          // Đảm bảo width không nhỏ hơn minimum để hiển thị rõ ràng
+          const minWidth = 0.5;
+          
+          return { left: Math.max(0, left), width: Math.max(minWidth, width) };
+        }
+
+        function renderTaskList(rows, filterValue) {
+          const filtered = filterValue === 'all' ? rows : rows.filter((row) => row.assignee === filterValue);
+          
+          const tasksByAssignee = {};
+          filtered.forEach((row, index) => {
+            if (!tasksByAssignee[row.assignee]) {
+              tasksByAssignee[row.assignee] = [];
+            }
+            const taskId = `f4-task-${row.assignee}-${row.start.toMillis()}-${row.end.toMillis()}-${index}`;
+            tasksByAssignee[row.assignee].push({
+              ...row,
+              taskId: taskId,
+            });
+          });
+
+          taskList.innerHTML = '';
+
+          Object.keys(tasksByAssignee).forEach((assignee) => {
+            const tasks = tasksByAssignee[assignee];
+            const isExpanded = expandedCategories.has(assignee);
+            
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'mb-1';
+            
+            const header = document.createElement('div');
+            header.className = 'flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer rounded transition';
+            header.onclick = () => {
+              if (expandedCategories.has(assignee)) {
+                expandedCategories.delete(assignee);
+              } else {
+                expandedCategories.add(assignee);
+              }
+              renderTaskList(scheduleRows, filterValue);
+            };
+            
+            const color = getColorForAssignee(assignee);
+            header.innerHTML = `
+              <div class="flex items-center gap-2 flex-1">
+                <svg class="w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="h-3 w-3 rounded-full" style="background-color: ${color}"></span>
+                <span class="text-sm font-semibold text-gray-700">${assignee}</span>
+                <span class="text-xs text-gray-500">(${tasks.length})</span>
+              </div>
+            `;
+            
+            categoryDiv.appendChild(header);
+            
+            if (isExpanded) {
+              const tasksContainer = document.createElement('div');
+              tasksContainer.className = 'bg-white';
+              tasks.forEach((task) => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item px-6 py-2 border-b border-gray-100 hover:bg-blue-50 transition text-sm cursor-pointer';
+                taskItem.setAttribute('data-task-id', task.taskId);
+                
+                taskItem.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-800">${task.task_name || task.task_code || `Task #${task.order}`}</div>
+                      <div class="text-xs text-gray-500 mt-1">
+                        ${formatDateTime(task.start)} → ${formatDateTime(task.end)}
+                      </div>
+                    </div>
+                    <div class="text-xs font-semibold text-gray-600 ml-4">
+                      ${task.points.toFixed(1)}h
+                    </div>
+                  </div>
+                `;
+                tasksContainer.appendChild(taskItem);
+              });
+              categoryDiv.appendChild(tasksContainer);
+            }
+            
+            taskList.appendChild(categoryDiv);
+          });
+
+          recordCounter.textContent = `${filtered.length} tác vụ`;
+        }
+
+        function updateChart(allSegments, filterValue) {
+          const filtered = filterValue === 'all' ? allSegments : allSegments.filter((segment) => segment.assignee === filterValue);
+
+          const uniqueAssignees = Array.from(new Set(filtered.map((segment) => segment.assignee)));
+          
+          if (legendContainer) {
+            legendContainer.innerHTML = '';
+            uniqueAssignees.forEach((assignee) => {
+              const legendItem = document.createElement('span');
+              legendItem.className = 'flex items-center gap-2 rounded-lg bg-white border border-brand-200 px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm hover:shadow-md transition-shadow';
+              legendItem.innerHTML = `
+                <span class="h-3 w-3 rounded-full shadow-sm" style="background-color: ${getColorForAssignee(assignee)}"></span>
+                <span>${assignee}</span>
+              `;
+              legendContainer.appendChild(legendItem);
+            });
+          }
+
+          if (!filtered.length) {
+            chartWrapper.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm font-medium text-gray-500">Không có dữ liệu cho bộ lọc hiện tại.</p></div>';
+            return;
+          }
+
+          const dateRange = getDateRange(filtered);
+          const height = Math.max(400, uniqueAssignees.length * 80 + 120);
+          chartWrapper.style.height = `${height}px`;
+          
+          const colors = [
+            'rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(236, 72, 153, 0.8)', 'rgba(245, 158, 11, 0.8)',
+            'rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(132, 204, 22, 0.8)',
+          ];
+          
+          let html = `
+            <div class="w-full h-full">
+              <div class="flex border-b-2 border-gray-300 mb-5 pb-3 sticky top-0 bg-white z-10">
+                <div class="w-48 flex-shrink-0 pr-5">
+                  <h3 class="text-lg font-semibold text-gray-800">Nhân viên</h3>
+                </div>
+                <div class="flex-1 flex min-w-[${dateRange.length * 120}px]">
+                  ${dateRange.map(dateInfo => `
+                    <div class="flex-1 text-center border-l border-gray-200 px-1">
+                      <div class="text-sm font-semibold text-gray-800">${dateInfo.weekday}</div>
+                      <div class="text-xs text-gray-500">${dateInfo.date}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div>
+                ${uniqueAssignees.map((assignee, assigneeIndex) => {
+                  const assigneeSegments = filtered.filter(seg => seg.assignee === assignee);
+                  const assigneeColor = colors[assigneeIndex % colors.length];
+                  const totalHours = assigneeSegments.reduce((sum, seg) => sum + seg.points, 0);
+                  
+                  return `
+                    <div class="flex items-center mb-4 min-h-[60px] border-b border-gray-100 pb-4">
+                      <div class="w-48 flex-shrink-0 pr-5">
+                        <div class="text-base font-semibold text-gray-800 mb-1">${assignee}</div>
+                        <div class="text-xs text-gray-500">${assigneeSegments.length} tác vụ • ${totalHours.toFixed(1)}h</div>
+                      </div>
+                      
+                      <div class="flex-1 relative h-10 bg-gray-50 rounded-md min-w-[${dateRange.length * 120}px]" style="position: relative;">
+                        ${dateRange.map((_, index) => `
+                          <div class="absolute left-[${(index / dateRange.length) * 100}%] top-0 bottom-0 border-l border-gray-200 opacity-50"></div>
+                        `).join('')}
+                        
+                        ${dateRange.map((_, index) => {
+                          const morningMinutes = 4.5 * 60;
+                          const totalWorkingMinutes = 8 * 60;
+                          const lunchStartPercent = (morningMinutes / totalWorkingMinutes) * 100;
+                          const lunchWidthPercent = (60 / totalWorkingMinutes) * 100;
+                          const dayWidthPercent = 100 / dateRange.length;
+                          const dayLeft = index * dayWidthPercent;
+                          const lunchLeftInDay = lunchStartPercent * dayWidthPercent / 100;
+                          const lunchLeft = dayLeft + lunchLeftInDay;
+                          const lunchWidth = lunchWidthPercent * dayWidthPercent / 100;
+                          
+                          return `
+                            <div 
+                              class="absolute top-0 bottom-0 bg-gray-200 opacity-60 border-l border-r border-gray-300"
+                              style="left: ${lunchLeft}%; width: ${lunchWidth}%;"
+                              title="Nghỉ trưa 12:30 - 13:30"
+                            ></div>
+                          `;
+                        }).join('')}
+                        
+                        ${assigneeSegments.map((segment, taskIndex) => {
+                          const pos = getTaskPosition(segment, dateRange);
+                          const taskColor = assigneeColor;
+                          const taskId = `f4-task-${segment.order}`;
+                          
+                          const startTime = segment.start.toFormat('HH:mm');
+                          const endTime = segment.end.toFormat('HH:mm');
+                          const duration = segment.points.toFixed(1);
+                          const displayName = segment.task_name || segment.task_code || `Task #${segment.order}`;
+                          
+                          return `
+                            <div 
+                              id="${taskId}"
+                              class="timeline-bar absolute cursor-pointer rounded flex items-center px-2 text-white text-xs font-semibold overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                              style="left: ${pos.left}%; width: ${pos.width}%; top: 4px; height: 32px; background-color: ${taskColor}; border: 2px solid ${taskColor};"
+                              data-task-index="${taskIndex}"
+                              data-segment-order="${segment.order}"
+                              title="${displayName} - ${startTime} → ${endTime} (${duration}h)"
+                            >
+                              <span class="whitespace-nowrap overflow-hidden text-ellipsis">${displayName}</span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div class="flex mt-5 pt-3 border-t border-gray-200">
+                <div class="w-48 flex-shrink-0 pr-5">
+                  <div class="text-xs text-gray-500">Thang thời gian</div>
+                </div>
+                <div class="flex-1 flex min-w-[${dateRange.length * 120}px]">
+                  ${dateRange.map(() => {
+                    const morningMinutes = 4.5 * 60;
+                    const totalWorkingMinutes = 8 * 60;
+                    const lunchStartPercent = (morningMinutes / totalWorkingMinutes) * 100;
+                    
+                    return `
+                      <div class="flex-1 relative border-l border-gray-200 px-1 text-xs text-gray-500">
+                        <span class="absolute left-0">8h</span>
+                        <span class="absolute left-[${lunchStartPercent}%] -translate-x-1/2">12h30</span>
+                        <span class="absolute left-[${lunchStartPercent}%] -translate-x-1/2" style="top: 16px;">13h30</span>
+                        <span class="absolute right-0">17h</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+          
+          chartWrapper.innerHTML = html;
+        }
+
+        function renderTable(rows, filterValue) {
+          const filtered = filterValue === 'all' ? rows : rows.filter((row) => row.assignee === filterValue);
+          tableBody.innerHTML = '';
+          filtered.forEach((row) => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-brand-50/60 transition';
+            tr.innerHTML = `
+              <td class="px-4 py-3 font-semibold text-brand-600">${row.order}</td>
+              <td class="px-4 py-3">${row.assignee}</td>
+              <td class="px-4 py-3">${formatDateTime(row.start)}</td>
+              <td class="px-4 py-3">${formatDateTime(row.end)}</td>
+              <td class="px-4 py-3 text-right font-semibold text-slate-700">${row.points.toFixed(2)}h</td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        }
+
+        function populateFilterOptions(rows) {
+          const names = Array.from(new Set(rows.map((row) => row.assignee)));
+          assigneeFilter.innerHTML = '<option value="all">Tất cả nhân sự</option>';
+          names.forEach((name) => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            assigneeFilter.appendChild(option);
+            expandedCategories.add(name);
+          });
+        }
+
+        function refreshView() {
+          const filterValue = assigneeFilter.value || 'all';
+          renderTaskList(scheduleRows, filterValue);
+          renderTable(scheduleRows, filterValue);
+          updateChart(segments, filterValue);
+        }
+
+        async function loadData() {
+          if (statusText) statusText.textContent = 'Đang tải dữ liệu...';
+          try {
+            const response = await fetch('https://iatzhxxuk.tino.page/webhook/9eaaaf3b-3f97-469f-a8ab-d9dc473abfc1');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const apiData = await response.json();
+            
+            let flattenedData = [];
+            if (Array.isArray(apiData)) {
+              apiData.forEach((item) => {
+                if (item.tasks && Array.isArray(item.tasks)) {
+                  item.tasks.forEach((task) => {
+                    flattenedData.push({
+                      assignee: task.assignee || item.assignee,
+                      task_code: task.task_code || '',
+                      task_name: task.task_name || '',
+                      start_time: task.start_time || '',
+                      points: task.work_points || task.points || 0,
+                    });
+                  });
+                }
+              });
+            } else {
+              flattenedData = Array.isArray(apiData) ? apiData : [];
+            }
+            
+            rawData = flattenedData;
+            if (statusText) statusText.textContent = `Đã tải ${flattenedData.length} tác vụ`;
+            
+            colorCache.clear();
+            const { rows, segments: timeline } = createSimpleSchedule(rawData);
+            scheduleRows = rows;
+            segments = timeline;
+            populateFilterOptions(rows);
+            assigneeFilter.value = 'all';
+            refreshView();
+          } catch (error) {
+            console.error('Lỗi khi tải dữ liệu:', error);
+            if (statusText) statusText.textContent = `Lỗi: ${error.message}`;
+          }
+        }
+
+        // Initialize
+        if (typeof luxon === 'undefined') {
+          console.error('Luxon is not loaded');
+          if (statusText) statusText.textContent = 'Lỗi: Luxon chưa được tải.';
+          return;
+        }
+
+        if (reloadButton) {
+          reloadButton.addEventListener('click', loadData);
+        }
+        if (assigneeFilter) {
+          assigneeFilter.addEventListener('change', refreshView);
+        }
+        if (closeDetailBtn) {
+          closeDetailBtn.addEventListener('click', () => {
+            detailSection.classList.add('hidden');
+          });
+        }
+
+        // Expose initForm4 globally
+        window.initForm4 = function() {
+          loadData();
+        };
+
+        // Auto-load on first init
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          setTimeout(() => {
+            const form4Section = document.getElementById('form4');
+            if (form4Section && !form4Section.classList.contains('hidden')) {
+              loadData();
+            }
+          }, 100);
+        }
+      })();
     </script>
   </body>
   </html>
