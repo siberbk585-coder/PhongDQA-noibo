@@ -13274,6 +13274,15 @@
             const points = Number(task.points) || 0;
             if (!points) return;
             
+            // Parse end_time nếu có
+            let providedEndTime = null;
+            if (task.end_time) {
+              providedEndTime = parseDateInput(task.end_time);
+              if (!providedEndTime || !providedEndTime.isValid) {
+                providedEndTime = null;
+              }
+            }
+            
             if (!tasksByAssignee[task.assignee]) {
               tasksByAssignee[task.assignee] = [];
             }
@@ -13282,6 +13291,7 @@
               originalIndex: index,
               assignee: task.assignee,
               originalStartTime: startTime,
+              providedEndTime: providedEndTime,
               points: points,
               task_code: task.task_code || '',
               task_name: task.task_name || '',
@@ -13308,8 +13318,17 @@
                 actualStartTime = currentEndTime;
               }
               
-              // Tính end time dựa trên giờ làm việc
-              const endTime = calculateEndTime(actualStartTime, task.points);
+              // Ưu tiên sử dụng end_time từ JSON nếu có và task không bị điều chỉnh bởi task trước
+              let endTime;
+              const isUsingOriginalStart = actualStartTime.equals(task.originalStartTime);
+              if (task.providedEndTime && isUsingOriginalStart) {
+                // Chỉ sử dụng end_time từ JSON nếu task không bị điều chỉnh bởi task trước
+                // Đảm bảo end_time không nhỏ hơn start_time
+                endTime = task.providedEndTime > actualStartTime ? task.providedEndTime : calculateEndTime(actualStartTime, task.points);
+              } else {
+                // Tính end time dựa trên giờ làm việc
+                endTime = calculateEndTime(actualStartTime, task.points);
+              }
               
               rows.push({
                 order: task.originalIndex + 1,
@@ -13371,6 +13390,53 @@
           }
           
           return dateRange;
+        }
+
+        function getCurrentTimePosition(dateRange) {
+          const now = DateTime.now().setZone(ZONE);
+          const startDateObj = dateRange[0].dateObj;
+          const endDateObj = dateRange[dateRange.length - 1].dateObj;
+          
+          // Nếu thời điểm hiện tại nằm ngoài phạm vi dateRange, không hiển thị
+          if (now < startDateObj.startOf('day') || now > endDateObj.endOf('day')) {
+            return null;
+          }
+          
+          const currentDate = now.startOf('day');
+          const dayIndex = Math.floor(currentDate.diff(startDateObj, 'days').days);
+          
+          const currentHour = now.hour;
+          const currentMin = now.minute;
+          const currentMinutes = currentHour * 60 + currentMin;
+          
+          const dayStartMinutes = 8 * 60;
+          const dayEndMinutes = 17 * 60;
+          const lunchStartMinutes = 12 * 60 + 30;
+          const lunchEndMinutes = 13 * 60 + 30;
+          
+          const morningMinutes = lunchStartMinutes - dayStartMinutes; // 270 phút
+          const afternoonMinutes = dayEndMinutes - lunchEndMinutes; // 210 phút
+          const totalWorkingMinutes = morningMinutes + afternoonMinutes; // 480 phút = 8 giờ
+          
+          const dayWidth = 100 / dateRange.length;
+          
+          // Tính offset trong ngày hiện tại
+          let normalizedCurrent = Math.max(dayStartMinutes, Math.min(dayEndMinutes, currentMinutes));
+          if (normalizedCurrent >= lunchStartMinutes && normalizedCurrent < lunchEndMinutes) {
+            normalizedCurrent = lunchEndMinutes;
+          }
+          
+          let currentOffset = 0;
+          if (normalizedCurrent < lunchStartMinutes) {
+            currentOffset = normalizedCurrent - dayStartMinutes;
+          } else {
+            currentOffset = morningMinutes + (normalizedCurrent - lunchEndMinutes);
+          }
+          
+          // Tính left position
+          const left = dayIndex * dayWidth + (currentOffset / totalWorkingMinutes) * dayWidth;
+          
+          return { left: Math.max(0, Math.min(100, left)) };
         }
 
         function getTaskPosition(segment, dateRange) {
@@ -13549,6 +13615,11 @@
           const height = Math.max(400, uniqueAssignees.length * 80 + 120);
           chartWrapper.style.height = `${height}px`;
           
+          // Tính vị trí thời điểm hiện tại
+          const currentTimePos = getCurrentTimePosition(dateRange);
+          const now = DateTime.now().setZone(ZONE);
+          const currentTimeLabel = now.toFormat('HH:mm');
+          
           const colors = [
             'rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(236, 72, 153, 0.8)', 'rgba(245, 158, 11, 0.8)',
             'rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(132, 204, 22, 0.8)',
@@ -13556,17 +13627,29 @@
           
           let html = `
             <div class="w-full h-full">
-              <div class="flex border-b-2 border-gray-300 mb-5 pb-3 sticky top-0 bg-white z-10">
+              <div class="flex border-b-2 border-gray-300 mb-5 pb-3 sticky top-0 bg-white z-10 relative">
                 <div class="w-48 flex-shrink-0 pr-5">
                   <h3 class="text-lg font-semibold text-gray-800">Nhân viên</h3>
                 </div>
-                <div class="flex-1 flex min-w-[${dateRange.length * 120}px]">
+                <div class="flex-1 flex min-w-[${dateRange.length * 120}px] relative">
                   ${dateRange.map(dateInfo => `
                     <div class="flex-1 text-center border-l border-gray-200 px-1">
                       <div class="text-sm font-semibold text-gray-800">${dateInfo.weekday}</div>
                       <div class="text-xs text-gray-500">${dateInfo.date}</div>
                     </div>
                   `).join('')}
+                  ${currentTimePos ? `
+                    <div 
+                      class="current-time-indicator-header absolute top-0 bottom-0 z-30 pointer-events-none"
+                      style="left: ${currentTimePos.left}%; width: 2px; background-color: #ef4444; box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);"
+                    >
+                      <div 
+                        class="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 bg-red-500 text-white text-xs font-semibold rounded shadow-lg whitespace-nowrap"
+                      >
+                        ${currentTimeLabel}
+                      </div>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
 
@@ -13631,6 +13714,14 @@
                             </div>
                           `;
                         }).join('')}
+                        
+                        ${currentTimePos ? `
+                          <div 
+                            class="current-time-indicator absolute top-0 bottom-0 z-20 pointer-events-none"
+                            style="left: ${currentTimePos.left}%; width: 2px; background-color: #ef4444; box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);"
+                            title="Thời điểm hiện tại: ${currentTimeLabel}"
+                          ></div>
+                        ` : ''}
                       </div>
                     </div>
                   `;
@@ -13719,6 +13810,7 @@
                       task_code: task.task_code || '',
                       task_name: task.task_name || '',
                       start_time: task.start_time || '',
+                      end_time: task.end_time || '',
                       points: task.work_points || task.points || 0,
                     });
                   });
