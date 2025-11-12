@@ -333,6 +333,14 @@
             <span class="badge">DQA nội bộ</span>
           </div>
         </div>
+        <div id="form3-alert" class="flex items-start gap-3 p-4 mb-4 border border-blue-200 bg-blue-50 text-blue-900 rounded-lg shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-sm leading-relaxed">
+            Từ ngày 12-11-2025, chỉ cho phép cấp leader(hoặc người được leader ủy quyền) thực hiện giao việc trên cổng tác vụ. Vui lòng thông báo với trưởng nhóm trước khi giao tác vụ.
+          </p>
+        </div>
         <form id="assign-form" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -3992,9 +4000,9 @@
       function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
       navBtns.forEach((btn)=>{
         btn.onclick=()=>{
+          const target = btn.getAttribute('data-target');
           navBtns.forEach(b=>b.classList.remove('bg-primary-blue','font-bold'));
           btn.classList.add('bg-primary-blue','font-bold');
-          const target = btn.getAttribute('data-target');
           showSection(target);
           // Bật tính năng collapse sidebar khi đã chọn form
           const sidebarNav = document.getElementById('sidebar-nav');
@@ -13097,8 +13105,12 @@
         let rawData = [];
         let scheduleRows = [];
         let segments = [];
+        let subBars = []; // Dữ liệu thanh phụ
         const colorCache = new Map();
         const expandedCategories = new Set();
+        
+        // URL webhook cho thanh phụ (webhook riêng)
+        const SUBBARS_WEBHOOK_URL = 'https://iatzhxxuk.tino.page/webhook/thanhphuform4';
 
         const dateFormatter = new Intl.DateTimeFormat('vi-VN', {
           timeZone: ZONE,
@@ -13118,6 +13130,18 @@
             return DateTime.fromJSDate(value, { zone: ZONE });
           }
           if (typeof value === 'string') {
+            // Parse format "dd/MM/yyyy HH:mm" (dùng cho thanh phụ)
+            const ddmmyyyyMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+            if (ddmmyyyyMatch) {
+              const [, day, month, year, hour, minute] = ddmmyyyyMatch;
+              return DateTime.fromObject({
+                year: parseInt(year),
+                month: parseInt(month),
+                day: parseInt(day),
+                hour: parseInt(hour),
+                minute: parseInt(minute),
+              }, { zone: ZONE });
+            }
             const normalised = value.includes('T') ? value : value.replace(' ', 'T');
             return DateTime.fromISO(normalised, { zone: ZONE });
           }
@@ -13589,6 +13613,7 @@
         }
 
         function updateChart(allSegments, filterValue) {
+          console.log('[Form4] updateChart được gọi, số thanh phụ:', subBars.length, subBars);
           const filtered = filterValue === 'all' ? allSegments : allSegments.filter((segment) => segment.assignee === filterValue);
 
           const uniqueAssignees = Array.from(new Set(filtered.map((segment) => segment.assignee)));
@@ -13660,13 +13685,13 @@
                   const totalHours = assigneeSegments.reduce((sum, seg) => sum + seg.points, 0);
                   
                   return `
-                    <div class="flex items-center mb-4 min-h-[60px] border-b border-gray-100 pb-4">
+                    <div class="flex items-center mb-4 min-h-[80px] border-b border-gray-100 pb-4">
                       <div class="w-48 flex-shrink-0 pr-5">
                         <div class="text-base font-semibold text-gray-800 mb-1">${assignee}</div>
                         <div class="text-xs text-gray-500">${assigneeSegments.length} tác vụ • ${totalHours.toFixed(1)}h</div>
                       </div>
                       
-                      <div class="flex-1 relative h-10 bg-gray-50 rounded-md min-w-[${dateRange.length * 120}px]" style="position: relative;">
+                      <div class="flex-1 relative h-20 bg-gray-50 rounded-md min-w-[${dateRange.length * 120}px]" style="position: relative;">
                         ${dateRange.map((_, index) => `
                           <div class="absolute left-[${(index / dateRange.length) * 100}%] top-0 bottom-0 border-l border-gray-200 opacity-50"></div>
                         `).join('')}
@@ -13701,6 +13726,88 @@
                           const duration = segment.points.toFixed(1);
                           const displayName = segment.task_name || segment.task_code || `Task #${segment.order}`;
                           
+                          // Tìm thanh phụ tương ứng với task_code
+                          const matchingSubBar = subBars.find((subBar) => subBar.task_code === segment.task_code);
+                          if (matchingSubBar) {
+                            console.log('[Form4] Tìm thấy thanh phụ cho task_code:', segment.task_code);
+                            // Log chi tiết (không stringify vì có Luxon DateTime objects)
+                            console.log('[Form4] Chi tiết thanh phụ:', {
+                              task_code: matchingSubBar.task_code,
+                              task_name: matchingSubBar.task_name,
+                              task_name_type: typeof matchingSubBar.task_name,
+                              task_name_length: matchingSubBar.task_name ? matchingSubBar.task_name.length : 0,
+                              form_start_valid: matchingSubBar.form_start && matchingSubBar.form_start.isValid,
+                              form_end_valid: matchingSubBar.form_end && matchingSubBar.form_end.isValid
+                            });
+                          }
+                          
+                          let subBarHtml = '';
+                          if (matchingSubBar && matchingSubBar.form_start && matchingSubBar.form_end) {
+                            // Tính vị trí thanh phụ
+                            const subBarSegment = {
+                              start: matchingSubBar.form_start,
+                              end: matchingSubBar.form_end,
+                            };
+                            const subBarPos = getTaskPosition(subBarSegment, dateRange);
+                            const subBarStartTime = matchingSubBar.form_start.toFormat('HH:mm');
+                            const subBarEndTime = matchingSubBar.form_end.toFormat('HH:mm');
+                            const subBarStartDate = formatDateTime(matchingSubBar.form_start);
+                            const subBarEndDate = formatDateTime(matchingSubBar.form_end);
+                            const subBarDuration = matchingSubBar.form_end.diff(matchingSubBar.form_start, 'hours').hours.toFixed(1);
+                            
+                            // Hiển thị task_name, fallback về task_code nếu không có
+                            // Ưu tiên task_name nếu có và không rỗng
+                            let displayName = '';
+                            if (matchingSubBar.task_name && String(matchingSubBar.task_name).trim() !== '') {
+                              displayName = String(matchingSubBar.task_name).trim();
+                            } else {
+                              displayName = matchingSubBar.task_code || segment.task_code;
+                            }
+                            
+                            console.log('[Form4] Render thanh phụ:', {
+                              task_code: segment.task_code,
+                              task_name_raw: matchingSubBar.task_name,
+                              task_name_type: typeof matchingSubBar.task_name,
+                              displayName: displayName
+                            });
+                            
+                            // Escape HTML để tránh XSS và đảm bảo hiển thị đúng
+                            const escapeHtml = (text) => {
+                              if (!text) return '';
+                              const div = document.createElement('div');
+                              div.textContent = text;
+                              return div.innerHTML;
+                            };
+                            
+                            // Màu thanh phụ (xám nhạt với border đứt nét)
+                            const subBarColor = 'rgba(107, 114, 128, 0.6)'; // gray-500 với opacity
+                            
+                            // Tooltip hiển thị đầy đủ task_name, form_start và form_end khi hover
+                            let tooltipParts = [];
+                            // Thêm task_name nếu có
+                            if (matchingSubBar.task_name && String(matchingSubBar.task_name).trim() !== '') {
+                              tooltipParts.push(`Task: ${matchingSubBar.task_name}`);
+                            } else {
+                              tooltipParts.push(`Task code: ${matchingSubBar.task_code || segment.task_code}`);
+                            }
+                            // Thêm form_start và form_end
+                            tooltipParts.push(`Form start: ${subBarStartDate}`);
+                            tooltipParts.push(`Form end: ${subBarEndDate}`);
+                            
+                            const tooltipText = tooltipParts.join('\n');
+                            
+                            subBarHtml = `
+                              <div 
+                                id="f4-subbar-${segment.task_code}"
+                                class="timeline-subbar absolute cursor-pointer rounded flex items-center px-2 text-gray-700 text-xs font-medium overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 border-2 border-dashed"
+                                style="left: ${subBarPos.left}%; width: ${subBarPos.width}%; top: 40px; height: 24px; background-color: ${subBarColor}; border-color: rgba(107, 114, 128, 0.8);"
+                                title="${escapeHtml(tooltipText)}"
+                              >
+                                <span class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-800">${escapeHtml(displayName)}</span>
+                              </div>
+                            `;
+                          }
+                          
                           return `
                             <div 
                               id="${taskId}"
@@ -13712,6 +13819,7 @@
                             >
                               <span class="whitespace-nowrap overflow-hidden text-ellipsis">${displayName}</span>
                             </div>
+                            ${subBarHtml}
                           `;
                         }).join('')}
                         
@@ -13791,6 +13899,129 @@
           updateChart(segments, filterValue);
         }
 
+        async function loadSubBars() {
+          try {
+            // Load dữ liệu thanh phụ từ webhook riêng (JSON độc lập)
+            // Webhook trả về mảng các object: [{task_code, form_start, form_end}, ...]
+            console.log('[Form4] Đang load thanh phụ từ:', SUBBARS_WEBHOOK_URL);
+            const response = await fetch(SUBBARS_WEBHOOK_URL);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const apiData = await response.json();
+            console.log('[Form4] Dữ liệu nhận được từ webhook thanh phụ:', apiData);
+            
+            // Xử lý nhiều trường hợp: mảng trực tiếp, object có key, hoặc object đơn lẻ
+            let dataArray = [];
+            if (Array.isArray(apiData)) {
+              dataArray = apiData;
+            } else if (apiData && typeof apiData === 'object') {
+              // Nếu là object, kiểm tra các key phổ biến
+              if (apiData.data && Array.isArray(apiData.data)) {
+                dataArray = apiData.data;
+              } else if (apiData.subBars && Array.isArray(apiData.subBars)) {
+                dataArray = apiData.subBars;
+              } else if (apiData.items && Array.isArray(apiData.items)) {
+                dataArray = apiData.items;
+              } else if (apiData.task_code) {
+                // Object đơn lẻ
+                dataArray = [apiData];
+              }
+            }
+            
+            // Kiểm tra nếu là dữ liệu thanh phụ (có task_code)
+            if (dataArray.length > 0) {
+              const firstItem = dataArray[0];
+              if (firstItem.task_code) {
+                console.log('[Form4] Phát hiện dữ liệu thanh phụ, số lượng:', dataArray.length);
+                // Log một vài items đầu để kiểm tra cấu trúc
+                if (dataArray.length > 0) {
+                  console.log('[Form4] Mẫu dữ liệu đầu tiên:', JSON.stringify(dataArray[0], null, 2));
+                }
+                // Parse và validate - chỉ giữ lại những items có cả form_start và form_end hợp lệ (không rỗng)
+                const parsedSubBars = dataArray
+                  .filter((subBar) => {
+                    // Chỉ xử lý những items có cả form_start và form_end không rỗng
+                    const hasStart = subBar.form_start && String(subBar.form_start).trim() !== '';
+                    const hasEnd = subBar.form_end && String(subBar.form_end).trim() !== '';
+                    return hasStart && hasEnd;
+                  })
+                  .map((subBar) => {
+                    const formStart = parseDateInput(subBar.form_start);
+                    const formEnd = parseDateInput(subBar.form_end);
+                    // Đảm bảo task_name được lưu đúng, kể cả khi là null/undefined
+                    const taskName = (subBar.task_name !== null && subBar.task_name !== undefined) 
+                      ? String(subBar.task_name).trim() 
+                      : '';
+                    console.log('[Form4] Parse item:', {
+                      task_code: subBar.task_code,
+                      task_name_raw: subBar.task_name,
+                      task_name_parsed: taskName,
+                      has_task_name: subBar.hasOwnProperty('task_name')
+                    });
+                    return {
+                      task_code: subBar.task_code || '',
+                      task_name: taskName,
+                      form_start: formStart,
+                      form_end: formEnd,
+                    };
+                  })
+                  .filter((subBar) => {
+                    const isValid = subBar.form_start && subBar.form_start.isValid && subBar.form_end && subBar.form_end.isValid;
+                    if (!isValid) {
+                      console.warn('[Form4] Bỏ qua thanh phụ không hợp lệ:', subBar.task_code);
+                    }
+                    return isValid;
+                  });
+                
+                console.log('[Form4] Đã parse được', parsedSubBars.length, 'thanh phụ hợp lệ từ', dataArray.length, 'items');
+                return parsedSubBars;
+              } else {
+                console.log('[Form4] Dữ liệu không phải thanh phụ (thiếu task_code)');
+              }
+            } else {
+              console.log('[Form4] Không tìm thấy mảng dữ liệu trong response');
+            }
+            
+            // Nếu không phải dữ liệu thanh phụ, trả về mảng rỗng
+            return [];
+          } catch (error) {
+            console.error('[Form4] Lỗi khi tải dữ liệu thanh phụ:', error);
+            return [];
+          }
+        }
+
+        // Hàm helper để set dữ liệu thanh phụ từ bên ngoài
+        function setSubBarsData(subBarsData) {
+          try {
+            if (!Array.isArray(subBarsData)) {
+              console.error('Dữ liệu thanh phụ phải là mảng');
+              return;
+            }
+            
+            subBars = subBarsData.map((subBar) => {
+              const formStart = parseDateInput(subBar.form_start);
+              const formEnd = parseDateInput(subBar.form_end);
+              return {
+                task_code: subBar.task_code || '',
+                task_name: subBar.task_name || '',
+                form_start: formStart,
+                form_end: formEnd,
+              };
+            }).filter((subBar) => subBar.form_start && subBar.form_start.isValid && subBar.form_end && subBar.form_end.isValid);
+            
+            // Refresh view để hiển thị thanh phụ
+            refreshView();
+            
+            console.log(`Đã set ${subBars.length} thanh phụ`);
+          } catch (error) {
+            console.error('Lỗi khi set dữ liệu thanh phụ:', error);
+          }
+        }
+        
+        // Expose hàm setSubBarsData để có thể gọi từ console hoặc code khác
+        window.setForm4SubBars = setSubBarsData;
+
         async function loadData() {
           if (statusText) statusText.textContent = 'Đang tải dữ liệu...';
           try {
@@ -13801,8 +14032,11 @@
             const apiData = await response.json();
             
             let flattenedData = [];
+            let subBarsData = [];
+            
             if (Array.isArray(apiData)) {
               apiData.forEach((item) => {
+                // Xử lý dữ liệu thanh chính
                 if (item.tasks && Array.isArray(item.tasks)) {
                   item.tasks.forEach((task) => {
                     flattenedData.push({
@@ -13815,13 +14049,47 @@
                     });
                   });
                 }
+                // Xử lý dữ liệu thanh phụ (nếu có trong response)
+                if (item.subBars && Array.isArray(item.subBars)) {
+                  subBarsData.push(...item.subBars);
+                }
               });
             } else {
               flattenedData = Array.isArray(apiData) ? apiData : [];
+              // Kiểm tra nếu apiData có trường subBars
+              if (apiData.subBars && Array.isArray(apiData.subBars)) {
+                subBarsData = apiData.subBars;
+              }
             }
             
+            // Parse dữ liệu thanh phụ từ webhook chính (nếu có)
+            const subBarsFromMain = subBarsData.map((subBar) => {
+              const formStart = parseDateInput(subBar.form_start);
+              const formEnd = parseDateInput(subBar.form_end);
+              return {
+                task_code: subBar.task_code || '',
+                task_name: subBar.task_name || '',
+                form_start: formStart,
+                form_end: formEnd,
+              };
+            }).filter((subBar) => subBar.form_start && subBar.form_start.isValid && subBar.form_end && subBar.form_end.isValid);
+            
             rawData = flattenedData;
-            if (statusText) statusText.textContent = `Đã tải ${flattenedData.length} tác vụ`;
+            
+            // Load dữ liệu thanh phụ từ webhook riêng TRƯỚC KHI render
+            let subBarsFromWebhook = [];
+            try {
+              subBarsFromWebhook = await loadSubBars();
+              console.log('[Form4] Kết quả loadSubBars:', subBarsFromWebhook);
+            } catch (subBarError) {
+              console.warn('[Form4] Không thể load thanh phụ từ webhook riêng:', subBarError);
+            }
+            
+            // Merge dữ liệu thanh phụ từ cả hai nguồn
+            subBars = [...subBarsFromMain, ...subBarsFromWebhook];
+            console.log(`[Form4] Tổng hợp thanh phụ: ${subBarsFromMain.length} từ webhook chính + ${subBarsFromWebhook.length} từ webhook riêng = ${subBars.length} tổng cộng`);
+            
+            if (statusText) statusText.textContent = `Đã tải ${flattenedData.length} tác vụ${subBars.length > 0 ? `, ${subBars.length} thanh phụ` : ''}`;
             
             colorCache.clear();
             const { rows, segments: timeline } = createSimpleSchedule(rawData);
@@ -13829,6 +14097,8 @@
             segments = timeline;
             populateFilterOptions(rows);
             assigneeFilter.value = 'all';
+            
+            // Gọi refreshView() SAU KHI đã có đầy đủ dữ liệu (cả thanh chính và thanh phụ)
             refreshView();
           } catch (error) {
             console.error('Lỗi khi tải dữ liệu:', error);
