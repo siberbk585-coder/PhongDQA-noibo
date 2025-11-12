@@ -400,12 +400,22 @@
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Mục đích yêu cầu</label>
-              <select id="rq-purpose" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Mục đích yêu cầu <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+              <select id="rq-purpose" required class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+                <option value="">— Chọn mục đích —</option>
                 <option value="Đánh giá Sản phẩm SOP">Đánh giá Sản phẩm SOP</option>
                 <option value="Đánh giá sản phẩm mới">Đánh giá sản phẩm mới</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Loại tác vụ <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+              <select id="task-type" required class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+                <option value="">— Chọn loại tác vụ —</option>
+                <option value="Đánh giá máy lọc nước">Đánh giá máy lọc nước</option>
+                <option value="Đánh giá linh kiện">Đánh giá linh kiện</option>
                 <option value="Tác vụ khác">Tác vụ khác</option>
               </select>
+              <p id="task-type-note" class="text-gray-500 text-xs mt-1"></p>
             </div>
           </div>
           <div class="pt-2 flex items-center gap-3">
@@ -4550,6 +4560,38 @@
           }
         });
       }
+
+      // Form 3: Cập nhật chú thích cho Loại tác vụ
+      (function initTaskTypeNote() {
+        const taskTypeSelect = document.getElementById('task-type');
+        const taskTypeNote = document.getElementById('task-type-note');
+        
+        if (!taskTypeSelect || !taskTypeNote) return;
+        
+        // Map các loại tác vụ với chú thích tương ứng
+        const taskTypeNotes = {
+          'Đánh giá máy lọc nước': 'Tác vụ đánh giá SP máy, có mẫu đánh giá',
+          'Đánh giá linh kiện': 'Tác vụ đánh giá linh kiện, có mẫu đánh giá',
+          'Tác vụ khác': 'Các tác vụ giấy tờ, bổ sung báo cáo, đào tạo, các tác vụ nhỏ lẻ'
+        };
+        
+        function updateNote() {
+          const selectedValue = taskTypeSelect.value;
+          if (selectedValue && taskTypeNotes[selectedValue]) {
+            taskTypeNote.textContent = taskTypeNotes[selectedValue];
+            taskTypeNote.style.display = 'block';
+          } else {
+            taskTypeNote.textContent = '';
+            taskTypeNote.style.display = 'none';
+          }
+        }
+        
+        // Cập nhật khi thay đổi
+        taskTypeSelect.addEventListener('change', updateNote);
+        
+        // Cập nhật lần đầu nếu có giá trị mặc định
+        updateNote();
+      })();
       const f5EmployeeSel = document.getElementById('f5-employee');
       if (f5EmployeeSel) fillSelect(f5EmployeeSel, FORM1_NAMES);
 
@@ -7243,8 +7285,12 @@
         const deadline = document.getElementById('deadline').value;
         const odooJira = document.getElementById('odoo-jira').value.trim();
         const rqPurpose = (document.getElementById('rq-purpose')?.value || '').trim();
+        const taskType = (document.getElementById('task-type')?.value || '').trim();
 
-        if(!requester || !taskName || !output || !manHourRaw || !assignee){ showToast('Vui lòng điền đủ trường bắt buộc.','error'); return; }
+        if(!requester || !taskName || !output || !manHourRaw || !assignee || !rqPurpose || !taskType){ 
+          showToast('Vui lòng điền đủ trường bắt buộc.','error'); 
+          return; 
+        }
         
         // Tự động chuyển đổi dấu chấm thành dấu phẩy cho số thập phân
         manHourRaw = manHourRaw.replace(/\./g, ',');
@@ -7280,6 +7326,7 @@
           desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
           Odoojira: odooJira,
           purpose: rqPurpose,
+          taskType: taskType,
           deptRequest: 'DQA',
           Reqcode: Reqcode
         };
