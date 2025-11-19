@@ -23,8 +23,8 @@
                 "border-light": "#e5e7eb",
                 "danger": "#ef4444",
                 'primary-blue': '#5aa9ff',
-                'sidebar': '#ffffff',
-                'sidebar-hover': '#f3f4f6',
+                'sidebar': '#f0f7ff',
+                'sidebar-hover': '#e0f0ff',
                 'muted': '#f7f8fc'
               },
               fontFamily: {
@@ -185,9 +185,9 @@
         align-self: flex-start;
         max-height: 100vh;
         overflow-y: auto;
-        background: #ffffff;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.06), 4px 0 16px rgba(0,0,0,0.04);
-        border-right: 1px solid rgba(229,231,235,0.8);
+        background: linear-gradient(180deg, #f0f7ff 0%, #e8f4ff 100%);
+        box-shadow: 2px 0 8px rgba(90,169,255,0.08), 4px 0 16px rgba(90,169,255,0.04);
+        border-right: 1px solid rgba(90,169,255,0.2);
       }
       /* Cải thiện các mục trong sidebar */
       #sidebar-nav .group-btn {
@@ -195,12 +195,18 @@
         border-radius: 0.5rem;
       }
       #sidebar-nav .group-btn:hover {
-        background: rgba(90,169,255,0.08);
+        background: rgba(90,169,255,0.15);
         transform: translateX(1px);
       }
       #sidebar-nav .nav-btn {
         margin-bottom: 0.125rem;
         padding: 0.625rem 0.75rem;
+        transition: all 0.2s ease;
+        background: transparent;
+      }
+      #sidebar-nav .nav-btn:hover {
+        background: rgba(90,169,255,0.12);
+        color: #2563eb;
       }
       #sidebar-nav nav {
         gap: 0.375rem;
@@ -361,7 +367,7 @@
   <body class="bg-background-light font-display text-text-light-primary antialiased">
     <div class="flex h-screen w-full overflow-hidden">
     <!-- Sidebar -->
-    <aside id="sidebar-nav" class="flex h-full w-64 flex-shrink-0 flex-col justify-between bg-surface-light p-4 border-r border-border-light">
+    <aside id="sidebar-nav" class="flex h-full w-64 flex-shrink-0 flex-col justify-between p-4 border-r border-border-light">
       <div class="flex flex-col gap-6">
         <div class="flex items-center gap-3 px-2">
           <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">DQA</div>
@@ -477,7 +483,6 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-blue-800">Form 1: Trả báo cáo</h2>
           <div class="flex items-center gap-2">
-            <button id="f1-export" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất server</button>
             <button id="f1-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
           </div>
         </div>
@@ -647,7 +652,6 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-blue-800">Form 5: KPI tháng</h2>
           <div class="flex items-center gap-2">
-            <button id="f5a-export" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất server</button>
             <button id="f5a-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
           </div>
         </div>
@@ -1096,7 +1100,7 @@
             </div>
             <div>
           <h3 class="text-lg font-semibold leading-tight">Modal F9-1 · Chi tiết Test bền</h3>
-              <div class="text-xs opacity-90">Khai báo/điều chỉnh thông tin 4 bài test và lưu một lần</div>
+              <div class="text-xs opacity-90">Khai báo bằng chứng, trạng thái và ghi chú</div>
             </div>
           </div>
           <button id="f9-dur-close" class="text-white/90 hover:text-white text-2xl leading-none">&times;</button>
@@ -1106,12 +1110,6 @@
             <div class="p-3 rounded-lg bg-blue-50 border border-blue-100"><div class="text-xs text-blue-700">Assignee</div><div id="f9-dur-assignee" class="font-medium text-blue-900"></div></div>
             <div class="p-3 rounded-lg bg-blue-50 border border-blue-100"><div class="text-xs text-blue-700">Mã tác vụ</div><div id="f9-dur-taskid" class="font-mono font-medium text-blue-900"></div></div>
             <div class="p-3 rounded-lg bg-blue-50 border border-blue-100 md:col-span-1"><div class="text-xs text-blue-700">Task Name</div><div id="f9-dur-taskname" class="font-medium text-blue-900"></div></div>
-          </div>
-          <div class="mt-3">
-            <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
-              <button id="f9-tab-gatea" class="px-4 py-2 bg-blue-600 text-white font-semibold">Gate A</button>
-              <button id="f9-tab-gateb" class="px-4 py-2 bg-white text-gray-700 hover:bg-gray-50">Gate B</button>
-            </div>
           </div>
           <div id="f9-gatea-wrap" class="mt-3">
             <div class="mt-2 rounded-xl border border-gray-200 overflow-hidden">
@@ -1137,28 +1135,6 @@
                   <input id="f9-gatea-note" type="text" class="w-full border border-gray-300 rounded px-2 py-2" placeholder="Ghi chú cho Gate A" />
                 </div>
               </div>
-            </div>
-          </div>
-          <div id="f9-gateb-wrap" class="mt-3" style="display:none">
-            <div class="mt-2 rounded-xl border border-blue-200 overflow-hidden">
-              <div class="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 font-semibold flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-blue-500 text-white text-xs">B</span>
-                Gate B - Trạng thái hiện tại (Test bền)
-              </div>
-            </div>
-            <div class="rounded-xl border border-gray-200 shadow-sm overflow-x-hidden">
-              <table class="w-full text-sm table-zebra table-vdiv">
-                <thead class="bg-gradient-to-r from-blue-100 to-blue-50">
-                  <tr class="text-left text-gray-700">
-                    <th class="px-4 py-2">Bài test</th>
-                    <th class="px-4 py-2">Tiêu chuẩn</th>
-                    <th class="px-4 py-2">Điều kiện</th>
-                    <th class="px-4 py-2">Tiến độ</th>
-                    <th class="px-4 py-2">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="f9-dur-body" class="divide-y divide-gray-100 bg-white"></tbody>
-              </table>
             </div>
           </div>
         </div>
@@ -2035,12 +2011,8 @@
     <script>
       // Constants
       const FORM1_WEBHOOK_URL = "https://iatzhxxuk.tino.page/webhook/laydulieutacvu";
-      // Form 1 - Xuất dữ liệu (Export)
-      const FORM1_EXPORT_URL = "https://iatzhxxuk.tino.page/webhook/4cdacd75-92ce-4156-aa79-62fc60f51730";
       // Form 1 - Tra cứu dữ liệu theo tên (Lookup)
       const FORM1_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/4cdacd75-92ce-4156-aa79-62fc60f51730";
-      // Form 5 - Xuất dữ liệu (Export)
-      const FORM5_EXPORT_URL = "https://iatzhxxuk.tino.page/webhook/4cdacd75-92ce-4156-aa79-62fc60f51730";
       const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/TrabaocaoDQA";
       const FORM7_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dc3b968a-2f2d-4746-98ac-48247555b9c9";
       // Riêng bảng phụ (subpanel) - Modal khai báo CE
@@ -2052,7 +2024,7 @@
       const FORM6_SUBMIT_URL = "https://iatzhxxuk.tino.page/webhook/8e42168f-cb7b-44da-ae44-571f1e072d53";
       // Form 9 endpoints
       const FORM9_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/laydulieuform9";
-      const FORM9_POST_URL = "https://iatzhxxuk.tino.page/webhook/a9239a08-167c-4245-b287-f904179aab64";
+      const FORM9_POST_URL = "https://iatzhxxuk.tino.page/webhook/Khaibaotestben";
       const FORM6_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
       // Backward-compat aliases for Form 6 handlers referencing FORM5_* names
       const FORM5_SUBMIT_URL = FORM6_SUBMIT_URL;
@@ -4898,8 +4870,7 @@
           const modal = document.getElementById('f9-dur-modal');
           const closeBtn = document.getElementById('f9-dur-close');
           const cancelBtn = document.getElementById('f9-dur-cancel');
-          const body = document.getElementById('f9-dur-body');
-          if (!modal || !body) return;
+          if (!modal) return;
           // Reset trạng thái nút gửi mỗi lần mở modal
           try{
             const btnSaveAll = document.getElementById('f9-dur-save-all');
@@ -4913,90 +4884,7 @@
           try{ document.getElementById('f9-dur-taskid').textContent = row.taskId || ''; }catch(_){ }
           try{ document.getElementById('f9-dur-taskname').textContent = row.taskName || ''; }catch(_){ }
 
-          // Tabs Gate B / Gate A: bind and set default active = Gate B
-          try{
-            const tabA = document.getElementById('f9-tab-gatea');
-            const tabB = document.getElementById('f9-tab-gateb');
-            const wrapA = document.getElementById('f9-gatea-wrap');
-            const wrapB = document.getElementById('f9-gateb-wrap');
-            function styleActive(elActive, elInactive){
-              if (elActive){ elActive.className = 'px-4 py-2 bg-primary-blue text-white font-semibold border border-blue-600 shadow'; }
-              if (elInactive){ elInactive.className = 'px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'; }
-            }
-            function activateB(){ if (wrapB) wrapB.style.display = ''; if (wrapA) wrapA.style.display = 'none'; styleActive(tabB, tabA); }
-            function activateA(){ if (wrapA) wrapA.style.display = ''; if (wrapB) wrapB.style.display = 'none'; styleActive(tabA, tabB); }
-            if (tabA && !tabA._bound){ tabA.addEventListener('click', (e)=>{ e.preventDefault(); activateA(); }); tabA._bound = true; }
-            if (tabB && !tabB._bound){ tabB.addEventListener('click', (e)=>{ e.preventDefault(); activateB(); }); tabB._bound = true; }
-            // Default -> Gate A
-            activateA();
-          }catch(_){ }
-
-          // Build 4 tests rows from row fields or defaults
-          const tests = [1,2,3,4].map(i=>({
-            name: row && (row[`Bài test ${i}`] || row[`Bai test ${i}`] || row[`test${i}`] || row[`t${i}_name`]) ? String(row[`Bài test ${i}`] || row[`Bai test ${i}`] || row[`test${i}`] || row[`t${i}_name`]) : '',
-            standard: (row && (row[`Tiêu chuẩn ${i}`] || row[`Tieu chuan ${i}`] || row[`t${i}_standard`])) || '',
-            condition: (row && (row[`Điều kiện ${i}`] || row[`Dieu kien ${i}`] || row[`t${i}_condition`])) || '',
-            progress: (row && (row[`Tiến độ ${i}`] || row[`Tien do ${i}`] || row[`t${i}_progress`])) || ''
-          }));
-          // fallback: try generic keys if backend returns flat structure
-          function val(obj, keys){ for(const k of keys){ if (obj && obj[k]!==undefined && obj[k]!==null) return String(obj[k]); } return ''; }
-          if (!tests.some(t=> t.standard || t.condition || t.progress)){
-            tests[0].standard = val(row,['test1_standard','standard_test1','t1_std']);
-            tests[0].condition = val(row,['test1_condition','condition_test1','t1_cond']);
-            tests[0].progress = val(row,['test1_progress','progress_test1','t1_prog']);
-            tests[1].standard = val(row,['test2_standard','standard_test2','t2_std']);
-            tests[1].condition = val(row,['test2_condition','condition_test2','t2_cond']);
-            tests[1].progress = val(row,['test2_progress','progress_test2','t2_prog']);
-            tests[2].standard = val(row,['test3_standard','standard_test3','t3_std']);
-            tests[2].condition = val(row,['test3_condition','condition_test3','t3_cond']);
-            tests[2].progress = val(row,['test3_progress','progress_test3','t3_prog']);
-            tests[3].standard = val(row,['test4_standard','standard_test4','t4_std']);
-            tests[3].condition = val(row,['test4_condition','condition_test4','t4_cond']);
-            tests[3].progress = val(row,['test4_progress','progress_test4','t4_prog']);
-          }
-
-          body.innerHTML = '';
-          tests.forEach((t, idx)=>{
-            const tr = document.createElement('tr');
-            const nameTd = document.createElement('td'); nameTd.className='px-3 py-2';
-            const stdTd = document.createElement('td'); stdTd.className='px-3 py-2';
-            const condTd = document.createElement('td'); condTd.className='px-3 py-2';
-            const progTd = document.createElement('td'); progTd.className='px-3 py-2';
-            const actTd = document.createElement('td'); actTd.className='px-3 py-2 flex items-center';
-
-            const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.className='w-full border border-gray-300 rounded px-2 py-1'; nameInput.value = t.name||'';
-            const stdInput = document.createElement('input'); stdInput.type='text'; stdInput.className='w-full border border-gray-300 rounded px-2 py-1'; stdInput.value = t.standard||'';
-            const condInput = document.createElement('input'); condInput.type='text'; condInput.className='w-full border border-gray-300 rounded px-2 py-1'; condInput.value = t.condition||'';
-            const progInput = document.createElement('input'); progInput.type='text'; progInput.className='w-full border border-gray-300 rounded px-2 py-1'; progInput.value = t.progress||'';
-            // Placeholders ví dụ cho bài test 1 (tự ẩn khi nhập)
-            if (idx === 0){
-              if (!nameInput.value) nameInput.placeholder = 'Bài test: ví dụ Độ bền áp suất động, chu kỳ';
-              if (!stdInput.value) stdInput.placeholder = 'Tiêu chuẩn: ví dụ 100000 chu kỳ';
-              if (!condInput.value) condInput.placeholder = 'Điều kiện: Áp suất biến động theo dải 0-150 psi. Thời gian tăng áp suất 1-10s, Áp suất <2 psi mới tăng áp lại (Theo NSF/ANSI 42). KPH rò rỉ';
-              if (!progInput.value) progInput.placeholder = 'Tiến độ: ví dụ 100 chu kỳ';
-            }
-            nameTd.appendChild(nameInput); stdTd.appendChild(stdInput); condTd.appendChild(condInput); progTd.appendChild(progInput);
-
-            const sel = document.createElement('select'); sel.className='border border-gray-300 rounded px-2 py-1';
-            ;['Done','Doing','Pending'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
-            // Default action = Pending (trừ khi dữ liệu có trạng thái rõ ràng)
-            try{
-              const pickStatus = ()=>{
-                const raw = (row && (row[`Trạng thái ${idx+1}`] || row[`Trang thai ${idx+1}`] || row[`status${idx+1}`] || row[`t${idx+1}_status`])) || '';
-                const s = String(raw||'').toLowerCase();
-                if (s.includes('done')) return 'Done';
-                if (s.includes('doing')) return 'Doing';
-                if (s.includes('pending') || s.includes('chờ') || s.includes('cho')) return 'Pending';
-                return '';
-              };
-              const st = pickStatus();
-              sel.value = st || 'Pending';
-            }catch(_){ sel.value = 'Pending'; }
-            actTd.appendChild(sel);
-
-            tr.appendChild(nameTd); tr.appendChild(stdTd); tr.appendChild(condTd); tr.appendChild(progTd); tr.appendChild(actTd);
-            body.appendChild(tr);
-          });
+          // Bảng nhập 4 bài test đã được bỏ
 
           const btnSaveAll = document.getElementById('f9-dur-save-all');
           if (btnSaveAll){
@@ -5013,30 +4901,6 @@
                     const ok = window.confirm('Bạn có chắc chắn muốn gửi dữ liệu test bền?');
                     if (!ok) { btnSaveAll.disabled = false; btnSaveAll.innerHTML = prevHtml; return; }
                   }catch(_){ }
-                  const rows = [];
-                  const trList = Array.from(document.querySelectorAll('#f9-dur-body tr'));
-                  trList.forEach((tr, i)=>{
-                    try{
-                      const inputs = tr.querySelectorAll('input');
-                      const sel = tr.querySelector('select');
-                      const test_name = inputs[0]?.value || '';
-                      const standard = inputs[1]?.value || '';
-                      const condition = inputs[2]?.value || '';
-                      const progress = inputs[3]?.value || '';
-                      const status = sel?.value || '';
-                      rows.push({ test_no: i+1, test_name, standard, condition, progress, status });
-                    }catch(_){ }
-                  });
-                  // Flatten tests into individual fields for easier routing on backend
-                  const flat = {};
-                  rows.forEach((t)=>{
-                    const i = t.test_no;
-                    flat[`test${i}_name`] = t.test_name || '';
-                    flat[`test${i}_standard`] = t.standard || '';
-                    flat[`test${i}_condition`] = t.condition || '';
-                    flat[`test${i}_progress`] = t.progress || '';
-                    flat[`test${i}_status`] = t.status || '';
-                  });
                   const gateAStatus = (document.getElementById('f9-gatea-status')?.value||'')
                   const gateANote = (document.getElementById('f9-gatea-note')?.value||'')
                   const gateAFileEl = document.getElementById('f9-gatea-file');
@@ -5073,71 +4937,108 @@
 
                   const TIMEOUT_MS = 30000;
 
+                  // Helper: Format timestamp thành YYYY-MM-DD HH:mm
+                  function formatTimestampYyyyMmDdHhMm(date) {
+                    if (!date) date = new Date();
+                    const yyyy = date.getFullYear();
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const hh = String(date.getHours()).padStart(2, '0');
+                    const min = String(date.getMinutes()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+                  }
+
+                  // Lấy Id từ row - kiểm tra nhiều nguồn và đảm bảo có giá trị
+                  const rowId = (row && (row.Id || row.id || row.ID || row['Id'] || row['id'] || row['ID'])) || '';
+                  // Nếu vẫn không có, thử lấy từ data gốc nếu có
+                  const finalId = String(rowId || '').trim();
+
+                  let response = null;
+                  let success = false;
+
                   if (gateAHasFile){
                     const fd = new FormData();
                     fd.append('action','form9_update_tests_bulk');
+                    fd.append('Id', finalId);
                     fd.append('taskId', row.taskId||'');
                     fd.append('code', row.code||'');
                     fd.append('assignee', row.assignee||'');
                     fd.append('taskName', row.taskName||'');
-                    fd.append('tests', JSON.stringify(rows));
-                    try{ fd.append('gate', (document.getElementById('f9-gatea-wrap')?.style.display !== 'none') ? 'Gate A' : 'Gate B'); }catch(_){ }
+                    try{ fd.append('gate', 'Gate A'); }catch(_){ }
                     fd.append('gateAStatus', gateAStatus);
                     fd.append('noteGateA', gateANote);
-                    fd.append('timestamp', new Date().toISOString());
+                    fd.append('timestamp', formatTimestampYyyyMmDdHhMm(new Date()));
                     try{ fd.append('gateAEvidence', gateAFileEl.files[0]); }catch(_){ }
-                    // Append flattened test fields
-                    Object.keys(flat).forEach(k=>{ try{ fd.append(k, flat[k]); }catch(_){ } });
                     try{
-                      await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'cors' }, TIMEOUT_MS);
+                      response = await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'cors' }, TIMEOUT_MS);
+                      success = response && response.ok;
                     }catch(_){
                       // Fallback: no-cors (không đọc được phản hồi nhưng vẫn kích hoạt server)
-                      await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'no-cors' }, 8000);
+                      try{
+                        await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: fd, mode:'no-cors' }, 8000);
+                        success = true; // Giả định thành công khi dùng no-cors
+                      }catch(e){
+                        success = false;
+                      }
                     }
                   } else {
-                    // active gate info for backend
-                    const activeGate = (document.getElementById('f9-gatea-wrap')?.style.display !== 'none') ? 'Gate A' : 'Gate B';
+                    // active gate info for backend (chỉ còn Gate A)
+                    const activeGate = 'Gate A';
                     const payload = {
                       action: 'form9_update_tests_bulk',
+                      Id: finalId,
                       taskId: row.taskId||'',
                       code: row.code||'',
                       assignee: row.assignee||'',
                       taskName: row.taskName||'',
-                      tests: rows,
                       gate: activeGate,
                       gateAStatus,
                       noteGateA: gateANote,
-                      timestamp: new Date().toISOString()
+                      timestamp: formatTimestampYyyyMmDdHhMm(new Date())
                     };
-                    // Merge flattened fields into payload
-                    Object.assign(payload, flat);
                     try{
-                      await fetchWithTimeout(FORM9_POST_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), mode:'cors' }, TIMEOUT_MS);
+                      response = await fetchWithTimeout(FORM9_POST_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), mode:'cors' }, TIMEOUT_MS);
+                      success = response && response.ok;
                     }catch(_){
                       // Fallback: no-cors (loại bỏ header để tránh bị chặn)
-                      await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: JSON.stringify(payload), mode:'no-cors' }, 8000);
+                      try{
+                        await fetchWithTimeout(FORM9_POST_URL, { method:'POST', body: JSON.stringify(payload), mode:'no-cors' }, 8000);
+                        success = true; // Giả định thành công khi dùng no-cors
+                      }catch(e){
+                        success = false;
+                      }
                     }
                   }
-                  try{ showToast('Đã gửi dữ liệu.','success'); }catch(_){ }
-                  // Tự động tra cứu lại để làm mới dữ liệu Form 9
-                  try{ if (typeof renderForm9 === 'function') { await renderForm9(); } }catch(_){ }
-                  // Làm mới nội dung modal hiện tại (không đóng modal)
-                  try{
-                    let updated = row;
+
+                  // Chỉ render lại và hiển thị thông báo khi nhận được response thành công
+                  if (success){
+                    try{ showToast('Đã gửi dữ liệu.','success'); }catch(_){ }
+                    // Tự động tra cứu lại để làm mới dữ liệu Form 9
+                    try{ if (typeof renderForm9 === 'function') { await renderForm9(); } }catch(_){ }
+                    // Làm mới nội dung modal hiện tại (không đóng modal)
                     try{
-                      const cached = (typeof LS!=='undefined' && LS.getJSON) ? LS.getJSON('f9.cache') : null;
-                      let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : (Array.isArray(window.F9_LAST_ROWS) ? window.F9_LAST_ROWS : []);
-                      const tid = String(row.taskId||'').trim();
-                      const codeKey = String(row.code||'').trim();
-                      const assigneeKey = String(row.assignee||'').trim();
-                      const found = rows.find(x => String(x.taskId||'').trim()===tid || (String(x.code||'').trim()===codeKey && String(x.assignee||'').trim()===assigneeKey));
-                      if (found) updated = found;
+                      let updated = row;
+                      try{
+                        const cached = (typeof LS!=='undefined' && LS.getJSON) ? LS.getJSON('f9.cache') : null;
+                        let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : (Array.isArray(window.F9_LAST_ROWS) ? window.F9_LAST_ROWS : []);
+                        const tid = String(row.taskId||'').trim();
+                        const codeKey = String(row.code||'').trim();
+                        const assigneeKey = String(row.assignee||'').trim();
+                        const found = rows.find(x => String(x.taskId||'').trim()===tid || (String(x.code||'').trim()===codeKey && String(x.assignee||'').trim()===assigneeKey));
+                        if (found) updated = found;
+                      }catch(_){ }
+                      // Cập nhật lại nội dung modal với dữ liệu mới nhất
+                      try{ openF9DurabilityModal(updated); }catch(_){ }
                     }catch(_){ }
-                    // Cập nhật lại nội dung modal với dữ liệu mới nhất
-                    try{ openF9DurabilityModal(updated); }catch(_){ }
-                  }catch(_){ }
-                  // Đổi trạng thái nút thành 'Đã gửi' và giữ khoá cho đến khi đóng modal
-                  try{ btnSaveAll.innerHTML = 'Đã gửi'; btnSaveAll.disabled = true; }catch(_){ }
+                    // Đổi trạng thái nút thành 'Đã gửi' và giữ khoá cho đến khi đóng modal
+                    try{ btnSaveAll.innerHTML = 'Đã gửi'; btnSaveAll.disabled = true; }catch(_){ }
+                  } else {
+                    // Nếu không thành công, hiển thị lỗi và mở khóa nút
+                    try{ showToast('Gửi dữ liệu thất bại. Vui lòng thử lại.','error'); }catch(_){ }
+                    btnSaveAll.disabled = false;
+                    btnSaveAll.innerHTML = prevHtml;
+                    return;
+                  }
                 }catch(err){
                   try{ showToast('Lưu thất bại.','error'); }catch(_){ }
                   // Mở khóa nút nếu lỗi
@@ -5227,7 +5128,7 @@
               e.stopPropagation();
               try{ openF9DurabilityModal(rowSnapshot); }catch(_){ try{ showToast('Chức năng đang cập nhật.','info'); }catch(__){} }
             };
-          })({ ...r });
+          })({ ...r, Id: r.Id || r.id || r.ID || r['Id'] || r['id'] || r['ID'] || '' });
           tdAction.appendChild(btn);
           tr.appendChild(tdAction);
           // Ngày trả BC tức thời (đưa ngay sau cột Khai báo)
@@ -5335,7 +5236,10 @@
             const code = getV(item,['code','mã','ma','taskcode','componentcode']);
             const taskIdRaw = getV(item,['taskid','task_id','mã tác vụ','ma_tac_vu','requestid','id']);
             const taskId = (typeof pickTaskIdPreferQA==='function') ? pickTaskIdPreferQA(taskIdRaw, code) : (taskIdRaw || code);
+            // Lấy Id từ item - kiểm tra nhiều cách
+            const itemId = item.Id || item.id || item.ID || item['Id'] || item['id'] || item['ID'] || getV(item,['Id','id','ID']) || '';
             return {
+              Id: String(itemId || '').trim(),
               rowNumber: getV(item,['row_number','stt','STT']),
               assignee: getV(item,['Assignee','assignee','employee','người phụ trách','nguoi_phu_trach','nhanvien','nhân viên']),
               code: code || getV(item,['Mã']),
@@ -5344,10 +5248,10 @@
               taskId,
               result: getV(item,['Kết quả','result','ket_qua']),
               actualCompletionDate: getV(item,['Ngày hoàn thành thực tế','actualcompletiondate','ngay hoan thanh thuc te','ngày hoàn thành','ngay hoan thanh']),
-              durability: getV(item,['Tình trạng test bền','Tình trạng Test bền','test_ben','durability','has_durability','testben']),
+              durability: getV(item,['Tình trạng test bền','Tình trạng Test bền','tinh trang test ben','tinh_trang_test_ben','durability_status','status_durability']),
               durabilityDue: getV(item,['Dự kiến hoàn thành test bền','ngay_du_kien_tra_test_ben','du_kien_hoan_thanh_test_ben','testbenduedate']),
               durabilityActual: getV(item,['Ngày hoàn thành test bền thực tế','ngay_hoan_thanh_test_ben_thuc_te','durability_actual']),
-              noteGateA: getV(item,['Ghi chú','ghi chú','note','ghi_chu','noteGateA','note_gate_a','ghi chú gate a','gate a note']),
+              noteGateA: getV(item,['Ghi chú test bền','Ghi chú Test bền','ghi chú test bền','ghi chu test ben','ghi_chu_test_ben','Ghi chú','ghi chú','note','ghi_chu','noteGateA','note_gate_a','ghi chú gate a','gate a note']),
               gateAStatus: getV(item,['Trạng thái Gate A','gate a status','gatea status','gatea_status','status gate a']),
               gateAEvidence: getV(item,['Link bằng chứng','link bằng chứng','Bằng chứng Gate A','bang chung gate a','gate a evidence','gatea evidence','gatea_file','gateAEvidence'])
             };
@@ -5705,41 +5609,6 @@
 
       // Upload modal
       // ===== Form 1: Export helpers =====
-      function f1BuildExportPayload(){
-        try{
-          const name = (document.getElementById('f1-name')?.value||'').trim();
-          // Ưu tiên lấy từ cache raw nếu có
-          let rows = [];
-          try{
-            const raw = LS.getJSON('f1.raw');
-            if (raw && Array.isArray(raw.rows)) rows = raw.rows;
-          }catch(_){ }
-          if (!rows.length && Array.isArray(window.F1_LAST_RAW)) rows = window.F1_LAST_RAW;
-          const data = rows.map(item=>({ ...item }));
-          return { action:'form1_export', name, items: data, ts: new Date().toISOString() };
-        }catch(_){ return { action:'form1_export', name:'', items:[], ts:new Date().toISOString() }; }
-      }
-      async function f1TryPostJson(url, data, noCors){
-        try{
-          const r = await fetch(url, { method:'POST', mode:noCors?'no-cors':'cors', headers:{ 'Content-Type':'application/json', 'Accept':'application/json, text/plain, */*' }, body: JSON.stringify(data) });
-          const ok = noCors ? true : r.ok; let raw=''; try{ raw = await r.text(); }catch(_){ raw=''; }
-          return { ok, raw };
-        }catch(err){ return { ok:false, raw:String(err||'') }; }
-      }
-      async function f1ExportToServer(){
-        const payload = f1BuildExportPayload();
-        if (!Array.isArray(payload.items) || !payload.items.length){ showToast('Form 1: Không có dữ liệu để xuất.','error'); return; }
-        const base = FORM1_EXPORT_URL;
-        const test = base.replace('/webhook/', '/webhook-test/');
-        const q = new URLSearchParams({ action:'form1_export', _ts: Date.now().toString() }).toString();
-        for (const u of [ `${test}?${q}`, `${base}?${q}` ]){
-          let r = await f1TryPostJson(u, payload, true);
-          if (r.ok) return true;
-          r = await f1TryPostJson(u, payload, false);
-          if (r.ok) return true;
-        }
-        return false;
-      }
       function f1RowsToAOA(items){
         const head = ['Trạng thái','Mã tác vụ','Mã','Tên tác vụ','Tgian nộp form','Ngày cần trả BC','Người yêu cầu','Người nhận mẫu','Công chuẩn','Ngày yêu cầu','Hạn mong muốn','Hạn đáp ứng','Mục đích đánh giá','Note','Yêu cầu test đặc biệt','Form báo cáo','Tên file','Link'];
         const aoa = [head];
@@ -5782,9 +5651,7 @@
         }catch(_){ showToast('Form 1: Xuất XLSX thất bại.','error'); }
       }
       (function initF1Exports(){
-        const btnServer = document.getElementById('f1-export');
         const btnXlsx = document.getElementById('f1-export-xlsx');
-        if (btnServer) btnServer.addEventListener('click', async (e)=>{ e.preventDefault(); btnServer.disabled=true; const prev=btnServer.textContent; btnServer.innerHTML = "<span class='spinner mr-2'></span>Đang xuất..."; try{ const ok = await f1ExportToServer(); if(ok) showToast('Form 1: Đã xuất dữ liệu lên server.','success'); else showToast('Form 1: Xuất thất bại.','error'); } finally { btnServer.disabled=false; btnServer.textContent=prev||'Xuất server'; } });
         if (btnXlsx) btnXlsx.addEventListener('click', (e)=>{ e.preventDefault(); f1DownloadXLSX(); });
       })();
       const modal = document.getElementById('upload-modal');
@@ -9399,100 +9266,6 @@
           return true;
         }catch(_){ return false; }
       }
-      // Build payload (rows + tổng) để xuất server
-      function f5aBuildExportPayload(rows){
-        try{
-          // Lọc bỏ nhân viên test "x"
-          const list = Array.isArray(rows) ? rows.filter(it => {
-            const name = (it['Phụ trách'] || it.name || '').trim().toLowerCase();
-            return name !== 'x';
-          }) : [];
-          const items = list.map(it=>{
-            const name = it['Phụ trách'] || it.name || '';
-            const man = Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0));
-            const count = Number(((it['Tổng tác vụ đã xử lý'] ?? it.count) || 0));
-            const ahead = Number(it.ahead||0);
-            const ontime = Number(it.ontime||0);
-            const late = Number(it.late||0);
-            const na = Number(it.na||0);
-            const need = Number(f5aGetNeedManhour(name) || 0);
-            return { name, manhour: +man.toFixed(2), need: +need.toFixed(2), count, ahead, ontime, late, na };
-          });
-          const total = items.reduce((acc,it)=>{
-            acc.manhour += Number(it.manhour||0);
-            acc.need += Number(it.need||0);
-            acc.count += Number(it.count||0);
-            acc.ahead += Number(it.ahead||0);
-            acc.ontime += Number(it.ontime||0);
-            acc.late += Number(it.late||0);
-            acc.na += Number(it.na||0);
-            return acc;
-          }, { manhour:0, need:0, count:0, ahead:0, ontime:0, late:0, na:0 });
-          const month = (document.getElementById('f5a-month')?.value||'');
-          return {
-            action: 'form5_export',
-            month,
-            items,
-            total: {
-              manhour: +total.manhour.toFixed(2),
-              need: +total.need.toFixed(2),
-              count: total.count,
-              ahead: total.ahead,
-              ontime: total.ontime,
-              late: total.late,
-              na: total.na
-            },
-            ts: new Date().toISOString()
-          };
-        }catch(_){
-          return { action:'form5_export', month:'', items:[], total:{manhour:0,need:0,count:0,ahead:0,ontime:0,late:0,na:0}, ts:new Date().toISOString() };
-        }
-      }
-      async function f5aTryPostJson(url, data, noCors){
-        try{
-          const r = await fetch(url, { method:'POST', mode: noCors ? 'no-cors' : 'cors', headers:{ 'Content-Type':'application/json', 'Accept':'application/json, text/plain, */*' }, body: JSON.stringify(data) });
-          const ok = noCors ? true : r.ok;
-          let raw = '';
-          try{ raw = await r.text(); }catch(_){ raw = ''; }
-          return { ok, raw };
-        }catch(err){ return { ok:false, raw: String(err||'') }; }
-      }
-      async function f5aExportToServer(payload){
-        const base = FORM5_EXPORT_URL;
-        const test = base.replace('/webhook/', '/webhook-test/');
-        const q = new URLSearchParams({ action:'form5_export', _ts: Date.now().toString() }).toString();
-        const targets = [ `${test}?${q}`, `${base}?${q}` ];
-        // Thử tuần tự: POST no-cors -> POST thường
-        for (const u of targets){
-          let r = await f5aTryPostJson(u, payload, true);
-          if (r.ok) return true;
-          r = await f5aTryPostJson(u, payload, false);
-          if (r.ok) return true;
-        }
-        return false;
-      }
-      // Gắn sự kiện cho nút Xuất server
-      (function initF5aExport(){
-        const btn = document.getElementById('f5a-export');
-        if (!btn) return;
-        btn.addEventListener('click', async (e)=>{
-          e.preventDefault();
-          const rows = Array.isArray(F5A_LAST_ROWS) ? F5A_LAST_ROWS.slice() : [];
-          if (!rows.length){ showToast('Không có dữ liệu để xuất.','error'); return; }
-          const payload = f5aBuildExportPayload(rows);
-          btn.disabled = true;
-          const prev = btn.textContent;
-          btn.innerHTML = "<span class='spinner mr-2'></span>Đang xuất...";
-          try{
-            const ok = await f5aExportToServer(payload);
-            if (ok) showToast('Đã xuất dữ liệu lên server.','success'); else showToast('Xuất thất bại.','error');
-          }catch(_){ showToast('Xuất thất bại.','error'); }
-          finally{
-            btn.disabled = false;
-            btn.textContent = prev || 'Xuất server';
-          }
-        });
-      })();
 
       // Xuất CSV/XLSX
       function f5aRowsToAOA(rows){
