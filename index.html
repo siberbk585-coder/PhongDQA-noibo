@@ -6307,7 +6307,7 @@
           fd.append('ma_tac_vu', taskIdVal);
           fd.append('ten_tac_vu', uploadContext.taskName||'');
           fd.append('form', uploadContext.form||'');
-          if(uploadContext.id) fd.append('id', String(uploadContext.id));
+          fd.append('id', String(uploadContext.id || ''));
           // Thêm Assignee từ rowData để dùng cho lọc theo tên
           if(uploadContext.rowData && typeof uploadContext.rowData === 'object'){
             const assigneeKey = Object.keys(uploadContext.rowData).find(k => k.toLowerCase() === 'assignee');
