@@ -521,7 +521,6 @@
                 <th class="px-3 py-2 min-w-[120px] border border-gray-500">Công chuẩn</th>
                 <th class="px-3 py-2 min-w-[140px] border border-gray-500">Ngày yêu cầu</th>
                 <th class="px-3 py-2 min-w-[140px] border border-gray-500">Hạn mong muốn</th>
-                <th class="px-3 py-2 min-w-[140px] border border-gray-500">Hạn đáp ứng</th>
                 <th class="px-3 py-2 min-w-[260px] border border-gray-500">Mục đích đánh giá</th>
                 <th class="px-3 py-2 min-w-[360px] border border-gray-500">Note</th>
                 <th class="px-3 py-2 min-w-[240px] border border-gray-500">Yêu cầu test đặc biệt</th>
@@ -531,7 +530,7 @@
               </tr>
             </thead>
             <tbody id="f1-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="20">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="19">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -5610,7 +5609,7 @@
       // Upload modal
       // ===== Form 1: Export helpers =====
       function f1RowsToAOA(items){
-        const head = ['Trạng thái','Mã tác vụ','Mã','Tên tác vụ','Tgian nộp form','Ngày cần trả BC','Người yêu cầu','Người nhận mẫu','Công chuẩn','Ngày yêu cầu','Hạn mong muốn','Hạn đáp ứng','Mục đích đánh giá','Note','Yêu cầu test đặc biệt','Form báo cáo','Tên file','Link'];
+        const head = ['Trạng thái','Mã tác vụ','Mã','Tên tác vụ','Tgian nộp form','Ngày cần trả BC','Người yêu cầu','Người nhận mẫu','Công chuẩn','Ngày yêu cầu','Hạn mong muốn','Mục đích đánh giá','Note','Yêu cầu test đặc biệt','Form báo cáo','Tên file','Link'];
         const aoa = [head];
         const getV = (obj, keys)=>{ const lower = Object.keys(obj||{}).reduce((acc,k)=>{ acc[k.toLowerCase()] = obj[k]; return acc; },{}); for(const k of keys){ const v = lower[k.toLowerCase()]; if(v!==undefined) return v; } return ''; };
         (Array.isArray(items)? items:[]).forEach(it=>{
@@ -5624,7 +5623,6 @@
           const man = getV(it,[ 'manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn' ]);
           const requestDate = getV(it,['requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           const wishDue = getV(it,['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-          const actualDue = getV(it,['actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
           const purpose = getV(it,['purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']);
           const note = getV(it,['note','ghi_chu','ghichu']);
           const special = getV(it,['specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']);
@@ -5632,7 +5630,7 @@
           const fileName = getV(it,[ 'attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file' ]);
           const url = getV(it,[ 'attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url' ]);
           const taskId = getV(it,['taskid','task_id','ma_tac_vu','mã tác vụ','taskcode2','requestid','id']);
-          aoa.push([statusText,taskId,code,tname,submitTimeRaw,reportDue,requester,receiver,man,requestDate,wishDue,actualDue,purpose,note,special,reportForm,fileName,url]);
+          aoa.push([statusText,taskId,code,tname,submitTimeRaw,reportDue,requester,receiver,man,requestDate,wishDue,purpose,note,special,reportForm,fileName,url]);
         });
         return aoa;
       }
@@ -6414,7 +6412,7 @@
         const pager = document.getElementById('f1-pager');
         const total = F1_ALL_ROWS.length;
         if(total === 0){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="20">Không có tác vụ</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="19">Không có tác vụ</td></tr>';
           pager.style.display = 'none';
           return;
         }
@@ -6503,8 +6501,6 @@
           const v = getV(obj,[
             'Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu'
           ]) || getV(obj,[
-            'Hạn đáp ứng','actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng'
-          ]) || getV(obj,[
             'Hạn mong muốn','wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn'
           ]);
           const d = parseDateFlexible(v);
@@ -6535,9 +6531,7 @@
           const isLocked = isCancelled || isPendingApproval || isEmptyStatus;
           const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
           const wishDue = getV(item,['Hạn mong muốn','wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
-          const actualDue = getV(item,['Hạn đáp ứng','actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']);
-          const dueStr = actualDue || wishDue || '';
-          const dueDate = parseDateFlexible(dueStr);
+          const dueDate = parseDateFlexible(wishDue || '');
           if (isDoing && dueDate){
             const today = new Date();
             const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -6588,7 +6582,13 @@
           const requestDateStr = getV(item,['Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           // Lưu toàn bộ dữ liệu từ item gốc vào rowData để gửi kèm khi upload (giống Form 2)
           const rowData = { ...item, taskId: taskIdBest, requestDate: requestDateStr, wishDue, code, taskName: tname };
-          if (isDone) {
+          if (isLocked) {
+            // Tác vụ bị khóa (Cancel, chờ phê duyệt, hoặc trạng thái rỗng): khóa nút "Trả form báo cáo"
+            returnFormBtn.disabled = true;
+            returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
+            returnFormBtn.textContent = isCancelled ? 'Đã hủy' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi');
+            returnFormBtn.title = returnFormBtn.textContent;
+          } else if (isDone) {
             // Tác vụ đã Done: khóa nút "Trả form báo cáo", chỉ cho phép cập nhật báo cáo
             returnFormBtn.disabled = true;
             returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
@@ -6669,7 +6669,6 @@
           addTd(tr, getV(item,[ 'Công chuẩn','manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn' ]));
           addTd(tr, requestDateStr);
           addTd(tr, getV(item,['Hạn mong muốn','wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']));
-          addTd(tr, getV(item,['Hạn đáp ứng','actualdue','handapung','han_dap_ung','completiondate','hạn đáp ứng']));
           addTd(tr, getV(item,['Mục đích đánh giá','purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']));
           addTd(tr, getV(item,['Note','note','ghi_chu','ghichu']));
           addTd(tr, getV(item,['Yêu cầu test đặc biệt','specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']));
