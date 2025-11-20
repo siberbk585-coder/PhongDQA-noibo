@@ -2005,7 +2005,7 @@
       </div>
     </div>
   </div>
-
+ 
     <div id="toast" class="toast"></div>
 
     <script>
@@ -6223,6 +6223,9 @@
             fd.append('ma_tac_vu', taskIdVal);
             fd.append('ten_tac_vu', uploadContext.taskName||'');
             fd.append('form', uploadContext.form||'Form 1');
+            if (uploadContext.id !== undefined && uploadContext.id !== null && uploadContext.id !== '') {
+              fd.append('id', String(uploadContext.id));
+            }
           }
           // Durability test fields
           let durPicked = '';
@@ -6304,6 +6307,7 @@
           fd.append('ma_tac_vu', taskIdVal);
           fd.append('ten_tac_vu', uploadContext.taskName||'');
           fd.append('form', uploadContext.form||'');
+          if(uploadContext.id) fd.append('id', String(uploadContext.id));
           // Thêm Assignee từ rowData để dùng cho lọc theo tên
           if(uploadContext.rowData && typeof uploadContext.rowData === 'object'){
             const assigneeKey = Object.keys(uploadContext.rowData).find(k => k.toLowerCase() === 'assignee');
@@ -6342,6 +6346,7 @@
             taskId: (uploadContext?.taskId || uploadContext?.code || ''),
             code: uploadContext?.code || '',
             taskName: uploadContext?.taskName || '',
+            id: uploadContext?.id || '',
             Assignee: assigneeValue,
             is_bps: bpsChecked ? '1' : '0',
             timestamp: formatDdMmYyyyHHmm(new Date()),
@@ -6607,7 +6612,7 @@
               returnFormBtn.classList.add('opacity-50', 'pointer-events-none');
               lastOpenTrigger = returnFormBtn;
               const name = (document.getElementById('f1-name')?.value || '').trim();
-              openUploadModal({ form: 'Form 2', name, code, taskId: taskIdBest, taskName: tname, rowData });
+              openUploadModal({ form: 'Form 2', name, code, taskId: taskIdBest, taskName: tname, rowData, id: itemId });
             };
           }
           tdReturnForm.appendChild(returnFormBtn);
