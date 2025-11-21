@@ -1849,7 +1849,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
               <div><span class="font-medium">Công ước lượng:</span> <span id="stats-cong-uoc-luong" class="text-green-700"></span></div>
               <div><span class="font-medium">Công chuẩn đầy đủ:</span> <span id="stats-cong-chuan-day-du" class="text-green-700"></span></div>
-              <div><span class="font-medium">Công chuẩn thực tế:</span> <span id="stats-cong-chuan-thuc-te" class="text-green-700"></span></div>
+              <div><span class="font-medium">Số giờ đánh giá thực tế:</span> <span id="stats-cong-chuan-thuc-te" class="text-green-700"></span></div>
               <div><span class="font-medium">Công chuẩn phần PTC:</span> <span id="stats-cong-chuan-ptc" class="text-green-700"></span></div>
               <div><span class="font-medium">Công chuẩn phần Bổ sung:</span> <span id="stats-cong-chuan-bo-sung" class="text-green-700"></span></div>
               <div><span class="font-medium">Công chuẩn thêm:</span> <span id="stats-cong-chuan-them" class="text-green-700"></span></div>
@@ -2052,7 +2052,7 @@
       // Form 10 (Attendance) lookup endpoint - GET
       const FORM10_ATTENDANCE_URL = "https://iatzhxxuk.tino.page/webhook/tracuugiodilammoi";
       // Stats Detail endpoint
-      const STATS_DETAIL_URL = 'https://iatzhxxuk.tino.page/webhook/fdf2d106-5b1c-46ca-bc8a-937ca7a9968d';  // action=stats_detail
+      const STATS_DETAIL_URL = 'https://iatzhxxuk.tino.page/webhook/817159ab-9a32-43dd-a2f2-a41c83b434ec';  // action=stats_detail
       // Version hoá cache để tránh xung đột/hiển thị sai giữa các máy hoặc lần triển khai
       const APP_CACHE_VERSION = "2025-09-25-f5a-v4";
       let F5_LAST_COUNT = 0;
@@ -3457,6 +3457,30 @@
         // Thêm tên tại đây nếu cần mở rộng tạm thời
         // "Hà Mỹ Linh",
       ];
+      // Form 5: blacklist tên cần ẩn khỏi P1 và P2
+      const F5A_BLACKLIST = [
+        "Nguyễn Hữu Thịnh",
+        "Trần Hiếu Nghĩa",
+        "Đào Tuấn Kỳ",
+        "Thái Thị Giang",
+        "Vũ Thị Hằng",
+        "Bùi Đặng Quốc Huy",
+      ];
+      // Helper function để normalize tên và kiểm tra blacklist
+      function isNameInBlacklist(name) {
+        if (!name) return false;
+        const normalizeName = (s) => {
+          try {
+            const raw = String(s || '').trim();
+            const noAcc = (typeof vnLower === 'function') ? vnLower(raw) : raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            return noAcc.replace(/\s+/g, ' ').trim();
+          } catch (_) {
+            return String(s || '').toLowerCase().trim();
+          }
+        };
+        const normalizedName = normalizeName(name);
+        return F5A_BLACKLIST.some(blackName => normalizeName(blackName) === normalizedName);
+      }
       // Ánh xạ alias tên -> tên chuẩn (điền key không dấu/thường)
       const F5A_NAME_ALIASES = {
         // ví dụ: "le thi thao": "Lê Thị Thảo",
@@ -6711,87 +6735,9 @@
         if (titleEl) titleEl.textContent = taskId ? `Thống kê chi tiết - ${taskId}` : 'Thống kê chi tiết';
         
         try {
-          // Fetch stats data - Header map đầy đủ
-          const headerMapStats = {
-            // a. Thông tin cơ bản
-            header_ma: 'Mã', field_ma: 'ma',
-            header_task_name: 'Task Name', field_task_name: 'task_name',
-            header_conclusion: 'Kết luận (trang bìa)', field_conclusion: 'conclusion',
-            // b. Công chuẩn
-            header_cong_uoc_luong: 'Công ước lượng', field_cong_uoc_luong: 'cong_uoc_luong',
-            header_cong_chuan_day_du: 'Công chuẩn đầy đủ', field_cong_chuan_day_du: 'cong_chuan_day_du',
-            header_cong_chuan_thuc_te: 'Công chuẩn thực tế', field_cong_chuan_thuc_te: 'cong_chuan_thuc_te',
-            header_cong_chuan_ptc: 'Công chuẩn phần PTC', field_cong_chuan_ptc: 'cong_chuan_ptc',
-            header_cong_chuan_them: 'Công chuẩn thêm', field_cong_chuan_them: 'cong_chuan_them',
-            header_tong_cong_chuan_thuc: 'Tổng công chuẩn thực', field_tong_cong_chuan_thuc: 'tong_cong_chuan_thuc',
-            header_so_mau: 'Số mẫu', field_so_mau: 'so_mau',
-            header_so_mau_sheet_them: 'Số mẫu Sheet Thêm', field_so_mau_sheet_them: 'so_mau_sheet_them',
-            header_nhan_xet_pic: 'Nhận xét PIC', field_nhan_xet_pic: 'nhan_xet_pic',
-            // c. Test bền
-            header_test_ben: 'Test bền', field_test_ben: 'test_ben',
-            header_test_ben_du_kien: 'Dự kiến hoàn thành test bền', field_test_ben_du_kien: 'test_ben_du_kien',
-            header_test_ben_1: 'Test bền bìa 1', field_test_ben_1: 'test_ben_1',
-            header_test_ben_2: 'Test bền bìa 2', field_test_ben_2: 'test_ben_2',
-            header_test_ben_3: 'Test bền bìa 3', field_test_ben_3: 'test_ben_3',
-            header_test_ben_4: 'Test bền bìa 4', field_test_ben_4: 'test_ben_4',
-            header_test_ben_5: 'Test bền bìa 5', field_test_ben_5: 'test_ben_5',
-            // d. Tiêu chuẩn kỹ thuật
-            header_total_tckt: 'Hạng mục đánh giá TCKT', field_total_tckt: 'total_tckt',
-            header_ok: 'Hạng mục OK', field_ok: 'ok',
-            header_ng: 'Hạng mục NG', field_ng: 'ng',
-            header_test_ben_count: 'Hạng mục test bền', field_test_ben_count: 'test_ben_count',
-            header_not_eval: 'Hạng mục không đánh giá', field_not_eval: 'not_eval',
-            header_not_conclusion: 'Hạng mục không kết luận', field_not_conclusion: 'not_conclusion',
-            // e. Hạng mục thêm
-            header_additional: 'Hạng mục thêm ', field_additional: 'additional',
-            header_additional_ok: 'Hạng mục thêm OK', field_additional_ok: 'additional_ok',
-            header_additional_ng: 'Hạng mục thêm NG', field_additional_ng: 'additional_ng',
-            header_additional_test_ben: 'Hạng mục thêm test bền', field_additional_test_ben: 'additional_test_ben',
-            header_additional_kdg: 'Hạng mục thêm KDG', field_additional_kdg: 'additional_kdg',
-            header_additional_kkl: 'Hạng mục thêm KKL', field_additional_kkl: 'additional_kkl',
-            header_additional_comment: 'Nhận xét Hạng mục thêm', field_additional_comment: 'additional_comment',
-            // f. Rủi ro và PTC
-            header_risk_ptc_total: 'Rủi ro và PTC', field_risk_ptc_total: 'risk_ptc_total',
-            header_ptc_ok: 'PTC OK', field_ptc_ok: 'ptc_ok',
-            header_ptc_ng: 'PTC NG', field_ptc_ng: 'ptc_ng',
-            header_ptc_test_ben: 'PTC test bền', field_ptc_test_ben: 'ptc_test_ben',
-            header_ptc_na: 'PTC NA', field_ptc_na: 'ptc_na',
-            header_ptc_comment: 'Nhận xét PTC', field_ptc_comment: 'ptc_comment',
-            // g. AI phân tích
-            header_test_1_name: 'Bài test 1', field_test_1_name: 'test_1_name',
-            header_test_1_standard: 'Tiêu chuẩn 1', field_test_1_standard: 'test_1_standard',
-            header_test_1_condition: 'Điều kiện 1', field_test_1_condition: 'test_1_condition',
-            header_test_1_progress: 'Tiến độ 1', field_test_1_progress: 'test_1_progress',
-            header_test_1_status: 'Tình trạng 1', field_test_1_status: 'test_1_status',
-            header_test_2_name: 'Bài test 2', field_test_2_name: 'test_2_name',
-            header_test_2_standard: 'Tiêu chuẩn 2', field_test_2_standard: 'test_2_standard',
-            header_test_2_condition: 'Điều kiện 2', field_test_2_condition: 'test_2_condition',
-            header_test_2_progress: 'Tiến độ 2', field_test_2_progress: 'test_2_progress',
-            header_test_2_status: 'Trình trạng 2', field_test_2_status: 'test_2_status',
-            header_test_3_name: 'Bài test 3', field_test_3_name: 'test_3_name',
-            header_test_3_standard: 'Tiêu chuẩn 3', field_test_3_standard: 'test_3_standard',
-            header_test_3_condition: 'Điều kiện 3', field_test_3_condition: 'test_3_condition',
-            header_test_3_progress: 'Tiến độ 3', field_test_3_progress: 'test_3_progress',
-            header_test_3_status: 'Tình trạng 3', field_test_3_status: 'test_3_status',
-            header_test_4_name: 'Bài test 4', field_test_4_name: 'test_4_name',
-            header_test_4_standard: 'Tiêu chuẩn 4', field_test_4_standard: 'test_4_standard',
-            header_test_4_condition: 'Điều kiện 4', field_test_4_condition: 'test_4_condition',
-            header_test_4_progress: 'Tiến độ 4', field_test_4_progress: 'test_4_progress',
-            header_test_4_status: 'Trình trạng 4', field_test_4_status: 'test_4_status',
-            header_ai_comment: 'Nhận xét AI', field_ai_comment: 'ai_comment',
-            header_abnormalities: 'Bất thường AI', field_abnormalities: 'abnormalities'
-          };
-          
-          const qs = new URLSearchParams({ 
-            action: 'stats_detail', 
-            id: String(taskId),
-            ...headerMapStats,
-            _ts: Date.now().toString() 
-          });
-          
+          // Fetch stats data từ webhook mới - trả về tất cả records, cần filter theo Mã tác vụ
           async function fetchStatsJson(url) {
-            const full = `${url}?${qs.toString()}`;
-            const r = await fetch(full, { method: 'GET' });
+            const r = await fetch(url, { method: 'GET' });
             const txt = await r.text();
             let parsed = null;
             try { parsed = JSON.parse(txt); } catch {}
@@ -6799,21 +6745,69 @@
           }
           
           let resp = await fetchStatsJson(STATS_DETAIL_URL);
-          if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message || ''))) {
-            resp = await fetchStatsJson(STATS_DETAIL_URL.replace('/webhook-test/', '/webhook/'));
-          }
-          
           if (!resp.ok) {
             throw new Error('Không thể tải dữ liệu thống kê');
           }
           
-          // Parse response data
+          // Parse response data - webhook mới trả về tất cả records
           const data = resp.parsed;
           if (!data || !Array.isArray(data) || data.length === 0) {
             throw new Error('Không có dữ liệu thống kê');
           }
           
-          const stats = data[0]; // Get first item
+          // Helper function để normalize chuỗi để so sánh
+          const normalizeString = (str) => {
+            if (!str) return '';
+            return String(str).trim().replace(/\s+/g, ' ');
+          };
+          
+          // Normalize taskId để so sánh
+          const normalizedTaskId = normalizeString(taskId);
+          
+          // Tìm record có Mã tác vụ khớp với taskId (so sánh chính xác)
+          let stats = data.find(item => {
+            const maTacVu = normalizeString(item['Mã tác vụ'] || '');
+            return maTacVu === normalizedTaskId;
+          });
+          
+          // Nếu không tìm thấy, thử tìm với các key khác có thể chứa mã tác vụ
+          if (!stats) {
+            stats = data.find(item => {
+              // Thử các key khác có thể chứa mã tác vụ
+              const maTacVu1 = normalizeString(item['Mã tác vụ'] || '');
+              const maTacVu2 = normalizeString(item['taskId'] || item['task_id'] || item['Mã'] || '');
+              return maTacVu1 === normalizedTaskId || maTacVu2 === normalizedTaskId;
+            });
+          }
+          
+          if (!stats) {
+            // Log để debug
+            console.warn('[Stats Detail] Không tìm thấy dữ liệu cho mã tác vụ:', taskId);
+            console.warn('[Stats Detail] Các mã tác vụ có trong dữ liệu:', data.slice(0, 5).map(item => item['Mã tác vụ']));
+            throw new Error(`Không tìm thấy dữ liệu cho mã tác vụ: ${taskId}`);
+          }
+          
+          // Log để xác nhận đã tìm thấy
+          console.log('[Stats Detail] Đã tìm thấy dữ liệu cho mã tác vụ:', taskId, '→', stats['Mã tác vụ']);
+          
+          // Helper function để parse JSON string từ các trường như "Thống kê sheet TCKT", "Dữ liệu test bền bìa"
+          const parseJsonField = (value) => {
+            if (!value) return null;
+            if (typeof value === 'object') return value;
+            if (typeof value === 'string') {
+              try {
+                return JSON.parse(value);
+              } catch (_) {
+                return value;
+              }
+            }
+            return value;
+          };
+          
+          // Parse các trường JSON từ response
+          const thongKeTCKT = parseJsonField(stats['Thống kê sheet TCKT']);
+          const thongKeThem = parseJsonField(stats['Thống kê sheet Thêm']);
+          const duLieuTestBenBia = parseJsonField(stats['Dữ liệu test bền bìa']);
           
           // a. Populate Thông tin cơ bản
           const maEl = document.getElementById('stats-ma');
@@ -6821,9 +6815,10 @@
           const conclusionEl = document.getElementById('stats-conclusion');
           if (maEl) maEl.textContent = stats['Mã'] || '';
           if (taskNameEl) taskNameEl.textContent = stats['Task Name'] || '';
-          if (conclusionEl) conclusionEl.textContent = stats['Kết luận (trang bìa)'] || '';
+          // Ưu tiên "Kết luận trang bìa", fallback về "Kết luận"
+          if (conclusionEl) conclusionEl.textContent = stats['Kết luận trang bìa'] || stats['Kết luận'] || '';
           
-          // b. Populate Công chuẩn
+          // b. Populate Công chuẩn - Map từ DataDB.js structure
           const congUocLuongEl = document.getElementById('stats-cong-uoc-luong');
           const congChuanDayDuEl = document.getElementById('stats-cong-chuan-day-du');
           const congChuanThucTeEl = document.getElementById('stats-cong-chuan-thuc-te');
@@ -6834,20 +6829,29 @@
           const soMauEl = document.getElementById('stats-so-mau');
           const soMauSheetThemEl = document.getElementById('stats-so-mau-sheet-them');
           const nhanXetPicEl = document.getElementById('stats-nhan-xet-pic');
-          if (congUocLuongEl) congUocLuongEl.textContent = stats['Công ước lượng'] || '0';
-          if (congChuanDayDuEl) congChuanDayDuEl.textContent = stats['Công chuẩn đầy đủ'] || '0';
-          if (congChuanThucTeEl) congChuanThucTeEl.textContent = stats['Công chuẩn thực tế'] || '0';
-          if (congChuanPtcEl) congChuanPtcEl.textContent = stats['Công chuẩn phần PTC'] || '0';
+          
+          // Parse công chuẩn từ "Công chuẩn Sheet TCKT" nếu là JSON
+          const congChuanSheetTCKT = parseJsonField(stats['Công chuẩn Sheet TCKT']);
+          
+          if (congUocLuongEl) congUocLuongEl.textContent = stats['Công ước lượng'] || (congChuanSheetTCKT && congChuanSheetTCKT['Công ước lượng']) || '0';
+          if (congChuanDayDuEl) congChuanDayDuEl.textContent = stats['Công chuẩn đầy đủ'] || (congChuanSheetTCKT && congChuanSheetTCKT['Công chuẩn đầy đủ']) || '0';
+          // Công chuẩn thực tế = Số giờ đánh giá thực tế
+          if (congChuanThucTeEl) congChuanThucTeEl.textContent = stats['Số giờ đánh giá thực tế'] || '0';
+          if (congChuanPtcEl) congChuanPtcEl.textContent = stats['Công chuẩn phần PTC'] || (congChuanSheetTCKT && congChuanSheetTCKT['Công chuẩn phần PTC']) || '0';
           // Xử lý cả trường cũ và mới để tương thích ngược
           if (congChuanBoSungEl) {
-            const congChuanBoSung = stats['Công chuẩn phần Bổ sung'] || stats['Công chuẩn thêm'] || '0';
+            const congChuanBoSung = stats['Công chuẩn phần Bổ sung'] || stats['Công chuẩn thêm'] || (congChuanSheetTCKT && congChuanSheetTCKT['Công chuẩn thêm']) || '0';
             congChuanBoSungEl.textContent = congChuanBoSung;
           }
-          if (congChuanThemEl) congChuanThemEl.textContent = stats['Công chuẩn thêm'] || '0';
+          if (congChuanThemEl) congChuanThemEl.textContent = stats['Công chuẩn thêm'] || (congChuanSheetTCKT && congChuanSheetTCKT['Công chuẩn thêm']) || '0';
           if (tongCongChuanThucEl) tongCongChuanThucEl.textContent = stats['Tổng công chuẩn thực'] || '0';
-          if (soMauEl) soMauEl.textContent = stats['Số mẫu'] || '0';
-          if (soMauSheetThemEl) soMauSheetThemEl.textContent = stats['Số mẫu Sheet Thêm'] || '0';
-          if (nhanXetPicEl) nhanXetPicEl.textContent = stats['Nhận xét PIC'] || '';
+          if (soMauEl) soMauEl.textContent = stats['số lượng mẫu'] || stats['Số mẫu'] || '0';
+          // Parse số mẫu sheet thêm từ "Thống kê sheet Thêm"
+          if (soMauSheetThemEl) {
+            const soMauThem = (thongKeThem && thongKeThem['Số mẫu']) || stats['Số mẫu Sheet Thêm'] || '0';
+            soMauSheetThemEl.textContent = soMauThem;
+          }
+          if (nhanXetPicEl) nhanXetPicEl.textContent = stats['Nhận xét trưởng nhóm'] || stats['Nhận xét PIC'] || '';
           
           // c. Populate Test bền
           const testBenEl = document.getElementById('stats-test-ben');
@@ -6863,9 +6867,14 @@
             hasTestBenData = true;
           }
           
+          // Parse dữ liệu test bền bìa từ "Dữ liệu test bền bìa" (có thể là JSON)
+          const testBenBiaData = duLieuTestBenBia || {};
+          
           for (let i = 1; i <= 5; i++) {
+            // Ưu tiên lấy từ "Dữ liệu test bền bìa" (JSON), sau đó mới đến trường riêng lẻ
             const testBenKey = `Test bền bìa ${i}`;
-            const testBenContent = stats[testBenKey];
+            const testBenBiaKey = `Bìa ${i}`;
+            const testBenContent = (testBenBiaData && testBenBiaData[testBenBiaKey]) || stats[testBenKey] || stats[`Test bền (Bìa)`] || '';
             const testBenItemEl = document.getElementById(`stats-test-ben-${i}`);
             const testBenContentEl = document.getElementById(`stats-test-ben-${i}-content`);
             
@@ -6884,13 +6893,14 @@
             sectionC.style.display = hasTestBenData ? 'block' : 'none';
           }
           
-          // d. Populate Tiêu chuẩn kỹ thuật
-          const totalTckt = parseInt(stats['Hạng mục đánh giá TCKT'] || '0');
-          const ok = parseInt(stats['Hạng mục OK'] || '0');
-          const ng = parseInt(stats['Hạng mục NG'] || '0');
-          const testBenCount = parseInt(stats['Hạng mục test bền'] || '0');
-          const notEval = parseInt(stats['Hạng mục không đánh giá'] || '0');
-          const notConclusion = parseInt(stats['Hạng mục không kết luận'] || '0');
+          // d. Populate Tiêu chuẩn kỹ thuật - Parse từ "Thống kê sheet TCKT" (JSON)
+          const tcktData = thongKeTCKT || {};
+          const totalTckt = parseInt(tcktData['Tổng'] || tcktData['Hạng mục đánh giá TCKT'] || stats['Hạng mục đánh giá TCKT'] || '0');
+          const ok = parseInt(tcktData['OK'] || tcktData['Hạng mục OK'] || stats['Hạng mục OK'] || '0');
+          const ng = parseInt(tcktData['NG'] || tcktData['Hạng mục NG'] || stats['Hạng mục NG'] || '0');
+          const testBenCount = parseInt(tcktData['Test bền'] || tcktData['Hạng mục test bền'] || stats['Hạng mục test bền'] || stats['Số bài test bền (TCKT)'] || '0');
+          const notEval = parseInt(tcktData['Không đánh giá'] || tcktData['Hạng mục không đánh giá'] || stats['Hạng mục không đánh giá'] || '0');
+          const notConclusion = parseInt(tcktData['Không kết luận'] || tcktData['Hạng mục không kết luận'] || stats['Hạng mục không kết luận'] || '0');
           
           document.getElementById('stats-total-tckt').textContent = totalTckt || '0';
           document.getElementById('stats-ok').textContent = ok || '0';
@@ -6907,15 +6917,16 @@
             sectionD.style.display = hasDataD ? 'block' : 'none';
           }
           
-          // e. Populate Hạng mục thêm
-          const additional = parseInt(stats['Hạng mục thêm '] || '0');
-          const additionalOk = parseInt(stats['Hạng mục thêm OK'] || '0');
-          const additionalNg = parseInt(stats['Hạng mục thêm NG'] || '0');
-          const additionalTestBen = parseInt(stats['Hạng mục thêm test bền'] || '0');
-          const additionalNa = parseInt(stats['Hạng mục thêm NA'] || '0');
-          const additionalKdg = parseInt(stats['Hạng mục thêm KDG'] || '0');
-          const additionalKkl = parseInt(stats['Hạng mục thêm KKL'] || '0');
-          const additionalComment = stats['Nhận xét Hạng mục thêm'] || '';
+          // e. Populate Hạng mục thêm - Parse từ "Thống kê sheet Thêm" (JSON)
+          const themData = thongKeThem || {};
+          const additional = parseInt(themData['Tổng'] || themData['Hạng mục thêm '] || stats['Hạng mục thêm '] || '0');
+          const additionalOk = parseInt(themData['OK'] || themData['Hạng mục thêm OK'] || stats['Hạng mục thêm OK'] || '0');
+          const additionalNg = parseInt(themData['NG'] || themData['Hạng mục thêm NG'] || stats['Hạng mục thêm NG'] || '0');
+          const additionalTestBen = parseInt(themData['Test bền'] || themData['Hạng mục thêm test bền'] || stats['Hạng mục thêm test bền'] || '0');
+          const additionalNa = parseInt(themData['NA'] || themData['Hạng mục thêm NA'] || stats['Hạng mục thêm NA'] || '0');
+          const additionalKdg = parseInt(themData['KDG'] || themData['Hạng mục thêm KDG'] || stats['Hạng mục thêm KDG'] || '0');
+          const additionalKkl = parseInt(themData['KKL'] || themData['Hạng mục thêm KKL'] || stats['Hạng mục thêm KKL'] || '0');
+          const additionalComment = themData['Nhận xét'] || themData['Nhận xét Hạng mục thêm'] || stats['Nhận xét Hạng mục thêm'] || '';
           
           document.getElementById('stats-additional').textContent = additional || '0';
           document.getElementById('stats-additional-ok').textContent = additionalOk || '0';
@@ -6990,7 +7001,7 @@
           
           // Populate Bất thường AI
           const abnormalitiesList = document.getElementById('stats-abnormalities-list');
-          const abnormalities = stats['Bất thường AI'];
+          const abnormalities = stats['Phát hiện bất thường AI'] || stats['Bất thường AI'];
           
           let hasAbnormalities = false;
           if (abnormalitiesList) {
@@ -7416,6 +7427,22 @@
                 console.log('[F5A P1 Detail] Loaded from cache');
               }
             }catch(_){ }
+          }
+          
+          // Đảm bảo F5A_RAW_ALL có dữ liệu để modal hoạt động
+          if ((!F5A_RAW_ALL || !Array.isArray(F5A_RAW_ALL) || F5A_RAW_ALL.length === 0) && monthGuess) {
+            try {
+              let fromVal = '', toVal = '';
+              if (monthGuess) {
+                const [yy, mm] = monthGuess.split('-');
+                fromVal = `${yy}-${mm}-01`;
+                const lastDate = new Date(Number(yy), Number(mm), 0).getDate();
+                toVal = `${yy}-${mm}-${String(lastDate).padStart(2,'0')}`;
+              }
+              await f5aFetchAllOnce(monthGuess, fromVal, toVal);
+            } catch(_) {
+              console.warn('[F5A Detail] Failed to fetch raw data');
+            }
           }
           
           // Tìm nhân viên trong dữ liệu từ n8n
@@ -8554,8 +8581,10 @@
             const basis = basisSel ? (basisSel.value || 'rates') : 'rates';
             if (basis === 'manhour'){
               const filteredRows = rows.filter(r => {
-                const name = (r['Phụ trách'] || r.name || '').trim().toLowerCase();
-                return name !== 'x';
+                const name = (r['Phụ trách'] || r.name || '').trim();
+                if (name.toLowerCase() === 'x') return false;
+                if (isNameInBlacklist(name)) return false;
+                return true;
               });
               const labels = filteredRows.map(r=> r.name);
               const isHorizontal = (F5A_MODE === 'horizontal');
@@ -8614,8 +8643,10 @@
             }
             // Fallback tính tỷ lệ nếu chưa có % nhưng có số lượng
             const normalized = rows.filter(r => {
-              const name = (r['Phụ trách'] || r.name || '').trim().toLowerCase();
-              return name !== 'x';
+              const name = (r['Phụ trách'] || r.name || '').trim();
+              if (name.toLowerCase() === 'x') return false;
+              if (isNameInBlacklist(name)) return false;
+              return true;
             }).map(r=>{
               const a = Number(r.rateAhead)||0, o = Number(r.rateOntime)||0, l = Number(r.rateLate)||0;
               if ((a+o+l) > 0) return { ...r, rateAhead:a, rateOntime:o, rateLate:l };
@@ -8764,8 +8795,10 @@
             // Render chart manhour song song
             try {
               const manRows = ((F5A_LAST_ROWS && Array.isArray(F5A_LAST_ROWS)) ? F5A_LAST_ROWS : normalized).filter(r => {
-                const name = (r['Phụ trách'] || r.name || '').trim().toLowerCase();
-                return name !== 'x';
+                const name = (r['Phụ trách'] || r.name || '').trim();
+                if (name.toLowerCase() === 'x') return false;
+                if (isNameInBlacklist(name)) return false;
+                return true;
               }).slice().sort((a,b)=> Number(b.manhour||0) - Number(a.manhour||0));
               const labels2 = manRows.map(r=> r.name);
               const ctxMan = chartCanvasMan ? chartCanvasMan.getContext('2d') : null;
@@ -8837,11 +8870,13 @@
           }catch(_){ }
           // Sau khi render, giữ một bản sao trong biến toàn cục để các lần render lại nhanh không phụ thuộc cache/bộ nhớ ngoài
           try { F5A_LAST_ROWS = Array.isArray(aggregated) ? aggregated.slice() : []; } catch(_) {}
-          // Lọc theo whitelist tên và loại bỏ nhân viên test "x"
+          // Lọc theo whitelist tên và loại bỏ nhân viên test "x" và blacklist
           const filtered = Array.isArray(aggregated) ? aggregated.filter(item => {
-            const name = (item['Phụ trách'] || item.name || '').trim().toLowerCase();
+            const name = (item['Phụ trách'] || item.name || '').trim();
             // Loại bỏ nhân viên có tên là "x" (dùng cho test code)
-            if (name === 'x') return false;
+            if (name.toLowerCase() === 'x') return false;
+            // Loại bỏ nhân viên trong blacklist
+            if (isNameInBlacklist(name)) return false;
             return true;
           }) : [];
           if (!filtered.length){
@@ -8850,7 +8885,12 @@
             if (chartWrapMan) chartWrapMan.style.display = 'none';
               return;
             }
-          const sorted = filtered.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+          // Sort P1 theo Số DONE từ lớn đến nhỏ
+          const sorted = filtered.slice().sort((a,b)=> {
+            const doneA = Number(a.doneCnt || 0);
+            const doneB = Number(b.doneCnt || 0);
+            return doneB - doneA;
+          });
           // Tính lại "Số tác vụ trong tháng" theo ngày nhận (requestDate) từ dữ liệu thô để khớp bảng phụ
           const rqCountMap = (()=>{
             try{
@@ -9078,6 +9118,12 @@
           const currentMonth = F5A_P2_DATA.month || monthVal || '';
           console.log('[F5A P2] Rendering data, count:', data.length);
           
+          // Lọc bỏ các nhân viên trong blacklist
+          const filteredData = Array.isArray(data) ? data.filter(item => {
+            const name = item.name || item['Phụ trách'] || '';
+            return !isNameInBlacklist(name);
+          }) : [];
+          
           // Render bảng
           const rows = [];
           let sumCount = 0;
@@ -9117,7 +9163,20 @@
             return 'text-red-600 font-semibold';
           };
           
-          data.forEach((item, index) => {
+          // Sort P2 theo Hệ số từ lớn đến nhỏ
+          const sortedData = filteredData.slice().sort((a, b) => {
+            const coefA = parseFloat(a.coefficient || '0');
+            const coefB = parseFloat(b.coefficient || '0');
+            // Nếu hệ số bằng nhau, sort theo tên
+            if (coefB === coefA) {
+              const nameA = (a.name || a['Phụ trách'] || '').trim();
+              const nameB = (b.name || b['Phụ trách'] || '').trim();
+              return nameA.localeCompare(nameB, 'vi');
+            }
+            return coefB - coefA;
+          });
+          
+          sortedData.forEach((item, index) => {
             const stt = index + 1;
             const name = item.name || item['Phụ trách'] || '';
             const taskCount = Number(item.taskCount || item.count || 0);
@@ -9273,20 +9332,28 @@
 
       // Xuất CSV/XLSX
       function f5aRowsToAOA(rows){
+        // Ưu tiên sử dụng dữ liệu từ F5A_P1_DATA nếu có (giống như render)
+        let dataToUse = rows;
+        if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
+          dataToUse = F5A_P1_DATA.data;
+        }
+        
         // Lấy tháng hiện chọn để lọc theo ngày nhận
         let fromVal = '', toVal = '';
         try{
           const m = (document.getElementById('f5a-month')?.value||'').trim();
-          if (m){ const [yy,mm] = m.split('-'); fromVal = `${yy}-${mm}-01`; const last = new Date(Number(yy), Number(mm), 0).getDate(); toVal = `${yy}-${mm}-${String(last).padStart(2,'0')}`; }
+          if (m){ const [yy,mm] = m.split('-'); fromVal = `${yy}-${mm}-01`; const last = new Date(Number(yy), Number(mm), 0).getDate(); toVal = `${yy}-${mm}-${String(last).padStart(2,'0')}`; } 
         }catch(_){ }
         const headers = [
-          'Nhân viên','Số tác vụ trong tháng','Tổng giờ đánh giá thực tế','Công chuẩn đã nhận','Công chuẩn cần nhận','Số hoàn thành trong tháng','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','%Vượt','%Đúng','%Chậm','%N/A'
+          'Nhân viên','Số DONE','Vượt tiến độ','Đúng tiến độ','Chậm tiến độ','Số N/A','Tỷ lệ vượt (%)','Tỷ lệ đúng (%)','Tỷ lệ chậm (%)','%N/A'
         ];
         const aoa = [headers];
-        // Lọc bỏ nhân viên test "x" 
-        const list = Array.isArray(rows) ? rows.filter(item => {
-          const name = (item['Phụ trách'] || item.name || '').trim().toLowerCase();
-          return name !== 'x';
+        // Lọc bỏ nhân viên test "x" và blacklist (giống như renderForm5All)
+        const list = Array.isArray(dataToUse) ? dataToUse.filter(item => {
+          const name = (item['Phụ trách'] || item.name || '').trim();
+          if (name.toLowerCase() === 'x') return false;
+          if (isNameInBlacklist(name)) return false;
+          return true;
         }) : [];
         // Map đếm số task theo ngày nhận (requestDate) trong tháng đã chọn, loại Cancel
         const rqCountMap = (function(){
@@ -9323,67 +9390,123 @@
             return map;
           }catch(_){ return new Map(); }
         })();
-        list.forEach(item=>{
+        // Sort P1 theo Số DONE từ lớn đến nhỏ (giống như render)
+        const sortedList = list.slice().sort((a, b) => {
+          const doneA = Number(a.doneCnt || 0);
+          const doneB = Number(b.doneCnt || 0);
+          return doneB - doneA;
+        });
+        // Sử dụng cùng logic như renderForm5All để đảm bảo dữ liệu khớp
+        // Tính lại "Số tác vụ trong tháng" theo ngày nhận (requestDate) từ dữ liệu thô để khớp bảng phụ
+        const f5aCountByAssigneeInline = (displayName) => {
+          try{
+            // Ưu tiên sử dụng details từ n8n
+            if (F5A_P1_DATA && F5A_P1_DATA.success && Array.isArray(F5A_P1_DATA.data)){
+              const normalizeName = (s)=>{
+                try{
+                  const raw = String(s||'').trim();
+                  const noAcc = (typeof vnLower==='function') ? vnLower(raw) : raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+                  return noAcc.replace(/\s+/g,' ').trim();
+                }catch(_){ return String(s||'').toLowerCase().trim(); }
+              };
+              const targetNameNorm = normalizeName(displayName);
+              const empData = F5A_P1_DATA.data.find(emp => {
+                const empName = emp['Phụ trách'] || emp.name || '';
+                return normalizeName(empName) === targetNameNorm;
+              });
+              if (empData && empData.details && Array.isArray(empData.details.sameMonth)){
+                return empData.details.sameMonth.length;
+              }
+            }
+            // Fallback: tính từ raw data
+            const rows = Array.isArray(F5A_RAW_ALL) ? F5A_RAW_ALL : [];
+            const toKey = (s)=>{ try{ const raw=String(s||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(s||'').toLowerCase().trim(); } };
+            const targetKey = toKey(displayName);
+            const getV = (obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+            const parseDateFlexible = (v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+            const iso = (d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+            const inRange = (ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+            const assigneeKeys = ['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+            const rqKeys = ['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','Ngày yêu cầu ','requestdate','request_date','requestDate','date_request','rqdate','rq_date','requesteddate','requested_date','submissiondate','submitteddate','submitdate','submit_date','ngayyeucau','ngay_yeu_cau','ngay yeu cau','ngaygui','ngay_gui','ngày gửi','Ngày gửi','createddate','created_date','creationdate','created','ngaytao','ngay_tao','ngày tạo','Ngày tạo','thời gian yêu cầu','thời điểm yêu cầu'];
+            const statusKeys = ['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+            const doneKeys = ['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+            const isCanceled = (o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const done=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(done); };
+            let cnt = 0;
+            rows.forEach(o=>{
+              if (isCanceled(o)) return;
+              const emp = getV(o, assigneeKeys); const rk = toKey(emp);
+              if (rk !== targetKey) return;
+              const rq = getV(o, rqKeys); let d = parseDateFlexible(rq); let ds = d? iso(d):'';
+              if (!inRange(ds)) {
+                try{
+                  let found = '';
+                  for (const v of Object.values(o||{})){
+                    const dv = parseDateFlexible(v); if (!dv) continue; const svi = iso(dv); if (inRange(svi)) { found = svi; break; }
+                  }
+                  if (found){ cnt++; return; }
+                }catch(_){ }
+                return;
+              }
+              cnt++;
+            });
+            return cnt;
+          }catch(_){ return 0; }
+        };
+        
+        sortedList.forEach(item=>{
+          // Sử dụng dữ liệu từ n8n (đã được aggregate và tính toán sẵn) - giống renderForm5All
           const name = item['Phụ trách'] || item.name || '';
-          const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
-          const need = Number(f5aGetNeedManhour(name)||0);
-          const ahead = Number(item.ahead||0);
-          const ontime = Number(item.ontime||0);
-          const late = Number(item.late||0);
-          const done = Number(item.doneCnt || (ahead+ontime+late));
-          const na = Number(item.na||0);
-          const rAhead = Number(item.rateAhead||0);
-          const rOn = Number(item.rateOntime||0);
-          const rLate = Number(item.rateLate||0);
-          const rNA = Number(item.rateNA||0);
-          const key = (function(){ try{ const raw = String(name||'').trim(); const vz=(typeof vnLower==='function'? vnLower(raw): raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()); return vz.replace(/\s+/g,' ').trim(); }catch(_){ return String(name||'').toLowerCase().trim(); } })();
-          const count = Number(rqCountMap.get(key)||0);
-          // Lấy tổng giờ đánh giá thực tế từ Map (đã được tính toán)
-          const totalActualHoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(name)) || { raw: 0, formatted: '0,00' };
-          const totalActualHours = totalActualHoursData.formatted;
+          const ahead = Number(item.ahead || 0);
+          const ontime = Number(item.ontime || 0);
+          const late = Number(item.late || 0);
+          const na = Number(item.na || 0);
+          // % từ n8n (đã làm tròn 1 chữ số thập phân)
+          const rAhead = Number(item.rateAhead || 0);
+          const rOn = Number(item.rateOntime || 0);
+          const rLate = Number(item.rateLate || 0);
+          const rNA = Number(item.rateNA || 0);
+          const doneCnt = Number(item.doneCnt || 0);
           aoa.push([
             name,
-            count,
-            totalActualHours,
-            man,
-            need,
-            done,
+            doneCnt,
             ahead,
             ontime,
             late,
             na,
-            rAhead,
-            rOn,
-            rLate,
-            rNA
+            rAhead.toFixed(1) + '%',
+            rOn.toFixed(1) + '%',
+            rLate.toFixed(1) + '%',
+            rNA.toFixed(1) + '%'
           ]);
         });
-        // Tổng cuối (đồng bộ thứ tự cột)
-        const sumMan = list.reduce((a,it)=> a + Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0)), 0);
-        const sumNeed = list.reduce((a,it)=> a + Number(f5aGetNeedManhour(it['Phụ trách'] || it.name || '')), 0);
-        const sumCount = (function(){ try{ let s=0; (Array.isArray(list)?list:[]).forEach(it=>{ const n=it['Phụ trách']||it.name||''; const key=(typeof vnLower==='function'? vnLower(String(n||'')): String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()).replace(/\s+/g,' ').trim(); s += Number(rqCountMap.get(key)||0); }); return s; }catch(_){ return 0; } })();
-        const sumAhead = list.reduce((a,it)=> a + Number(it.ahead||0), 0);
-        const sumOn = list.reduce((a,it)=> a + Number(it.ontime||0), 0);
-        const sumLate = list.reduce((a,it)=> a + Number(it.late||0), 0);
-        const sumDone = list.reduce((a,it)=> a + Number(it.doneCnt || ((Number(it.ahead||0) + Number(it.ontime||0) + Number(it.late||0)))), 0);
-        // Tính tổng giờ đánh giá thực tế từ Map (đã được tính toán)
-        const sumTotalActualHoursRaw = list.reduce((a,it)=> {
-          const name = it['Phụ trách'] || it.name || '';
-          const hoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(name)) || { raw: 0, formatted: '0,00' };
-          return a + Number(hoursData.raw);
-        }, 0);
-        const sumTotalActualHours = sumTotalActualHoursRaw.toFixed(2).replace('.', ',');
-        aoa.push(['TỔNG', sumCount, sumTotalActualHours, +sumMan.toFixed(2), +sumNeed.toFixed(2), sumDone, sumAhead, sumOn, sumLate, '', '', '', '', '' ]);
+        // Tổng cuối (đồng bộ thứ tự cột, sử dụng sortedList để tính tổng)
+        const sumAhead = sortedList.reduce((a,it)=> a + Number(it.ahead||0), 0);
+        const sumOn = sortedList.reduce((a,it)=> a + Number(it.ontime||0), 0);
+        const sumLate = sortedList.reduce((a,it)=> a + Number(it.late||0), 0);
+        const sumDone = sortedList.reduce((a,it)=> a + Number(it.doneCnt || ((Number(it.ahead||0) + Number(it.ontime||0) + Number(it.late||0)))), 0);
+        const sumNA = sortedList.reduce((a,it)=> a + Number(it.na||0), 0);
+        // Tính tổng tỷ lệ (trung bình)
+        const sumRateAhead = sortedList.length > 0 ? sortedList.reduce((a,it)=> a + Number(it.rateAhead||0), 0) / sortedList.length : 0;
+        const sumRateOn = sortedList.length > 0 ? sortedList.reduce((a,it)=> a + Number(it.rateOntime||0), 0) / sortedList.length : 0;
+        const sumRateLate = sortedList.length > 0 ? sortedList.reduce((a,it)=> a + Number(it.rateLate||0), 0) / sortedList.length : 0;
+        const sumRateNA = sortedList.length > 0 ? sortedList.reduce((a,it)=> a + Number(it.rateNA||0), 0) / sortedList.length : 0;
+        aoa.push(['TỔNG', sumDone, sumAhead, sumOn, sumLate, sumNA, sumRateAhead.toFixed(1) + '%', sumRateOn.toFixed(1) + '%', sumRateLate.toFixed(1) + '%', sumRateNA.toFixed(1) + '%' ]);
         return aoa;
       }
       function f5aDownloadXLSX(rows){
         try{
           const wb = XLSX.utils.book_new();
           const month = (document.getElementById('f5a-month')?.value || '').replace(/\s+/g,'');
-          // Sheet tổng hợp
-          const aoa = f5aRowsToAOA(rows);
-          const wsAll = XLSX.utils.aoa_to_sheet(aoa);
-          XLSX.utils.book_append_sheet(wb, wsAll, 'Tổng hợp');
+          // Sheet P1 - Sử dụng dữ liệu từ F5A_P1_DATA nếu có, nếu không thì dùng rows
+          let p1Data = rows;
+          if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
+            p1Data = F5A_P1_DATA.data;
+          }
+          const aoa = f5aRowsToAOA(p1Data);
+          if (aoa && aoa.length > 1) { // Có header và ít nhất 1 dòng dữ liệu
+            const wsAll = XLSX.utils.aoa_to_sheet(aoa);
+            XLSX.utils.book_append_sheet(wb, wsAll, 'P1');
+          }
           // Sheet bảng phụ - Hoàn thành (lọc theo ngày hoàn thành, chia nhóm theo ngày nhận)
           (function appendDetailDoneSheet(){
             try{
@@ -9451,8 +9574,11 @@
                 const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
                 aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP1, fmt(done), stByMan, stByWish ]);
               });
-              const ws = XLSX.utils.aoa_to_sheet(aoaD);
-              XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ - Hoàn thành');
+              // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu)
+              if (aoaD && aoaD.length > 1) {
+                const ws = XLSX.utils.aoa_to_sheet(aoaD);
+                XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ P1');
+              }
             }catch(_){ }
           })();
           // Sheet bảng phụ - Nhận tháng (lọc theo ngày yêu cầu, loại Cancel)
@@ -9491,17 +9617,104 @@
                 const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
                 aoaR.push([ emp, code, tn, fmt(rq), man, act, wish, fmt(done), st ]);
               });
-              const ws = XLSX.utils.aoa_to_sheet(aoaR);
-              XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ - Nhận tháng');
+              // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu)
+              if (aoaR && aoaR.length > 1) {
+                const ws = XLSX.utils.aoa_to_sheet(aoaR);
+                XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ P1 - Nhận tháng');
+              }
             }catch(_){ }
           })();
-          // Bỏ tạo sheet riêng từng nhân viên; đã có 2 bảng phụ ở trên theo yêu cầu
+          
+          // Sheet bảng phụ P2 - Nhận tháng (lọc theo ngày yêu cầu, loại Cancel, chỉ lấy nhân viên trong P2)
+          (function appendDetailP2ReceivedSheet(){
+            try{
+              let fromVal = '', toVal = '';
+              try{ const m=(document.getElementById('f5a-month')?.value||'').trim(); if(m){ const [yy,mm]=m.split('-'); fromVal=`${yy}-${mm}-01`; const last=new Date(Number(yy), Number(mm), 0).getDate(); toVal=`${yy}-${mm}-${String(last).padStart(2,'0')}`; } }catch(_){ }
+              const rowsRaw = Array.isArray(F5A_RAW_ALL)? F5A_RAW_ALL: [];
+              
+              // Lấy danh sách nhân viên từ P2 (đã lọc blacklist)
+              const p2Names = new Set();
+              if (F5A_P2_DATA && F5A_P2_DATA.data && Array.isArray(F5A_P2_DATA.data)) {
+                F5A_P2_DATA.data.forEach(item => {
+                  const name = item.name || item['Phụ trách'] || '';
+                  if (name && !isNameInBlacklist(name)) {
+                    p2Names.add(name);
+                  }
+                });
+              }
+              
+              // Nếu không có dữ liệu P2, không tạo sheet
+              if (p2Names.size === 0) return;
+              
+              const getV=(obj, keys)=>{ const lower={}; Object.keys(obj||{}).forEach(k=>{ const v=obj[k]; const k1=String(k).toLowerCase(); const k2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); lower[k1]=v; lower[k2]=v; }); for(const k of keys){ const c1=String(k).toLowerCase(); const c2=String(k).toLowerCase().replace(/\s+/g,' ').trim(); const v=lower[c1] ?? lower[c2]; if(v!==undefined) return v; } return ''; };
+              const toDate=(v)=>{ if(!v) return null; const s=String(v).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m){ const d=+m[1],mo=+m[2],y=m[3].length===2?+('20'+m[3]):+m[3]; const dt=new Date(y,mo-1,d); return isNaN(dt)?null:dt; } m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); if(m){ const dt=new Date(+m[1],+m[2]-1,+m[3]); return isNaN(dt)?null:dt; } const dt=new Date(s); return isNaN(dt)?null:dt; };
+              const iso=(d)=>{ if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+              const inRange=(ds)=>{ if(!fromVal && !toVal) return true; if(!ds) return false; if(fromVal && ds < fromVal) return false; if(toVal && ds > toVal) return false; return true; };
+              const noAcc=(s)=>{ try{ return (typeof vnLower==='function')? vnLower(String(s||'')) : String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(_){ return String(s||'').toLowerCase(); } };
+              const sameName=(a,b)=> noAcc(a).replace(/\s+/g,' ').trim() === noAcc(b).replace(/\s+/g,' ').trim();
+              const empKeys=['Assignee','Assignee Name','AssigneeName','Assignee name','Phụ trách','Phụ trách chính','Người phụ trách','Người xử lý','Người nhận mẫu','Người nhận','employee','nhanvien','nhan_vien','nhân viên','user','name','receiver','recipient','pic','nguoi_phu_trach','người phụ trách'];
+              const rqKeys=['📆 ngày yêu cầu','📆 Ngày yêu cầu','📆 Ngày yêu cầu ','ngày yêu cầu','Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui'];
+              const codeKeys=['code','ma','taskcode','mã'];
+              const tnameKeys=['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title'];
+              const manKeys=['Điểm','Score','score','Công chuẩn công việc nhận ','Công chuẩn công việc nhận','Công chuẩn','manhour','man_hour','current_manhour','congchuan','cong_chuan','hours'];
+              const actualKeys=['Số giờ đánh giá thực tế','so gio danh gia thuc te','số giờ đánh giá thực tế','actualhours','actual_hours','hours_actual','gio_thuc_te','gio thuc te'];
+              const wishKeys=['wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn','Hạn mong muốn ','Hạn mong muốn'];
+              const doneKeys=['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
+              const statusKeys=['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
+              const isCanceled=(o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
+              const head=['Nhân viên','Mã','Tên tác vụ','Ngày yêu cầu','Công chuẩn','Số giờ đánh giá thực tế','Hạn mong muốn','Ngày hoàn thành','Trạng thái'];
+              const aoaP2=[head];
+              rowsRaw.forEach(o=>{
+                if (isCanceled(o)) return;
+                const rq = getV(o, rqKeys); const rqD = toDate(rq); const rqIso = rqD? iso(rqD):''; if (!inRange(rqIso)) return;
+                const emp=getV(o, empKeys);
+                // Chỉ lấy nhân viên trong P2
+                if (!emp || !p2Names.has(emp)) return;
+                const code=getV(o, codeKeys);
+                const tn=getV(o, tnameKeys);
+                const man=getV(o, manKeys);
+                const act=getV(o, actualKeys);
+                const wish=getV(o, wishKeys);
+                const done=getV(o, doneKeys);
+                const st=getV(o, statusKeys);
+                const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
+                aoaP2.push([ emp, code, tn, fmt(rq), man, act, wish, fmt(done), st ]);
+              });
+              // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu)
+              if (aoaP2 && aoaP2.length > 1) {
+                const ws = XLSX.utils.aoa_to_sheet(aoaP2);
+                XLSX.utils.book_append_sheet(wb, ws, 'Bảng phụ P2');
+              }
+            }catch(_){ }
+          })();
+          
+          // Bỏ tạo sheet riêng từng nhân viên; đã có 3 bảng phụ ở trên theo yêu cầu
+          
+          // Add P2 sheet - Luôn thêm nếu có dữ liệu từ F5A_P2_DATA
+          try{
+            // Kiểm tra xem có dữ liệu P2 không
+            if (F5A_P2_DATA && F5A_P2_DATA.data && Array.isArray(F5A_P2_DATA.data) && F5A_P2_DATA.data.length > 0) {
+              const aoaP2 = f5aExportP2ToAOA();
+              // Kiểm tra nếu có dữ liệu thực sự (không phải chỉ là thông báo lỗi)
+              if (aoaP2 && aoaP2.length > 1 && 
+                  !(aoaP2.length === 2 && aoaP2[1] && Array.isArray(aoaP2[1]) && 
+                    aoaP2[1][0] && String(aoaP2[1][0]).includes('Chưa có dữ liệu'))) {
+                const wsP2 = XLSX.utils.aoa_to_sheet(aoaP2);
+                XLSX.utils.book_append_sheet(wb, wsP2, 'P2');
+              }
+            }
+          }catch(err){
+            console.error('[Export] P2 sheet error:', err);
+          }
           
           // Add P3 sheet
           try{
             const aoaP3 = f5aExportP3ToAOA();
-            const wsP3 = XLSX.utils.aoa_to_sheet(aoaP3);
-            XLSX.utils.book_append_sheet(wb, wsP3, 'P3 - Rà soát CE');
+            // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu hoặc hàng tổng)
+            if (aoaP3 && aoaP3.length > 1 && !(aoaP3.length === 2 && aoaP3[1] && Array.isArray(aoaP3[1]) && aoaP3[1][0] && String(aoaP3[1][0]).includes('Chưa có dữ liệu'))) {
+              const wsP3 = XLSX.utils.aoa_to_sheet(aoaP3);
+              XLSX.utils.book_append_sheet(wb, wsP3, 'P3');
+            }
           }catch(err){
             console.error('[Export] P3 sheet error:', err);
           }
@@ -9509,10 +9722,46 @@
           // Add P4 sheet
           try{
             const aoaP4 = f5aExportP4ToAOA();
-            const wsP4 = XLSX.utils.aoa_to_sheet(aoaP4);
-            XLSX.utils.book_append_sheet(wb, wsP4, 'P4 - 4M rà soát');
+            // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu hoặc hàng tổng)
+            if (aoaP4 && aoaP4.length > 1 && !(aoaP4.length === 2 && aoaP4[1] && Array.isArray(aoaP4[1]) && aoaP4[1][0] && String(aoaP4[1][0]).includes('Chưa có dữ liệu'))) {
+              const wsP4 = XLSX.utils.aoa_to_sheet(aoaP4);
+              XLSX.utils.book_append_sheet(wb, wsP4, 'P4');
+            }
           }catch(err){
             console.error('[Export] P4 sheet error:', err);
+          }
+          
+          // Add chi tiết P1 - Hoàn thành (từ modal)
+          try{
+            const aoaP1Detail = f5aExportP1DetailToAOA();
+            if (aoaP1Detail && aoaP1Detail.length > 1) {
+              const wsP1Detail = XLSX.utils.aoa_to_sheet(aoaP1Detail);
+              XLSX.utils.book_append_sheet(wb, wsP1Detail, 'Chi tiết P1');
+            }
+          }catch(err){
+            console.error('[Export] P1 Detail sheet error:', err);
+          }
+          
+          // Add chi tiết P2 - Nhận tháng (từ modal)
+          try{
+            const aoaP2Detail = f5aExportP2DetailToAOA();
+            if (aoaP2Detail && aoaP2Detail.length > 1) {
+              const wsP2Detail = XLSX.utils.aoa_to_sheet(aoaP2Detail);
+              XLSX.utils.book_append_sheet(wb, wsP2Detail, 'Chi tiết P2');
+            }
+          }catch(err){
+            console.error('[Export] P2 Detail sheet error:', err);
+          }
+          
+          // Add chi tiết P3 (từ modal)
+          try{
+            const aoaP3Detail = f5aExportP3DetailToAOA();
+            if (aoaP3Detail && aoaP3Detail.length > 1) {
+              const wsP3Detail = XLSX.utils.aoa_to_sheet(aoaP3Detail);
+              XLSX.utils.book_append_sheet(wb, wsP3Detail, 'Chi tiết P3');
+            }
+          }catch(err){
+            console.error('[Export] P3 Detail sheet error:', err);
           }
           
           XLSX.writeFile(wb, `Form5_All_${month||'export'}.xlsx`);
@@ -9520,10 +9769,128 @@
       }
       (function initF5aFileExports(){
         const btnXlsx = document.getElementById('f5a-export-xlsx');
-        if (btnXlsx) btnXlsx.addEventListener('click', (e)=>{ e.preventDefault(); const rows = Array.isArray(F5A_LAST_ROWS)?F5A_LAST_ROWS:[]; if(!rows.length){ showToast('Không có dữ liệu để xuất.','error'); return; } f5aDownloadXLSX(rows); });
+        if (btnXlsx) btnXlsx.addEventListener('click', (e)=>{ 
+          e.preventDefault(); 
+          // Ưu tiên sử dụng dữ liệu từ F5A_P1_DATA nếu có
+          let rows = [];
+          if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
+            rows = F5A_P1_DATA.data;
+          } else if (Array.isArray(F5A_LAST_ROWS) && F5A_LAST_ROWS.length > 0) {
+            rows = F5A_LAST_ROWS;
+          }
+          if(!rows.length){ showToast('Không có dữ liệu để xuất.','error'); return; } 
+          f5aDownloadXLSX(rows); 
+        });
       })();
       
-      // Helper functions to export P3 and P4 data
+      // Helper functions to export P2, P3 and P4 data
+      function f5aExportP2ToAOA(){
+        try{
+          const monthInput = document.getElementById('f5a-month');
+          const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+          
+          if(!F5A_P2_DATA || !F5A_P2_DATA.data || !Array.isArray(F5A_P2_DATA.data) || !F5A_P2_DATA.data.length){
+            return [['Chưa có dữ liệu P2. Vui lòng nhấn "Tra cứu P2" trước.']];
+          }
+          
+          const data = F5A_P2_DATA.data;
+          
+          // Lọc bỏ các nhân viên trong blacklist
+          const filteredData = data.filter(item => {
+            const name = item.name || item['Phụ trách'] || '';
+            return !isNameInBlacklist(name);
+          });
+          
+          // Helper function để parse số từ format "48,00"
+          const parseNumber = (str) => {
+            if (!str) return 0;
+            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned) || 0;
+          };
+          
+          // Helper function để format số với dấu phẩy
+          const formatNumber = (num) => {
+            if (!Number.isFinite(num)) return '';
+            return num.toFixed(2).replace('.', ',');
+          };
+          
+          // Helper function để format coefficient với dấu phẩy
+          const formatCoefficient = (coef) => {
+            if (!coef || coef === '') return '';
+            const num = parseFloat(coef);
+            if (isNaN(num)) return '';
+            return num.toFixed(2).replace('.', ',');
+          };
+          
+          // Sort P2 theo Hệ số từ lớn đến nhỏ (giống như render)
+          const sortedData = filteredData.slice().sort((a, b) => {
+            const coefA = parseFloat(a.coefficient || '0');
+            const coefB = parseFloat(b.coefficient || '0');
+            // Nếu hệ số bằng nhau, sort theo tên
+            if (coefB === coefA) {
+              const nameA = (a.name || a['Phụ trách'] || '').trim();
+              const nameB = (b.name || b['Phụ trách'] || '').trim();
+              return nameA.localeCompare(nameB, 'vi');
+            }
+            return coefB - coefA;
+          });
+          
+          const headers = ['STT','Nhân viên','Số tác vụ trong tháng','Tổng giờ đánh giá thực tế','Công chuẩn đã nhận','Tổng giờ công đi làm','Hệ số'];
+          const aoa = [headers];
+          
+          let sumCount = 0;
+          let sumActualHours = 0;
+          let sumManhour = 0;
+          let sumWorkHours = 0;
+          
+          sortedData.forEach((item, index) => {
+            const stt = index + 1;
+            const name = item.name || item['Phụ trách'] || '';
+            const taskCount = Number(item.taskCount || item.count || 0);
+            const totalActualHours = item.totalActualHours || item['Tổng giờ đánh giá thực tế'] || '0,00';
+            const manhourReceived = item.manhourReceived || item['Công chuẩn đã nhận'] || item['Tổng công chuẩn'] || '0,00';
+            const totalWorkHours = item.totalWorkHours || item['Tổng giờ công đi làm'] || '';
+            const coefficient = item.coefficient || '';
+            const coefficientFormatted = formatCoefficient(coefficient);
+            
+            // Tính tổng (parse từ string)
+            sumCount += taskCount;
+            sumActualHours += parseNumber(totalActualHours);
+            sumManhour += parseNumber(manhourReceived);
+            if (totalWorkHours) {
+              sumWorkHours += parseNumber(totalWorkHours);
+            }
+            
+            aoa.push([
+              stt,
+              name,
+              taskCount,
+              totalActualHours,
+              manhourReceived,
+              totalWorkHours || '-',
+              coefficientFormatted || '-'
+            ]);
+          });
+          
+          // Thêm hàng tổng
+          const sumCoefficient = (sumWorkHours > 0) ? formatNumber(sumManhour / sumWorkHours) : '';
+          aoa.push([
+            'TỔNG',
+            '',
+            sumCount,
+            formatNumber(sumActualHours),
+            formatNumber(sumManhour),
+            sumWorkHours > 0 ? formatNumber(sumWorkHours) : '',
+            sumCoefficient
+          ]);
+          
+          return aoa;
+        }catch(err){
+          console.error('[P2 Export] Error:', err);
+          return [['Lỗi xuất dữ liệu P2']];
+        }
+      }
+      
       function f5aExportP3ToAOA(){
         try{
           const monthInput = document.getElementById('f5a-month');
@@ -9562,87 +9929,104 @@
           // Aggregate by employee
           const byName = new Map();
           
-          F5A_P4_RAW.forEach(r => {
-            let name = String(getV(r, [
+          F5A_P3_RAW.forEach(r => {
+            // Get assignee name
+            const name = String(getV(r, [
               'assignee','employee','name',
               'nhân viên','nhan vien','nhanvien',
               'tên nhân viên','ten nhan vien','tennhanvien',
               'phụ trách','phu trac','phutrac'
             ])||'').trim();
-            if(!name){
-              const email = String(getV(r, ['EmailofAssignee','emailofassignee','email'])) || '';
-              if (email){
-                try{ name = email.split('@')[0] || email; }catch(_){ name = email; }
-              }
+            
+            if(!name) return;
+            
+            // Skip tasks assigned to "x" (pending tasks)
+            if(name.toLowerCase() === 'x') {
+              return;
             }
             
-            if(!name || name.toLowerCase() === 'x') return;
-            
+            // Get completion date
             const completionDateStr = getV(r, [
               'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
               'ngày hoàn thành','ngay hoan thanh',
-              'completion date','completiondate'
+              'completion date','completiondate',
+              'actual completion date','actualcompletiondate'
             ]);
             
             const completionDate = parseDate(completionDateStr);
             
+            // Filter by month if specified
             if(monthVal && completionDate){
               const taskMonth = formatYyyyMm(completionDate);
-              if(taskMonth !== monthVal) return;
+              if(taskMonth !== monthVal) return; // Skip if not in selected month
             } else if(monthVal && !completionDate) {
-              return;
+              return; // Skip tasks without completion date when month filter is active
             }
             
+            // Get CE review status
             const ceReview = String(getV(r, [
               'ce rà soát','ce ra soat','cerasoat',
-              'ce review','cereview'
+              'ce review','cereview',
+              'rà soát ce','ra soat ce','rasotce',
+              'tình trạng ce','tinh trang ce'
             ])||'').trim();
             
+            // Initialize record if not exists
             if(!byName.has(name)){
-              byName.set(name, { name, completed: 0, notNeeded: 0, pending: 0 });
+              byName.set(name, { 
+                name, 
+                total: 0,
+                completed: 0, 
+                notNeeded: 0, 
+                pending: 0
+              });
             }
             
             const rec = byName.get(name);
-            const ceNorm = ceReview.toLowerCase();
             
-            if(ceNorm === 'đã gửi' || ceNorm === 'da gui'){
-              rec.completed++;
-            } else if(ceNorm === 'không cần' || ceNorm === 'khong can'){
-              rec.notNeeded++;
-            } else if(!ceReview || ceNorm === ''){
-              rec.pending++;
+            // Count by CE review status
+            const ceNorm = norm(ceReview);
+            if(ceNorm === 'đã gửi' || ceNorm === 'da gui' || ceNorm === 'dagui'){
+              rec.completed += 1;
+            } else if(ceNorm === 'không cần' || ceNorm === 'khong can' || ceNorm === 'khongcan'){
+              rec.notNeeded += 1;
+            } else if(!ceReview || ceReview === ''){
+              rec.pending += 1;
             }
+            
+            // Total = sum of completed + notNeeded + pending
+            rec.total = rec.completed + rec.notNeeded + rec.pending;
           });
           
           // Build AOA
           const headers = ['Tên nhân viên', 'Số tác vụ hoàn thành tháng', 'Tác vụ đã hoàn thiện CE', 'Tác vụ không cần làm CE', 'Chưa hoàn thành', 'Thẻ P3/Rà soát CE (%)'];
           const aoa = [headers];
           
-          const sorted = Array.from(byName.values()).sort((a,b)=> a.name.localeCompare(b.name, 'vi'));
+          const sorted = Array.from(byName.values()).sort((a,b) => a.name.localeCompare(b.name, 'vi'));
           
           let sumTotal = 0, sumCompleted = 0, sumNotNeeded = 0, sumPending = 0;
           
           sorted.forEach(rec => {
-            const total = rec.completed + rec.notNeeded + rec.pending;
-            const percentage = total > 0 ? ((rec.completed + rec.notNeeded) / total * 100).toFixed(2) : '0.00';
+            // Calculate percentage (giống renderForm5P3)
+            const percentage = rec.total > 0 ? Math.round(((rec.completed + rec.notNeeded) / rec.total) * 100) : 0;
             
             aoa.push([
               rec.name,
-              total,
+              rec.total,
               rec.completed,
               rec.notNeeded,
               rec.pending,
               `${percentage}%`
             ]);
             
-            sumTotal += total;
+            sumTotal += rec.total;
             sumCompleted += rec.completed;
             sumNotNeeded += rec.notNeeded;
             sumPending += rec.pending;
           });
           
-          // Total row
-          const totalPercentage = sumTotal > 0 ? ((sumCompleted + sumNotNeeded) / sumTotal * 100).toFixed(2) : '0.00';
+          // Total row (giống renderForm5P3)
+          const totalPercentage = sumTotal > 0 ? Math.round(((sumCompleted + sumNotNeeded) / sumTotal) * 100) : 0;
           aoa.push([
             'TỔNG',
             sumTotal,
@@ -9869,6 +10253,304 @@
           return [['Lỗi xuất dữ liệu P4']];
         }
       }
+      
+      // Export chi tiết P1 - Hoàn thành (từ modal openDetailModal)
+      function f5aExportP1DetailToAOA(){
+        try{
+          if (!F5A_P1_DATA || !F5A_P1_DATA.data || !Array.isArray(F5A_P1_DATA.data) || !F5A_P1_DATA.data.length) {
+            return [['Chưa có dữ liệu P1. Vui lòng nhấn "Tra cứu P1" trước.']];
+          }
+          
+          const headers = ['Nhân viên', 'Nhóm', 'STT', 'Mã', 'Tên tác vụ', 'Ngày yêu cầu', 'Số giờ đánh giá thực tế', 'Công chuẩn', 'Trạng thái theo công chuẩn', 'Hạn mong muốn', 'Hạn +1', 'Ngày hoàn thành', 'Hiện trạng theo hạn mong muốn'];
+          const aoa = [headers];
+          
+          const formatNumberVi = (num, minDec, maxDec) => {
+            if (!Number.isFinite(num)) return '';
+            const fixed = num.toFixed(maxDec);
+            return fixed.replace(/\.?0+$/, '').replace('.', ',');
+          };
+          
+          const formatDdMmYyyy = (v) => {
+            try {
+              if (!v) return '';
+              const d = parseDateFlexible(v);
+              if (!d) return String(v || '');
+              const dd = String(d.getDate()).padStart(2, '0');
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              return `${dd}/${mm}/${yyyy}`;
+            } catch(_) { return String(v || ''); }
+          };
+          
+          F5A_P1_DATA.data.forEach(emp => {
+            const empName = emp['Phụ trách'] || emp.name || '';
+            if (!empName || isNameInBlacklist(empName)) return;
+            if (!emp.details) return;
+            
+            const sameMonth = Array.isArray(emp.details.sameMonth) ? emp.details.sameMonth : [];
+            const prevMonth = Array.isArray(emp.details.prevMonth) ? emp.details.prevMonth : [];
+            
+            let stt = 0;
+            
+            sameMonth.forEach(task => {
+              const actualHoursDisp = Number.isFinite(task.actualNum) ? formatNumberVi(task.actualNum, 2, 2) : (task.actualHours || '');
+              const manDisp = formatNumberVi(Number(task.man || 0), 2, 2);
+              const wishDisp = formatDdMmYyyy(task.wish || '');
+              let wishPlus1Disp = '';
+              try {
+                const dW = parseDateFlexible(task.wish);
+                if (dW) {
+                  const plus1 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 1);
+                  wishPlus1Disp = formatDdMmYyyy(plus1);
+                }
+              } catch(_) {}
+              const doneDisp = formatDdMmYyyy(task.done || '');
+              const rqDisp = formatDdMmYyyy(task.rq || '');
+              
+              aoa.push([
+                empName,
+                'Nhận trong tháng',
+                ++stt,
+                task.code || '',
+                task.tname || '',
+                rqDisp,
+                actualHoursDisp,
+                manDisp,
+                task.statusByMan || '',
+                wishDisp,
+                wishPlus1Disp,
+                doneDisp,
+                task.statusVsWish || ''
+              ]);
+            });
+            
+            prevMonth.forEach(task => {
+              const actualHoursDisp = Number.isFinite(task.actualNum) ? formatNumberVi(task.actualNum, 2, 2) : (task.actualHours || '');
+              const manDisp = formatNumberVi(Number(task.man || 0), 2, 2);
+              const wishDisp = formatDdMmYyyy(task.wish || '');
+              let wishPlus1Disp = '';
+              try {
+                const dW = parseDateFlexible(task.wish);
+                if (dW) {
+                  const plus1 = new Date(dW.getFullYear(), dW.getMonth(), dW.getDate() + 1);
+                  wishPlus1Disp = formatDdMmYyyy(plus1);
+                }
+              } catch(_) {}
+              const doneDisp = formatDdMmYyyy(task.done || '');
+              const rqDisp = formatDdMmYyyy(task.rq || '');
+              
+              aoa.push([
+                empName,
+                'Nhận tháng trước',
+                ++stt,
+                task.code || '',
+                task.tname || '',
+                rqDisp,
+                actualHoursDisp,
+                manDisp,
+                task.statusByMan || '',
+                wishDisp,
+                wishPlus1Disp,
+                doneDisp,
+                task.statusVsWish || ''
+              ]);
+            });
+          });
+          
+          return aoa.length > 1 ? aoa : [['Không có dữ liệu chi tiết P1']];
+        }catch(err){
+          console.error('[P1 Detail Export] Error:', err);
+          return [['Lỗi xuất dữ liệu chi tiết P1']];
+        }
+      }
+      
+      // Export chi tiết P2 - Nhận tháng (từ modal openRqDetailModal)
+      function f5aExportP2DetailToAOA(){
+        try{
+          const headers = ['Nhân viên', 'STT', 'Mã', 'Tên tác vụ', 'Ngày yêu cầu', 'Công chuẩn', 'Số giờ đánh giá thực tế', 'Hạn mong muốn', 'Ngày hoàn thành', 'Trạng thái'];
+          const aoa = [headers];
+          
+          if (!F5A_P2_DATA || !F5A_P2_DATA.data || !Array.isArray(F5A_P2_DATA.data) || !F5A_P2_DATA.data.length) {
+            return [['Chưa có dữ liệu P2. Vui lòng nhấn "Tra cứu P2" trước.']];
+          }
+          
+          const formatDdMmYyyy = (v) => {
+            try {
+              if (!v) return '';
+              const d = parseDateFlexible(v);
+              if (!d) return String(v || '');
+              const dd = String(d.getDate()).padStart(2, '0');
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              return `${dd}/${mm}/${yyyy}`;
+            } catch(_) { return String(v || ''); }
+          };
+          
+          F5A_P2_DATA.data.forEach(item => {
+            const name = item.name || item['Phụ trách'] || '';
+            if (!name || isNameInBlacklist(name)) return;
+            
+            const tasks = Array.isArray(item.tasks) ? item.tasks : [];
+            let stt = 0;
+            
+            tasks.forEach(task => {
+              const code = String(task['Mã'] || '').trim();
+              const tname = String(task['Tên tác vụ'] || '').trim();
+              if (!tname) return;
+              
+              aoa.push([
+                name,
+                ++stt,
+                code,
+                tname,
+                formatDdMmYyyy(task['Ngày yêu cầu'] || ''),
+                task['Công chuẩn'] || '',
+                task['Số giờ đánh giá thực tế'] || '',
+                formatDdMmYyyy(task['Hạn mong muốn'] || ''),
+                formatDdMmYyyy(task['Ngày hoàn thành'] || ''),
+                task['Kết quả'] || task['Trạng thái'] || task['Hiện trạng'] || ''
+              ]);
+            });
+          });
+          
+          return aoa.length > 1 ? aoa : [['Không có dữ liệu chi tiết P2']];
+        }catch(err){
+          console.error('[P2 Detail Export] Error:', err);
+          return [['Lỗi xuất dữ liệu chi tiết P2']];
+        }
+      }
+      
+      // Export chi tiết P3 (từ modal showP3TaskDetails)
+      function f5aExportP3DetailToAOA(){
+        try{
+          if (!Array.isArray(F5A_P3_RAW) || !F5A_P3_RAW.length) {
+            return [['Chưa có dữ liệu P3. Vui lòng nhấn "Tra cứu P3" trước.']];
+          }
+          
+          const monthInput = document.getElementById('f5a-month');
+          const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+          
+          const headers = ['Nhân viên', 'Loại CE', 'STT', 'Mã', 'Tên tác vụ', 'Ngày hoàn thành', 'CE rà soát'];
+          const aoa = [headers];
+          
+          const norm = (s) => String(s||'').toLowerCase().trim();
+          const getV = (obj, keys) => {
+            const lower = {};
+            Object.keys(obj||{}).forEach(k=>{ lower[norm(k)] = obj[k]; });
+            for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; }
+            return '';
+          };
+          
+          const parseDate = (value) => {
+            try{
+              if(!value) return null;
+              const s = String(value).trim();
+              let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+              if(m){ return new Date(+m[3], +m[2]-1, +m[1]); }
+              m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+              if(m){ return new Date(+m[1], +m[2]-1, +m[3]); }
+              return new Date(s);
+            }catch(_){ return null; }
+          };
+          
+          const formatYyyyMm = (d) => {
+            if(!d) return '';
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          };
+          
+          const formatDdMmYyyy = (v) => {
+            try {
+              if (!v) return '';
+              const d = parseDate(v);
+              if (!d) return String(v || '');
+              const dd = String(d.getDate()).padStart(2, '0');
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              return `${dd}/${mm}/${yyyy}`;
+            } catch(_) { return String(v || ''); }
+          };
+          
+          const byEmployee = new Map();
+          
+          F5A_P3_RAW.forEach(r => {
+            const name = String(getV(r, [
+              'assignee','employee','name',
+              'nhân viên','nhan vien','nhanvien',
+              'tên nhân viên','ten nhan vien','tennhanvien',
+              'phụ trách','phu trac','phutrac'
+            ])||'').trim();
+            
+            if(!name || name.toLowerCase() === 'x') return;
+            
+            const completionDateStr = getV(r, [
+              'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
+              'ngày hoàn thành','ngay hoan thanh',
+              'completion date','completiondate',
+              'actual completion date','actualcompletiondate'
+            ]);
+            
+            const completionDate = parseDate(completionDateStr);
+            
+            if(monthVal && completionDate){
+              const taskMonth = formatYyyyMm(completionDate);
+              if(taskMonth !== monthVal) return;
+            } else if(monthVal && !completionDate) {
+              return;
+            }
+            
+            const ceReview = String(getV(r, [
+              'ce rà soát','ce ra soat','cerasoat',
+              'ce review','cereview',
+              'rà soát ce','ra soat ce','rasotce',
+              'tình trạng ce','tinh trang ce'
+            ])||'').trim();
+            
+            const ceNorm = norm(ceReview);
+            let ceType = 'Chưa hoàn thành';
+            if(ceNorm === 'đã gửi' || ceNorm === 'da gui' || ceNorm === 'dagui'){
+              ceType = 'Đã gửi';
+            } else if(ceNorm === 'không cần' || ceNorm === 'khong can' || ceNorm === 'khongcan'){
+              ceType = 'Không cần';
+            }
+            
+            if(!byEmployee.has(name)){
+              byEmployee.set(name, []);
+            }
+            
+            const code = getV(r, ['code','ma','taskcode','mã']) || '';
+            const tname = getV(r, ['Task Name','Tên tác vụ','Task','Công việc','Tên Task','taskname','ten_tac_vu','ten','name','title']) || '';
+            
+            byEmployee.get(name).push({
+              ceType,
+              code,
+              tname,
+              completionDate: completionDateStr,
+              ceReview
+            });
+          });
+          
+          Array.from(byEmployee.entries()).sort((a,b) => a[0].localeCompare(b[0], 'vi')).forEach(([empName, tasks]) => {
+            let stt = 0;
+            tasks.forEach(task => {
+              aoa.push([
+                empName,
+                task.ceType,
+                ++stt,
+                task.code,
+                task.tname,
+                formatDdMmYyyy(task.completionDate),
+                task.ceReview
+              ]);
+            });
+          });
+          
+          return aoa.length > 1 ? aoa : [['Không có dữ liệu chi tiết P3']];
+        }catch(err){
+          console.error('[P3 Detail Export] Error:', err);
+          return [['Lỗi xuất dữ liệu chi tiết P3']];
+        }
+      }
+      
       // Nút làm mới lựa chọn biểu đồ Form 5
       (function initF5aRefresh(){
         const btn = document.getElementById('f5a-refresh');
