@@ -6459,38 +6459,34 @@
             document.body.removeChild(link);
           }
           
-          // Gửi dữ liệu lên webhook - tách thành các trường riêng biệt dưới dạng JSON string
-          const payload = {
-            timestamp: timestamp,
-            taskId: taskData.taskId || '',
-            code: taskData.code || '',
-            taskName: taskData.taskName || '',
-            name: taskData.name || '',
-            requestDate: taskData.requestDate || '',
-            wishDue: taskData.wishDue || '',
-            status: taskData.status || '',
-            itemId: taskData.itemId || '',
-            requester: taskData.requester || '',
-            receiverSample: taskData.receiverSample || '',
-            manHour: taskData.manHour || '',
-            purpose: taskData.purpose || '',
-            note: taskData.note || '',
-            specialTest: taskData.specialTest || '',
-            reportForm: taskData.reportForm || '',
-            submitTime: taskData.submitTime || '',
-            reportDueDate: taskData.reportDueDate || '',
-            attachmentFileName: taskData.attachmentFileName || '',
-            attachmentUrl: taskData.attachmentUrl || '',
-            downloadFormUrl: downloadUrl || ''
-          };
+          // Gửi dữ liệu lên webhook - tách thành các trường riêng lẻ
+          const formData = new FormData();
+          formData.append('timestamp', timestamp);
+          formData.append('taskId', taskData.taskId || '');
+          formData.append('code', taskData.code || '');
+          formData.append('taskName', taskData.taskName || '');
+          formData.append('name', taskData.name || '');
+          formData.append('requestDate', taskData.requestDate || '');
+          formData.append('wishDue', taskData.wishDue || '');
+          formData.append('status', taskData.status || '');
+          formData.append('itemId', taskData.itemId || '');
+          formData.append('requester', taskData.requester || '');
+          formData.append('receiverSample', taskData.receiverSample || '');
+          formData.append('manHour', taskData.manHour || '');
+          formData.append('purpose', taskData.purpose || '');
+          formData.append('note', taskData.note || '');
+          formData.append('specialTest', taskData.specialTest || '');
+          formData.append('reportForm', taskData.reportForm || '');
+          formData.append('submitTime', taskData.submitTime || '');
+          formData.append('reportDueDate', taskData.reportDueDate || '');
+          formData.append('attachmentFileName', taskData.attachmentFileName || '');
+          formData.append('attachmentUrl', taskData.attachmentUrl || '');
+          formData.append('downloadFormUrl', downloadUrl || '');
           
-          // Gửi dưới dạng JSON string để server có thể parse thành object
+          // Gửi dưới dạng FormData với các trường riêng lẻ
           await fetch(FORM1_DOWNLOAD_FORM_URL, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
+            body: formData,
             mode: 'no-cors'
           });
           
