@@ -2016,6 +2016,8 @@
       const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/TrabaocaoDQA";
       // Form 1 - Webhook tải form (khi system=1)
       const FORM1_DOWNLOAD_FORM_URL = "https://iatzhxxuk.tino.page/webhook/nuttaiform";
+      // Form 1 - Webhook gửi báo cáo cho system task (khi system=1)
+      const FORM1_SYSTEM_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/SOPguibaocaoSPM";
       const FORM7_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dc3b968a-2f2d-4746-98ac-48247555b9c9";
       // Riêng bảng phụ (subpanel) - Modal khai báo CE
       const FORM7_SUBPANEL_URL = "https://iatzhxxuk.tino.page/webhook/khaibaoce";
@@ -4897,6 +4899,10 @@
           const closeBtn = document.getElementById('f9-dur-close');
           const cancelBtn = document.getElementById('f9-dur-cancel');
           if (!modal) return;
+          // Lưu row hiện tại vào data attribute của modal để tránh closure issue
+          try{
+            modal._currentRow = row;
+          }catch(_){ }
           // Reset trạng thái nút gửi mỗi lần mở modal
           try{
             const btnSaveAll = document.getElementById('f9-dur-save-all');
@@ -4904,6 +4910,13 @@
               btnSaveAll.disabled = false;
               btnSaveAll.innerHTML = 'Gửi dữ liệu';
             }
+          }catch(_){ }
+          // Reset các input trong modal mỗi lần mở
+          try{
+            document.getElementById('f9-gatea-status').value = '';
+            document.getElementById('f9-gatea-note').value = '';
+            const fileInput = document.getElementById('f9-gatea-file');
+            if (fileInput) fileInput.value = '';
           }catch(_){ }
           // Fill header info
           try{ document.getElementById('f9-dur-assignee').textContent = row.assignee || ''; }catch(_){ }
@@ -4918,6 +4931,8 @@
               btnSaveAll.addEventListener('click', async (e)=>{
                 e.preventDefault();
                 if (btnSaveAll.disabled) return;
+                // Lấy row hiện tại từ modal thay vì dùng closure
+                const currentRow = modal._currentRow || row;
                 // Khóa nút + spinner
                 const prevHtml = btnSaveAll.innerHTML;
                 btnSaveAll.disabled = true;
@@ -4934,7 +4949,7 @@
 
                   // Ràng buộc: Nếu Gate A trạng thái Done => bắt buộc có Bằng chứng
                   if ((gateAStatus||'').toLowerCase().includes('hoàn') || (gateAStatus||'').toLowerCase()==='done'){
-                    if (!gateAHasFile){ try{ showToast('Gate A: Trạng thái Hoàn thành/Done cần đính kèm Bằng chứng.','error'); }catch(_){ } return; }
+                    if (!gateAHasFile){ try{ showToast('Gate A: Trạng thái Hoàn thành/Done cần đính kèm Bằng chứng.','error'); }catch(_){ } btnSaveAll.disabled = false; btnSaveAll.innerHTML = prevHtml; return; }
                   }
                   // Nếu có file bằng chứng Gate A: gửi FormData; nếu không, gửi JSON thường
                   // Helper: fetch với timeout + fallback no-cors
@@ -4974,8 +4989,8 @@
                     return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
                   }
 
-                  // Lấy Id từ row - kiểm tra nhiều nguồn và đảm bảo có giá trị
-                  const rowId = (row && (row.Id || row.id || row.ID || row['Id'] || row['id'] || row['ID'])) || '';
+                  // Lấy Id từ currentRow - kiểm tra nhiều nguồn và đảm bảo có giá trị
+                  const rowId = (currentRow && (currentRow.Id || currentRow.id || currentRow.ID || currentRow['Id'] || currentRow['id'] || currentRow['ID'])) || '';
                   // Nếu vẫn không có, thử lấy từ data gốc nếu có
                   const finalId = String(rowId || '').trim();
 
@@ -4986,10 +5001,10 @@
                     const fd = new FormData();
                     fd.append('action','form9_update_tests_bulk');
                     fd.append('Id', finalId);
-                    fd.append('taskId', row.taskId||'');
-                    fd.append('code', row.code||'');
-                    fd.append('assignee', row.assignee||'');
-                    fd.append('taskName', row.taskName||'');
+                    fd.append('taskId', currentRow.taskId||'');
+                    fd.append('code', currentRow.code||'');
+                    fd.append('assignee', currentRow.assignee||'');
+                    fd.append('taskName', currentRow.taskName||'');
                     try{ fd.append('gate', 'Gate A'); }catch(_){ }
                     fd.append('gateAStatus', gateAStatus);
                     fd.append('noteGateA', gateANote);
@@ -5013,10 +5028,10 @@
                     const payload = {
                       action: 'form9_update_tests_bulk',
                       Id: finalId,
-                      taskId: row.taskId||'',
-                      code: row.code||'',
-                      assignee: row.assignee||'',
-                      taskName: row.taskName||'',
+                      taskId: currentRow.taskId||'',
+                      code: currentRow.code||'',
+                      assignee: currentRow.assignee||'',
+                      taskName: currentRow.taskName||'',
                       gate: activeGate,
                       gateAStatus,
                       noteGateA: gateANote,
@@ -5043,13 +5058,13 @@
                     try{ if (typeof renderForm9 === 'function') { await renderForm9(); } }catch(_){ }
                     // Làm mới nội dung modal hiện tại (không đóng modal)
                     try{
-                      let updated = row;
+                      let updated = currentRow;
                       try{
                         const cached = (typeof LS!=='undefined' && LS.getJSON) ? LS.getJSON('f9.cache') : null;
                         let rows = (cached && Array.isArray(cached.rows)) ? cached.rows : (Array.isArray(window.F9_LAST_ROWS) ? window.F9_LAST_ROWS : []);
-                        const tid = String(row.taskId||'').trim();
-                        const codeKey = String(row.code||'').trim();
-                        const assigneeKey = String(row.assignee||'').trim();
+                        const tid = String(currentRow.taskId||'').trim();
+                        const codeKey = String(currentRow.code||'').trim();
+                        const assigneeKey = String(currentRow.assignee||'').trim();
                         const found = rows.find(x => String(x.taskId||'').trim()===tid || (String(x.code||'').trim()===codeKey && String(x.assignee||'').trim()===assigneeKey));
                         if (found) updated = found;
                       }catch(_){ }
@@ -5698,8 +5713,10 @@
           if (namePill) namePill.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
           const bpsOption = document.getElementById('bps-option');
           const bpsCheckbox = document.getElementById('upload-bps');
-          if (bpsOption) bpsOption.style.display = (ctx && ctx.form === 'Form 2') ? 'none' : '';
-          if (bpsCheckbox) bpsCheckbox.checked = (ctx && ctx.form === 'Form 1') ? true : false;
+          const isSystemTask = ctx?.isSystemTask === true;
+          // Khi system=1: ẩn checkbox BPS
+          if (bpsOption) bpsOption.style.display = (ctx && ctx.form === 'Form 2') || isSystemTask ? 'none' : '';
+          if (bpsCheckbox) bpsCheckbox.checked = (ctx && ctx.form === 'Form 1' && !isSystemTask) ? true : false;
           const singleWrap = document.getElementById('upload-form2-single');
           const splitWrap = document.getElementById('upload-form1-split');
           const tabsWrap = document.getElementById('upload-tabs-wrap');
@@ -5713,31 +5730,76 @@
           const gate3Tab = document.getElementById('tab-gate3');
           const gate3Content = document.getElementById('upload-gate3-content');
           if (ctx && ctx.form === 'Form 1'){
+            const isSystemTask = ctx?.isSystemTask === true;
+            const isDone = ctx?.isDone === true;
             if (singleWrap) singleWrap.style.display = 'none';
             if (splitWrap) splitWrap.style.display = '';
             if (tabsWrap) tabsWrap.style.display = '';
-            if (conclGroup) conclGroup.style.display = '';
-            if (classifGroup) classifGroup.style.display = '';
-            if (durGroup) durGroup.style.display = '';
-            if (durDateWrap) durDateWrap.style.display = 'none';
-            try { document.querySelectorAll('input[name="durability-choice"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } }); } catch(_){ }
-            try { document.querySelectorAll('input[name="upload-classification"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } }); } catch(_){ }
-            try { 
-              const noteEl = document.getElementById('classification-note');
-              if (noteEl) noteEl.style.display = 'none';
-            } catch(_){ }
-            try { if (durDate) durDate.value = ''; } catch(_){ }
             if (gate2Wrap) gate2Wrap.style.display = 'none';
             if (gate3Wrap) gate3Wrap.style.display = 'none';
             if (gate3Content) gate3Content.value = '';
             // Reset file inputs của Gate 3
             try { const pdfG3 = document.getElementById('upload-file-pdfzip-g3'); if (pdfG3) pdfG3.value = ''; } catch(_){}
             try { const xlsxG3 = document.getElementById('upload-file-xlsxzip-g3'); if (xlsxG3) xlsxG3.value = ''; } catch(_){}
-            // Hiển thị tab Gate 3 chỉ khi tác vụ đã done
-            const isDone = ctx?.isDone === true;
-            if (gate3Tab) gate3Tab.style.display = isDone ? '' : 'none';
-            // Nếu isDone = true, chỉ hiển thị Gate 3 và ẩn Gate 1, Gate 2
-            if (isDone) {
+            
+            // Khi system=1: chỉ hiển thị Gate 1, ẩn Gate 2 và Gate 3, chỉ yêu cầu Excel
+            if (isSystemTask) {
+              // Ẩn tất cả tabs trừ Gate 1
+              const t1 = document.getElementById('tab-gate1');
+              const t2 = document.getElementById('tab-gate2');
+              const t3 = document.getElementById('tab-gate3');
+              if (t1) t1.style.display = '';
+              if (t2) t2.style.display = 'none';
+              if (t3) t3.style.display = 'none';
+              // Ẩn tất cả các trường không cần thiết
+              if (conclGroup) conclGroup.style.display = 'none';
+              if (classifGroup) classifGroup.style.display = 'none';
+              if (durGroup) durGroup.style.display = 'none';
+              if (durDateWrap) durDateWrap.style.display = 'none';
+              // Ẩn input PDF, chỉ hiển thị Excel
+              try {
+                const pdfInput = document.getElementById('upload-file-pdfzip');
+                if (pdfInput) {
+                  // Tìm div cha chứa cả label và input
+                  const parentDiv = pdfInput.closest('div');
+                  if (parentDiv && parentDiv.querySelector('label')) {
+                    parentDiv.style.display = 'none';
+                  }
+                  pdfInput.value = '';
+                }
+              } catch(_){}
+              // Kích hoạt Gate 1
+              try {
+                const g1t = document.getElementById('gate1-title');
+                const g2t = document.getElementById('gate2-title');
+                const g3t = document.getElementById('gate3-title');
+                if (g1t) g1t.style.display = '';
+                if (g2t) g2t.style.display = 'none';
+                if (g3t) g3t.style.display = 'none';
+                if (t1) {
+                  t1.classList.add('bg-primary-blue','text-white');
+                  t1.classList.remove('bg-cyan-200','text-cyan-900','border-cyan-400');
+                }
+              } catch(_){}
+            } else {
+              // Không phải system task: hiển thị như bình thường
+              if (conclGroup) conclGroup.style.display = '';
+              if (classifGroup) classifGroup.style.display = '';
+              if (durGroup) durGroup.style.display = '';
+              if (durDateWrap) durDateWrap.style.display = 'none';
+              try { document.querySelectorAll('input[name="durability-choice"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } }); } catch(_){ }
+              try { document.querySelectorAll('input[name="upload-classification"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } }); } catch(_){ }
+              try { 
+                const noteEl = document.getElementById('classification-note');
+                if (noteEl) noteEl.style.display = 'none';
+              } catch(_){ }
+              try { if (durDate) durDate.value = ''; } catch(_){ }
+              // Hiển thị tab Gate 3 chỉ khi tác vụ đã done
+              if (gate3Tab) gate3Tab.style.display = isDone ? '' : 'none';
+            }
+            
+            // Nếu isDone = true và không phải system task, chỉ hiển thị Gate 3 và ẩn Gate 1, Gate 2
+            if (isDone && !isSystemTask) {
               const t1 = document.getElementById('tab-gate1');
               const t2 = document.getElementById('tab-gate2');
               const t3 = document.getElementById('tab-gate3');
@@ -5766,8 +5828,8 @@
                 const bpsCheckbox = document.getElementById('upload-bps');
                 if (bpsCheckbox) bpsCheckbox.checked = true;
               } catch(_){ }
-            } else {
-              // Nếu không phải Done, hiển thị Gate 1 và Gate 2 như bình thường
+            } else if (!isSystemTask) {
+              // Nếu không phải Done và không phải system task, hiển thị Gate 1 và Gate 2 như bình thường
               const t1 = document.getElementById('tab-gate1');
               const t2 = document.getElementById('tab-gate2');
               if (t1) t1.style.display = '';
@@ -5785,8 +5847,8 @@
               }catch(_){ }
             }
             
-            // Kích hoạt hiệu ứng highlight cho Form 1 (chỉ khi không phải Done)
-            if (!isDone) {
+            // Kích hoạt hiệu ứng highlight cho Form 1 (chỉ khi không phải Done và không phải system task)
+            if (!isDone && !isSystemTask) {
               setTimeout(() => {
                 try {
                   const conclGroup = document.getElementById('upload-conclusion-group');
@@ -6110,8 +6172,13 @@
               if (uploadContext.id !== undefined && uploadContext.id !== null && uploadContext.id !== '') {
                 fd.append('id', String(uploadContext.id));
               }
+              // Thêm flag system=1 nếu là luồng system task
+              if (uploadContext.isSystemTask === true) {
+                fd.append('system', '1');
+              }
             }
-            if (bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
+            // Khi system=1: không gửi is_bps hoặc gửi is_bps = '0'
+            if (!uploadContext?.isSystemTask && bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
             try{
               const conclusionPicked = (function(){ const els = document.querySelectorAll('input[name="upload-conclusion-g3"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
               const meta = {
@@ -6124,7 +6191,8 @@
                 noi_dung_cap_nhat: content,
                 ket_luan: conclusionPicked || '',
                 upload_type: fXlsxG3 ? (fPdfG3 ? 'pdf_xlsx' : 'xlsx_only') : (fPdfG3 ? 'pdf_only' : 'text_only'),
-                is_bps: bpsChecked ? '1' : '0',
+                is_bps: uploadContext?.isSystemTask === true ? '0' : (bpsChecked ? '1' : '0'),
+                system: uploadContext?.isSystemTask === true ? '1' : '0',
                 timestamp_iso: new Date().toISOString()
               };
               fd.append('meta_json', JSON.stringify(meta));
@@ -6137,7 +6205,9 @@
               fd.append('gate', 'Gate 3');
             }catch(_){ }
             try{
-              await fetch(FORM1_UPLOAD_URL,{method:'POST',body:fd, mode: 'no-cors'});
+              // Khi system=1: gửi đến webhook riêng
+              const uploadUrl = uploadContext?.isSystemTask === true ? FORM1_SYSTEM_UPLOAD_URL : FORM1_UPLOAD_URL;
+              await fetch(uploadUrl,{method:'POST',body:fd, mode: 'no-cors'});
               showToast('Đã gửi cập nhật báo cáo Gate 3.','success');
               closeUploadModal();
               // Tự động refresh bảng Form 1 sau khi gửi thành công
@@ -6175,6 +6245,10 @@
               if (uploadContext.id !== undefined && uploadContext.id !== null && uploadContext.id !== '') {
                 fd.append('id', String(uploadContext.id));
               }
+              // Thêm flag system=1 nếu là luồng system task
+              if (uploadContext.isSystemTask === true) {
+                fd.append('system', '1');
+              }
             }
             // Append Gate 2 classification if selected
             try{
@@ -6192,7 +6266,8 @@
                 taskName: uploadContext?.taskName || '',
                 ket_luan: 'Báo cáo máy Base, rà soát tem nhãn',
                 phan_loai: classifPickedG2 || '',
-                is_bps: bpsChecked ? '1' : '0',
+                is_bps: uploadContext?.isSystemTask === true ? '0' : (bpsChecked ? '1' : '0'),
+                system: uploadContext?.isSystemTask === true ? '1' : '0',
                 upload_type: 'archive_only',
                 timestamp_iso: new Date().toISOString()
               };
@@ -6206,7 +6281,9 @@
               fd.append('gate', 'Gate 2');
             }catch(_){ }
             try{
-              await fetch(FORM1_UPLOAD_URL,{method:'POST',body:fd, mode: 'no-cors'});
+              // Khi system=1: gửi đến webhook riêng
+              const uploadUrl = uploadContext?.isSystemTask === true ? FORM1_SYSTEM_UPLOAD_URL : FORM1_UPLOAD_URL;
+              await fetch(uploadUrl,{method:'POST',body:fd, mode: 'no-cors'});
               showToast('Đã gửi báo cáo Gate 2.','success');
               closeUploadModal();
               // Tự động refresh bảng Form 1 sau khi gửi thành công
@@ -6223,24 +6300,31 @@
           const xlsxInput = document.getElementById('upload-file-xlsxzip');
           const okPdf = ['pdf'];
           const okXlsx = ['xlsx'];
-          if (!pdfInput || !pdfInput.files || pdfInput.files.length===0){ showToast('Vui lòng chọn file PDF.','error'); return; }
-          const fPdf = pdfInput.files[0];
-          const extPdf = extOf(fPdf.name);
-          if (okPdf.indexOf(extPdf)===-1){ showToast('File PDF không đúng định dạng.','error'); return; }
-          let fXlsx = null;
-          // Bắt buộc phải nộp file Excel bất kể có gửi BPS hay không
+          const isSystemTask = uploadContext?.isSystemTask === true;
+          
+          // Khi system=1: chỉ yêu cầu file Excel, không cần PDF
+          let fPdf = null;
+          if (!isSystemTask) {
+            // Không phải system task: yêu cầu PDF như bình thường
+            if (!pdfInput || !pdfInput.files || pdfInput.files.length===0){ showToast('Vui lòng chọn file PDF.','error'); return; }
+            fPdf = pdfInput.files[0];
+            const extPdf = extOf(fPdf.name);
+            if (okPdf.indexOf(extPdf)===-1){ showToast('File PDF không đúng định dạng.','error'); return; }
+          }
+          
+          // Bắt buộc phải nộp file Excel
           if (!xlsxInput || !xlsxInput.files || xlsxInput.files.length===0){ showToast('Vui lòng chọn file Excel (.xlsx).','error'); return; }
-          fXlsx = xlsxInput.files[0];
+          const fXlsx = xlsxInput.files[0];
           const extX = extOf(fXlsx.name);
           if (okXlsx.indexOf(extX)===-1){ showToast('File Excel không đúng định dạng (.xlsx).','error'); return; }
         isModalSubmitting = true;
         if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi..."; }
           // Append files
-          fd.append('file_pdfzip', fPdf);
-          if (fXlsx) fd.append('file_xlsxzip', fXlsx);
-          fd.append('upload_type', fXlsx ? 'pdf_xlsx' : 'pdf_only');
-          fd.append('file_name', fPdf.name || '');
-          if (fXlsx) fd.append('file_name_xlsx', fXlsx.name || '');
+          if (fPdf) fd.append('file_pdfzip', fPdf);
+          fd.append('file_xlsxzip', fXlsx);
+          fd.append('upload_type', isSystemTask ? 'xlsx_only' : (fPdf ? 'pdf_xlsx' : 'xlsx_only'));
+          if (fPdf) fd.append('file_name', fPdf.name || '');
+          fd.append('file_name_xlsx', fXlsx.name || '');
           fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
           if(uploadContext){
             fd.append('nguoi_nop', uploadContext.name||'');
@@ -6251,23 +6335,30 @@
             if (uploadContext.id !== undefined && uploadContext.id !== null && uploadContext.id !== '') {
               fd.append('id', String(uploadContext.id));
             }
+            // Thêm flag system=1 nếu là luồng system task
+            if (uploadContext.isSystemTask === true) {
+              fd.append('system', '1');
+            }
           }
-          // Durability test fields
-          let durPicked = '';
-          try{ durPicked = (function(){ const els = document.querySelectorAll('input[name="durability-choice"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(); }catch(_){ }
-          const durDateVal = (document.getElementById('durability-date')?.value || '');
-          if (durPicked){ fd.append('test_ben', durPicked === 'co' ? 'Có test bền' : 'Không test bền'); }
-          if (durPicked === 'co' && durDateVal){ fd.append('ngay_du_kien_tra_test_ben', durDateVal); }
-          // Append Gate 1 conclusion if selected
-          try{
-            const picked = (function(){ const els = document.querySelectorAll('input[name="upload-conclusion"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
-            if (picked) fd.append('ket_luan', picked);
-          }catch(_){ }
-          // Append Gate 1 classification if selected
-          try{
-            const classifPicked = (function(){ const els = document.querySelectorAll('input[name="upload-classification"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
-            if (classifPicked) fd.append('phan_loai', classifPicked);
-          }catch(_){ }
+          // Khi system=1: không cần các trường conclusion, classification, durability
+          if (!isSystemTask) {
+            // Durability test fields
+            let durPicked = '';
+            try{ durPicked = (function(){ const els = document.querySelectorAll('input[name="durability-choice"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(); }catch(_){ }
+            const durDateVal = (document.getElementById('durability-date')?.value || '');
+            if (durPicked){ fd.append('test_ben', durPicked === 'co' ? 'Có test bền' : 'Không test bền'); }
+            if (durPicked === 'co' && durDateVal){ fd.append('ngay_du_kien_tra_test_ben', durDateVal); }
+            // Append Gate 1 conclusion if selected
+            try{
+              const picked = (function(){ const els = document.querySelectorAll('input[name="upload-conclusion"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
+              if (picked) fd.append('ket_luan', picked);
+            }catch(_){ }
+            // Append Gate 1 classification if selected
+            try{
+              const classifPicked = (function(){ const els = document.querySelectorAll('input[name="upload-classification"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
+              if (classifPicked) fd.append('phan_loai', classifPicked);
+            }catch(_){ }
+          }
           // Append meta JSON body for server
           try{
             const activeGate = (function(){ 
@@ -6277,7 +6368,8 @@
               if (g2 && g2.style.display !== 'none') return 'Gate 2';
               return 'Gate 1';
             })();
-            const classifPicked = (function(){ const els = document.querySelectorAll('input[name="upload-classification"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
+            const uploadType = isSystemTask ? 'xlsx_only' : (fPdf ? 'pdf_xlsx' : 'xlsx_only');
+            // Khi system=1: không gửi các trường conclusion, classification, durability
             const meta = {
               action: 'form1_upload',
               gate: activeGate,
@@ -6285,11 +6377,13 @@
               taskId: (uploadContext?.taskId || uploadContext?.code || ''),
               code: uploadContext?.code || '',
               taskName: uploadContext?.taskName || '',
-              ket_luan: (function(){ const els = document.querySelectorAll('input[name="upload-conclusion"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(),
-              phan_loai: classifPicked || '',
-              test_ben: (function(v){ return v==='co' ? 'Có test bền' : (v==='khong' ? 'Không test bền' : ''); })(durPicked),
-              ngay_du_kien_tra_test_ben: durDateVal || '',
-              is_bps: bpsChecked ? '1' : '0',
+              ket_luan: isSystemTask ? '' : (function(){ const els = document.querySelectorAll('input[name="upload-conclusion"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(),
+              phan_loai: isSystemTask ? '' : (function(){ const els = document.querySelectorAll('input[name="upload-classification"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(),
+              test_ben: isSystemTask ? '' : (function(){ try{ const durPicked = (function(){ const els = document.querySelectorAll('input[name="durability-choice"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })(); return durPicked==='co' ? 'Có test bền' : (durPicked==='khong' ? 'Không test bền' : ''); }catch(_){ return ''; } })(),
+              ngay_du_kien_tra_test_ben: isSystemTask ? '' : (document.getElementById('durability-date')?.value || ''),
+              is_bps: isSystemTask ? '0' : (bpsChecked ? '1' : '0'),
+              system: uploadContext?.isSystemTask === true ? '1' : '0',
+              upload_type: uploadType,
               timestamp_iso: new Date().toISOString()
             };
             fd.append('meta_json', JSON.stringify(meta));
@@ -6302,10 +6396,13 @@
             fd.append('action', 'form1_upload');
             fd.append('gate', activeGate);
           }catch(_){ }
-          if (bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
+          // Khi system=1: không gửi is_bps hoặc gửi is_bps = '0'
+          if (!isSystemTask && bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
           try{
-            try { showToast(`Sẽ gửi ${fXlsx? '2 tệp' : '1 tệp'}: ${fPdf?.name||''}${fXlsx? (', '+(fXlsx.name||'')) : ''}`,'info'); } catch(_){}
-            await fetch(FORM1_UPLOAD_URL,{method:'POST',body:fd, mode: 'no-cors'});
+            // Khi system=1: gửi đến webhook riêng
+            const uploadUrl = isSystemTask ? FORM1_SYSTEM_UPLOAD_URL : FORM1_UPLOAD_URL;
+            try { showToast(`Sẽ gửi ${isSystemTask ? '1 tệp' : (fXlsx? '2 tệp' : '1 tệp')}: ${isSystemTask ? (fXlsx?.name||'') : (fPdf?.name||'')}${!isSystemTask && fXlsx? (', '+(fXlsx.name||'')) : ''}`,'info'); } catch(_){}
+            await fetch(uploadUrl,{method:'POST',body:fd, mode: 'no-cors'});
             showToast('Đã gửi báo cáo.','success');
             closeUploadModal();
             // Tự động refresh bảng Form 1 sau khi gửi thành công
@@ -6633,8 +6730,12 @@
           // Kiểm tra giá trị "Form báo cáo đánh giá"
           const reportFormValue = getV(item,['Form báo cáo đánh giá','reportform','form_bao_cao','form_bao_cao_danh_gia']);
           const isFormSent = String(reportFormValue || '').trim().toLowerCase() === 'sent';
+          // Kiểm tra giá trị "system" để xác định luồng riêng cho system=1
+          const systemValue = getV(item,['system','System','SYSTEM']);
+          const isSystemTask = String(systemValue) === '1' || Number(systemValue) === 1;
           // Logic: 
           // - Nếu tác vụ đã Done: luôn cho phép cập nhật báo cáo (bất kể form đã sent hay chưa)
+          // - Nếu system=1: cho phép "Trả báo cáo" theo luồng riêng (không phụ thuộc vào isFormSent)
           // - Nếu Form báo cáo đánh giá = "Sent": bật nút "Trả báo cáo", khóa nút "Trả form"
           // - Ngược lại: bật nút "Trả form", khóa nút "Trả báo cáo"
           const labelBtn = document.createElement('button');
@@ -6648,13 +6749,20 @@
             labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
             labelBtn.textContent = 'Cập nhật báo cáo';
             labelBtn.disabled = false;
-            labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId }); };
+            labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId, isSystemTask }); };
+          } else if (isSystemTask) {
+            // system=1: cho phép "Trả báo cáo" theo luồng riêng
+            labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
+            labelBtn.textContent = 'Trả báo cáo';
+            labelBtn.disabled = false;
+            labelBtn.title = 'Gửi báo cáo theo luồng system=1';
+            labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId, isSystemTask: true }); };
           } else if (isFormSent) {
             // Form đã Sent: bật nút "Trả báo cáo"
             labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
             labelBtn.textContent = 'Trả báo cáo';
             labelBtn.disabled = false;
-            labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId }); };
+            labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId, isSystemTask }); };
           } else {
             // Form chưa Sent và chưa Done: khóa nút "Trả báo cáo"
             labelBtn.disabled = true;
@@ -6673,9 +6781,7 @@
           // Lưu toàn bộ dữ liệu từ item gốc vào rowData để gửi kèm khi upload (giống Form 2)
           const rowData = { ...item, taskId: taskIdBest, requestDate: requestDateStr, wishDue, code, taskName: tname };
           
-          // Kiểm tra giá trị "system" và "Nút tải form"
-          const systemValue = getV(item,['system','System','SYSTEM']);
-          const isSystemTask = String(systemValue) === '1' || Number(systemValue) === 1;
+          // Kiểm tra "Nút tải form" (isSystemTask đã được định nghĩa ở trên)
           const downloadFormUrl = getV(item,['Nút tải form','nuttaiform','nut_tai_form','download_form','downloadForm','Download Form','Nút Tải Form']);
           
           if (isLocked) {
