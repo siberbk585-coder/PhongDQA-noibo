@@ -2231,10 +2231,7 @@
             btnSample.classList.add('opacity-50', 'pointer-events-none');
             openSampleHandoverModal({
               name,
-              taskId: rowData.taskId,
-              code: rowData.code,
-              taskName: rowData.taskName,
-              f7emailassignee: rowData.f7emailassignee
+              ...rowData
             });
             setTimeout(() => {
               btnSample.disabled = false;
@@ -2416,8 +2413,8 @@
             const fourMReview = getV(item,['4mreview','4m_ra_soat','4m rà soát','4m review','4m_review','4m_status','4M rà soát']);
             const fourMDeclarationDate = getV(item,['4mdeclarationdate','ngay_khai_bao_4m','ngày khai báo 4m','ngay khai bao 4m','4m_date','4m declaration','4m_declaration','Ngày khai báo 4M']);
             const f7emailassignee = getV(item,['f7emailassignee','F7emailassignee','email_assignee','emailassignee','email assignee','assignee_email']);
-            const sampleHandoverStatus = getV(item,['samplehandoverstatus','sample_handover_status','tinh_trang_mau_ban_giao','tình trạng mẫu bàn giao','tinh trang mau ban giao','handover_status','sample_status','Tình trạng mẫu bàn giao']);
-            const sampleHandoverNotes = getV(item,['samplehandovernotes','sample_handover_notes','ghi_chu_ban_giao_mau','ghi chú bàn giao mẫu','ghi chu ban giao mau','handover_notes','sample_notes']);
+            const sampleHandoverStatus = getV(item,['Bangiaomau','bangiaomau','samplehandoverstatus','sample_handover_status','tinh_trang_mau_ban_giao','tình trạng mẫu bàn giao','tinh trang mau ban giao','handover_status','sample_status','Tình trạng mẫu bàn giao']);
+            const sampleHandoverNotes = getV(item,['Ghichubangiao','ghichubangiao','samplehandovernotes','sample_handover_notes','ghi_chu_ban_giao_mau','ghi chú bàn giao mẫu','ghi chu ban giao mau','handover_notes','sample_notes']);
             const id = getV(item,['Id','id','ID','_id']);
             
             const taskIdBest = pickTaskIdPreferQA(taskId, code);
@@ -11958,23 +11955,38 @@
           // Tạo FormData
           const formData = new FormData();
           
-          // Thông tin tác vụ
+          // Thông tin tác vụ - gửi đầy đủ tất cả các trường đã nhận về
           if (sampleHandoverContext) {
+            // Các trường cơ bản
             formData.append('person_name', sampleHandoverContext.name || '');
             formData.append('task_id', sampleHandoverContext.taskId || '');
             formData.append('code', sampleHandoverContext.code || '');
             formData.append('task_name', sampleHandoverContext.taskName || '');
             formData.append('f7emailassignee', sampleHandoverContext.f7emailassignee || '');
+            
+            // Gửi đầy đủ tất cả các trường từ rowData
+            if (sampleHandoverContext.Id) formData.append('Id', sampleHandoverContext.Id);
+            if (sampleHandoverContext.actualCompletionDate) formData.append('actualCompletionDate', sampleHandoverContext.actualCompletionDate);
+            if (sampleHandoverContext.reportCode) formData.append('reportCode', sampleHandoverContext.reportCode);
+            if (sampleHandoverContext.evaluationResult) formData.append('evaluationResult', sampleHandoverContext.evaluationResult);
+            if (sampleHandoverContext.notes) formData.append('original_notes', sampleHandoverContext.notes);
+            if (sampleHandoverContext.ceReview) formData.append('ceReview', sampleHandoverContext.ceReview);
+            if (sampleHandoverContext.ceDeclarationDate) formData.append('ceDeclarationDate', sampleHandoverContext.ceDeclarationDate);
+            if (sampleHandoverContext.ceNotes) formData.append('ceNotes', sampleHandoverContext.ceNotes);
+            if (sampleHandoverContext.fourMReview) formData.append('fourMReview', sampleHandoverContext.fourMReview);
+            if (sampleHandoverContext.fourMDeclarationDate) formData.append('fourMDeclarationDate', sampleHandoverContext.fourMDeclarationDate);
+            if (sampleHandoverContext.sampleHandoverStatus) formData.append('sampleHandoverStatus', sampleHandoverContext.sampleHandoverStatus);
+            if (sampleHandoverContext.sampleHandoverNotes) formData.append('sampleHandoverNotes', sampleHandoverContext.sampleHandoverNotes);
           }
           
-          // Trạng thái và ghi chú
+          // Trạng thái và ghi chú mới
           formData.append('handover_status', status);
-          formData.append('notes', notes);
+          formData.append('handover_notes', notes);
           formData.append('timestamp', formatDdMmYyyyHHmm(new Date()));
           formData.append('action', 'sample_handover_submit');
           formData.append('form_type', 'Sample Handover');
           
-          // Tạo metadata JSON
+          // Tạo metadata JSON với đầy đủ các trường
           const metadata = {
             action: 'sample_handover_submit',
             form_type: 'Sample Handover',
@@ -11984,8 +11996,21 @@
             task_name: sampleHandoverContext?.taskName || '',
             f7emailassignee: sampleHandoverContext?.f7emailassignee || '',
             handover_status: status,
-            notes,
-            timestamp_iso: new Date().toISOString()
+            handover_notes: notes,
+            timestamp_iso: new Date().toISOString(),
+            // Gửi đầy đủ tất cả các trường từ rowData
+            ...(sampleHandoverContext?.Id && { Id: sampleHandoverContext.Id }),
+            ...(sampleHandoverContext?.actualCompletionDate && { actualCompletionDate: sampleHandoverContext.actualCompletionDate }),
+            ...(sampleHandoverContext?.reportCode && { reportCode: sampleHandoverContext.reportCode }),
+            ...(sampleHandoverContext?.evaluationResult && { evaluationResult: sampleHandoverContext.evaluationResult }),
+            ...(sampleHandoverContext?.notes && { original_notes: sampleHandoverContext.notes }),
+            ...(sampleHandoverContext?.ceReview && { ceReview: sampleHandoverContext.ceReview }),
+            ...(sampleHandoverContext?.ceDeclarationDate && { ceDeclarationDate: sampleHandoverContext.ceDeclarationDate }),
+            ...(sampleHandoverContext?.ceNotes && { ceNotes: sampleHandoverContext.ceNotes }),
+            ...(sampleHandoverContext?.fourMReview && { fourMReview: sampleHandoverContext.fourMReview }),
+            ...(sampleHandoverContext?.fourMDeclarationDate && { fourMDeclarationDate: sampleHandoverContext.fourMDeclarationDate }),
+            ...(sampleHandoverContext?.sampleHandoverStatus && { sampleHandoverStatus: sampleHandoverContext.sampleHandoverStatus }),
+            ...(sampleHandoverContext?.sampleHandoverNotes && { sampleHandoverNotes: sampleHandoverContext.sampleHandoverNotes })
           };
           
           formData.append('metadata_json', JSON.stringify(metadata));
@@ -12073,6 +12098,10 @@
                     console.log('[Sample Handover Debug] Retry Response:', retryText);
                     showToast('Bàn giao mẫu thành công! (retry)', 'success');
                     closeSampleHandoverModal();
+                    // Tải lại bảng Form 7
+                    if (typeof renderForm7 === 'function') {
+                      await renderForm7();
+                    }
                   } else {
                     const retryErrText = await retryResponse.text().catch(() => '');
                     console.log('[Sample Handover Debug] ❌ Retry failed:', retryResponse.status, retryErrText);
@@ -12092,6 +12121,10 @@
           console.log('[Sample Handover Debug] ✅ Request gửi thành công!');
           showToast('Khai báo mẫu bàn giao thành công!', 'success');
           closeSampleHandoverModal();
+          // Tải lại bảng Form 7 để cập nhật dữ liệu mới
+          if (typeof renderForm7 === 'function') {
+            await renderForm7();
+          }
           
         } catch (error) {
           console.error('[Sample Handover Debug] ❌ Lỗi gửi dữ liệu:', error);
