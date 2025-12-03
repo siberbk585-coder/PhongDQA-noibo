@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
   <html lang="vi">
   <head>
     <meta charset="UTF-8">
@@ -124,6 +124,31 @@
       .f5a-col-done{ display:table-cell; }
       /* Drag row highlight */
       .drag-over{ background-color:#e0f2fe !important; }
+      /* Create Task Modal scrollable content */
+      #create-task-modal .overflow-y-auto {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+      }
+      #create-task-modal .overflow-y-auto::-webkit-scrollbar {
+        width: 8px;
+      }
+      #create-task-modal .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+      }
+      #create-task-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      #create-task-modal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Responsive modal on mobile */
+      @media (max-height: 600px) {
+        #create-task-modal .max-h-\[90vh\] {
+          max-height: 95vh;
+        }
+      }
       /* Highlight effect for Form 1 upload sections */
       .highlight-section{
         animation: highlightPulse 2s ease-in-out;
@@ -1163,11 +1188,11 @@
 
     <!-- Create Task Modal (Form 3) -->
     <div id="create-task-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="create-task-title">
-      <div class="w-full max-w-4xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
-        <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200">
+      <div class="w-full max-w-4xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden flex flex-col max-h-[90vh] my-4">
+        <div class="px-4 py-3 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex-shrink-0">
           <h3 id="create-task-title" class="text-base font-semibold text-gray-800">Tạo tác vụ</h3>
         </div>
-        <div class="p-6">
+        <div class="p-6 overflow-y-auto flex-1">
           <div id="create-task-alert" class="flex items-start gap-3 p-4 mb-4 border border-blue-200 bg-blue-50 text-blue-900 rounded-lg shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -1245,12 +1270,23 @@
                 <p id="create-task-type-note" class="text-gray-500 text-xs mt-1"></p>
               </div>
             </div>
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mục đích đánh giá <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <select id="create-purpose" required class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+                  <option value="">— Chọn mục đích đánh giá —</option>
+                  <option value="Đánh giá SP mới">Đánh giá SP mới</option>
+                  <option value="Đánh giá Sản phẩm SOP">Đánh giá Sản phẩm SOP</option>
+                  <option value="Tác vụ khác">Tác vụ khác</option>
+                </select>
+              </div>
+            </div>
             <div class="pt-2 flex items-center gap-3">
               <button type="submit" class="submit-btn px-6 py-2 text-white font-semibold transition">Giao việc</button>
             </div>
           </form>
         </div>
-        <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+        <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2 flex-shrink-0">
           <button id="create-task-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
         </div>
       </div>
@@ -7514,6 +7550,7 @@
         }
       })();
 
+
       // Submit Form 3 via webhook endpoint (multipart form-data) - Create Task Modal
       const createTaskForm = document.getElementById('create-task-form');
       if (createTaskForm) {
@@ -7529,8 +7566,9 @@
           const deadline = document.getElementById('create-deadline').value;
           const odooJira = document.getElementById('create-odoo-jira').value.trim();
           const taskType = (document.getElementById('create-task-type')?.value || '').trim();
+          const purpose = (document.getElementById('create-purpose')?.value || '').trim();
 
-          if(!requester || !taskName || !output || !manHourRaw || !assignee || !taskType){ 
+          if(!requester || !taskName || !output || !manHourRaw || !assignee || !taskType || !purpose){ 
             showToast('Vui lòng điền đủ trường bắt buộc.','error'); 
             return; 
           }
@@ -7558,10 +7596,20 @@
             return `QA.NB.${ddmm}-${rand}`;
           })();
 
+          // Đảm bảo requestDate luôn có format YYYY-MM-DD HH:mm
+          let requestDateFormatted = '';
+          if (rqTime && rqTime.trim()) {
+            // Nếu rqTime đã có giá trị, format lại để đảm bảo đúng format
+            requestDateFormatted = formatYyyyMmDdHHmm(rqTime);
+          } else {
+            // Nếu không có, dùng thời gian hiện tại
+            requestDateFormatted = formatYyyyMmDdHHmm(new Date());
+          }
+
           const mapped = {
             requesterName: requester,
             requesterEmail: requesterEmail,
-            requestDate: formatYyyyMmDdHHmm(rqTime || new Date()),
+            requestDate: requestDateFormatted,
             itemName: taskName,
             Score: String(manHourRaw || '').trim(),
             changeReq: output,
@@ -7569,6 +7617,7 @@
             desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
             Odoojira: odooJira,
             taskType: taskType,
+            purpose: purpose,
             deptRequest: 'DQA',
             Reqcode: Reqcode
           };
