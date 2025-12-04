@@ -719,6 +719,24 @@
             </tbody>
           </table>
             </div>
+            <!-- Dashboard P1 -->
+            <div id="f5a-dashboard-p1" class="mt-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-200 hidden">
+              <h3 class="text-lg font-semibold text-blue-800 mb-3">📊 Dashboard P1</h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Tỷ lệ trạng thái</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p1-status"></canvas>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Tổng công chuẩn</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p1-manhour"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- Thẻ P2: cột 1,2,3,4 (đã đổi cột 4 -> Tổng giờ công đi làm) -->
           <div id="f5a-panel-p2" class="f5a-panel bg-white border border-gray-200 rounded-lg shadow-sm mt-2 hidden">
@@ -744,6 +762,24 @@
               </tbody>
             </table>
             </div>
+            <!-- Dashboard P2 -->
+            <div id="f5a-dashboard-p2" class="mt-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-200 hidden">
+              <h3 class="text-lg font-semibold text-blue-800 mb-3">📊 Dashboard P2</h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Hệ số theo nhân viên</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p2-coefficient"></canvas>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">So sánh giờ công</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p2-hours"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- Thẻ P3: Rà soát CE -->
           <div id="f5a-panel-p3" class="f5a-panel bg-white border border-gray-200 rounded-lg shadow-sm mt-2 hidden">
@@ -767,6 +803,24 @@
                   <tr><td class="px-3 py-3 text-center text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>
                 </tbody>
               </table>
+            </div>
+            <!-- Dashboard P3 -->
+            <div id="f5a-dashboard-p3" class="mt-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-200 hidden">
+              <h3 class="text-lg font-semibold text-blue-800 mb-3">📊 Dashboard P3 - Rà soát CE</h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Tỷ lệ hoàn thành CE</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p3-ce"></canvas>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Phân bổ trạng thái CE</div>
+                  <div class="h-64">
+                    <canvas id="f5a-chart-p3-status"></canvas>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <!-- Thẻ P4: Phân tích chi tiết -->
@@ -795,6 +849,24 @@
                   <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Chưa có dữ liệu</td></tr>
                 </tbody>
               </table>
+            </div>
+            <!-- Dashboard P4 -->
+            <div id="f5a-dashboard-p4" class="mt-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-200 hidden">
+              <h3 class="text-lg font-semibold text-blue-800 mb-3">📊 Dashboard P4 - Phân tích chi tiết</h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Tỷ lệ hoàn thành các hạng mục</div>
+                  <div class="h-80">
+                    <canvas id="f5a-chart-p4-categories"></canvas>
+                  </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                  <div class="text-sm text-gray-600 mb-2">Thẻ P4 theo nhân viên</div>
+                  <div class="h-80">
+                    <canvas id="f5a-chart-p4-overall"></canvas>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2099,6 +2171,15 @@
       let F5_LAST_COUNT = 0;
       // Form 5 (All tasks) chart globals
       let F5A_CHART = null;
+      // Dashboard charts for each tab
+      let F5A_CHART_P1_STATUS = null;
+      let F5A_CHART_P1_MANHOUR = null;
+      let F5A_CHART_P2_COEFFICIENT = null;
+      let F5A_CHART_P2_HOURS = null;
+      let F5A_CHART_P3_CE = null;
+      let F5A_CHART_P3_STATUS = null;
+      let F5A_CHART_P4_CATEGORIES = null;
+      let F5A_CHART_P4_OVERALL = null;
       let F5A_LAST_ROWS = [];
       let F5A_MODE = 'vertical';
       let F5A_CHART_MAN = null;
@@ -9364,6 +9445,8 @@
           // Chart
           F5A_LAST_ROWS = sorted;
           renderStackedChart(sorted);
+          // Render dashboard P1
+          renderDashboardP1();
         }catch(err){
           try{ const b1 = document.getElementById('f5a-body-p1'); if (b1) b1.innerHTML = `<tr><td colspan='10' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
           try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
@@ -9531,6 +9614,9 @@
           bodyP2.innerHTML = rows.join('') || '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="7">Chưa có dữ liệu</td></tr>';
           
           try{ enableTableDrag('f5a-body-p2'); }catch(_){ }
+          
+          // Render dashboard P2
+          renderDashboardP2();
           
           console.log('[F5A P2] Render completed successfully');
           
@@ -12724,12 +12810,609 @@
           // Enable table drag
           try{ enableTableDrag('f5a-body-p4'); }catch(_){ }
           
+          // Render dashboard P4
+          renderDashboardP4();
+          
           console.log('[F5A P4] Rendered', sorted.length, 'employees with enhanced analysis');
           
         }catch(err){
           console.error('[F5A P4] Render error:', err);
           const body = document.getElementById('f5a-body-p4');
           if(body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="10">Lỗi hiển thị dữ liệu</td></tr>';
+        }
+      }
+
+      // ===== Form 5: Dashboard Render Functions =====
+      
+      // Render Dashboard P1
+      function renderDashboardP1() {
+        try {
+          const dashboard = document.getElementById('f5a-dashboard-p1');
+          if (!dashboard) return;
+          
+          if (!F5A_P1_DATA || !Array.isArray(F5A_P1_DATA.data) || F5A_P1_DATA.data.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          dashboard.classList.remove('hidden');
+          
+          const data = F5A_P1_DATA.data.filter(item => {
+            const name = (item['Phụ trách'] || item.name || '').trim();
+            if (name.toLowerCase() === 'x') return false;
+            if (isNameInBlacklist(name)) return false;
+            return true;
+          });
+          
+          if (data.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          // Chart 1: Tỷ lệ trạng thái (stacked bar)
+          const canvas1 = document.getElementById('f5a-chart-p1-status');
+          if (canvas1) {
+            const ctx1 = canvas1.getContext('2d');
+            if (F5A_CHART_P1_STATUS) F5A_CHART_P1_STATUS.destroy();
+            
+            const labels = data.map(d => d['Phụ trách'] || d.name || '');
+            const ahead = data.map(d => Number(d.ahead || 0));
+            const ontime = data.map(d => Number(d.ontime || 0));
+            const late = data.map(d => Number(d.late || 0));
+            
+            F5A_CHART_P1_STATUS = new Chart(ctx1, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [
+                  { label: 'Vượt tiến độ', data: ahead, backgroundColor: 'rgba(147,197,253,0.9)', borderColor: '#93c5fd', borderWidth: 1, stack: 'status' },
+                  { label: 'Đúng tiến độ', data: ontime, backgroundColor: 'rgba(134,239,172,0.85)', borderColor: '#86efac', borderWidth: 1, stack: 'status' },
+                  { label: 'Chậm tiến độ', data: late, backgroundColor: 'rgba(254,202,202,0.9)', borderColor: '#fecaca', borderWidth: 1, stack: 'status' }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: { stacked: true, ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } },
+                  y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: {
+                  legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                  tooltip: { mode: 'index', intersect: false }
+                }
+              }
+            });
+          }
+          
+          // Chart 2: Tổng công chuẩn
+          const canvas2 = document.getElementById('f5a-chart-p1-manhour');
+          if (canvas2) {
+            const ctx2 = canvas2.getContext('2d');
+            if (F5A_CHART_P1_MANHOUR) F5A_CHART_P1_MANHOUR.destroy();
+            
+            const sorted = data.slice().sort((a, b) => {
+              const manA = Number(a['Tổng công chuẩn'] || a.totalByRef || 0);
+              const manB = Number(b['Tổng công chuẩn'] || b.totalByRef || 0);
+              return manB - manA;
+            });
+            
+            const labels2 = sorted.map(d => d['Phụ trách'] || d.name || '');
+            const manhours = sorted.map(d => Number(d['Tổng công chuẩn'] || d.totalByRef || 0));
+            
+            F5A_CHART_P1_MANHOUR = new Chart(ctx2, {
+              type: 'bar',
+              data: {
+                labels: labels2,
+                datasets: [{
+                  label: 'Công chuẩn',
+                  data: manhours,
+                  backgroundColor: 'rgba(90, 169, 255, 0.6)',
+                  borderColor: '#5aa9ff',
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                  x: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Công chuẩn' } },
+                  y: { ticks: { font: { size: 10 } }, title: { display: true, text: 'Nhân viên' } }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `Công chuẩn: ${ctx.parsed.x.toFixed(2)}` } }
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error('[Dashboard P1] Error:', err);
+        }
+      }
+      
+      // Render Dashboard P2
+      function renderDashboardP2() {
+        try {
+          const dashboard = document.getElementById('f5a-dashboard-p2');
+          if (!dashboard) return;
+          
+          if (!F5A_P2_DATA || !Array.isArray(F5A_P2_DATA.data) || F5A_P2_DATA.data.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          dashboard.classList.remove('hidden');
+          
+          const data = F5A_P2_DATA.data.filter(item => {
+            const name = (item.name || item['Phụ trách'] || '').trim();
+            return !isNameInBlacklist(name);
+          });
+          
+          if (data.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          const parseNumber = (str) => {
+            if (!str) return 0;
+            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned) || 0;
+          };
+          
+          // Chart 1: Hệ số
+          const canvas1 = document.getElementById('f5a-chart-p2-coefficient');
+          if (canvas1) {
+            const ctx1 = canvas1.getContext('2d');
+            if (F5A_CHART_P2_COEFFICIENT) F5A_CHART_P2_COEFFICIENT.destroy();
+            
+            const sorted = data.slice().sort((a, b) => {
+              const coefA = parseFloat(a.coefficient || '0');
+              const coefB = parseFloat(b.coefficient || '0');
+              return coefB - coefA;
+            });
+            
+            const labels = sorted.map(d => d.name || d['Phụ trách'] || '');
+            const coefficients = sorted.map(d => parseFloat(d.coefficient || '0'));
+            
+            F5A_CHART_P2_COEFFICIENT = new Chart(ctx1, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Hệ số',
+                  data: coefficients,
+                  backgroundColor: coefficients.map(c => {
+                    if (c >= 0.8) return 'rgba(34,197,94,0.7)'; // green
+                    if (c >= 0.6) return 'rgba(59,130,246,0.7)'; // blue
+                    if (c >= 0.4) return 'rgba(234,179,8,0.7)'; // yellow
+                    return 'rgba(239,68,68,0.7)'; // red
+                  }),
+                  borderColor: coefficients.map(c => {
+                    if (c >= 0.8) return '#22c55e';
+                    if (c >= 0.6) return '#3b82f6';
+                    if (c >= 0.4) return '#eab308';
+                    return '#ef4444';
+                  }),
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                  x: { beginAtZero: true, max: 1.2, ticks: { precision: 2 }, title: { display: true, text: 'Hệ số' } },
+                  y: { ticks: { font: { size: 10 } }, title: { display: true, text: 'Nhân viên' } }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `Hệ số: ${ctx.parsed.x.toFixed(2)}` } }
+                }
+              }
+            });
+          }
+          
+          // Chart 2: So sánh giờ công
+          const canvas2 = document.getElementById('f5a-chart-p2-hours');
+          if (canvas2) {
+            const ctx2 = canvas2.getContext('2d');
+            if (F5A_CHART_P2_HOURS) F5A_CHART_P2_HOURS.destroy();
+            
+            const labels = data.map(d => d.name || d['Phụ trách'] || '');
+            const actualHours = data.map(d => parseNumber(d.totalActualHours || d['Tổng giờ đánh giá thực tế'] || '0,00'));
+            const manhours = data.map(d => parseNumber(d.manhourReceived || d['Công chuẩn đã nhận'] || '0,00'));
+            const workHours = data.map(d => parseNumber(d.totalWorkHours || d['Tổng giờ công đi làm'] || '0'));
+            
+            F5A_CHART_P2_HOURS = new Chart(ctx2, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [
+                  { label: 'Giờ đánh giá thực tế', data: actualHours, backgroundColor: 'rgba(59,130,246,0.6)', borderColor: '#3b82f6', borderWidth: 1 },
+                  { label: 'Công chuẩn đã nhận', data: manhours, backgroundColor: 'rgba(34,197,94,0.6)', borderColor: '#22c55e', borderWidth: 1 },
+                  { label: 'Giờ công đi làm', data: workHours, backgroundColor: 'rgba(234,179,8,0.6)', borderColor: '#eab308', borderWidth: 1 }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: { stacked: false, ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } },
+                  y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Giờ' } }
+                },
+                plugins: {
+                  legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                  tooltip: { mode: 'index', intersect: false }
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error('[Dashboard P2] Error:', err);
+        }
+      }
+      
+      // Render Dashboard P3
+      function renderDashboardP3() {
+        try {
+          const dashboard = document.getElementById('f5a-dashboard-p3');
+          if (!dashboard) return;
+          
+          if (!F5A_P3_RAW || !Array.isArray(F5A_P3_RAW) || F5A_P3_RAW.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          dashboard.classList.remove('hidden');
+          
+          // Get month filter (same as renderForm5P3)
+          const monthInput = document.getElementById('f5a-month');
+          const monthVal = (monthInput && monthInput.value) ? monthInput.value : '';
+          
+          // Aggregate data (same logic as renderForm5P3)
+          const byName = new Map();
+          const norm = (s) => String(s||'').toLowerCase().trim();
+          const getV = (obj, keys) => {
+            const lower = {};
+            Object.keys(obj||{}).forEach(k=>{ lower[norm(k)] = obj[k]; });
+            for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; }
+            return '';
+          };
+          
+          // Parse date flexible (same as renderForm5P3)
+          const parseDate = (value) => {
+            try{
+              if(!value) return null;
+              const s = String(value).trim();
+              // DD/MM/YYYY HH:mm
+              let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+              if(m){
+                const d = new Date(+m[3], +m[2]-1, +m[1]);
+                return isNaN(d) ? null : d;
+              }
+              // YYYY-MM-DD
+              m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+              if(m){
+                const d = new Date(+m[1], +m[2]-1, +m[3]);
+                return isNaN(d) ? null : d;
+              }
+              const d = new Date(s);
+              return isNaN(d) ? null : d;
+            }catch(_){ return null; }
+          };
+          
+          const formatYyyyMm = (d) => {
+            if(!d) return '';
+            const yy = d.getFullYear();
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            return `${yy}-${mm}`;
+          };
+          
+          F5A_P3_RAW.forEach(r => {
+            const name = String(getV(r, ['assignee','employee','name','nhân viên','phụ trách'])||'').trim();
+            if(!name || name.toLowerCase() === 'x') return;
+            
+            // Get completion date and filter by month (same as renderForm5P3)
+            const completionDateStr = getV(r, [
+              'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
+              'ngày hoàn thành','ngay hoan thanh',
+              'completion date','completiondate',
+              'actual completion date','actualcompletiondate'
+            ]);
+            
+            const completionDate = parseDate(completionDateStr);
+            
+            // Filter by month if specified (same as renderForm5P3)
+            if(monthVal && completionDate){
+              const taskMonth = formatYyyyMm(completionDate);
+              if(taskMonth !== monthVal) return; // Skip if not in selected month
+            } else if(monthVal && !completionDate) {
+              return; // Skip tasks without completion date when month filter is active
+            }
+            
+            if(!byName.has(name)){
+              byName.set(name, { name, total: 0, completed: 0, notNeeded: 0, pending: 0 });
+            }
+            
+            const rec = byName.get(name);
+            const ceReview = String(getV(r, ['ce rà soát','ce review','rà soát ce'])||'').trim();
+            const ceNorm = norm(ceReview);
+            
+            if(ceNorm === 'đã gửi' || ceNorm === 'da gui'){
+              rec.completed += 1;
+            } else if(ceNorm === 'không cần' || ceNorm === 'khong can'){
+              rec.notNeeded += 1;
+            } else {
+              rec.pending += 1;
+            }
+            rec.total = rec.completed + rec.notNeeded + rec.pending;
+          });
+          
+          const sorted = Array.from(byName.values()).sort((a,b) => a.name.localeCompare(b.name, 'vi'));
+          
+          if (sorted.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          // Chart 1: Tỷ lệ hoàn thành CE
+          const canvas1 = document.getElementById('f5a-chart-p3-ce');
+          if (canvas1) {
+            const ctx1 = canvas1.getContext('2d');
+            if (F5A_CHART_P3_CE) F5A_CHART_P3_CE.destroy();
+            
+            const labels = sorted.map(r => r.name);
+            const percentages = sorted.map(r => r.total > 0 ? Math.round(((r.completed + r.notNeeded) / r.total) * 100) : 0);
+            
+            F5A_CHART_P3_CE = new Chart(ctx1, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Tỷ lệ hoàn thành CE (%)',
+                  data: percentages,
+                  backgroundColor: percentages.map(p => {
+                    if (p >= 80) return 'rgba(34,197,94,0.7)';
+                    if (p >= 50) return 'rgba(59,130,246,0.7)';
+                    return 'rgba(234,179,8,0.7)';
+                  }),
+                  borderColor: percentages.map(p => {
+                    if (p >= 80) return '#22c55e';
+                    if (p >= 50) return '#3b82f6';
+                    return '#eab308';
+                  }),
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                  x: { beginAtZero: true, max: 100, ticks: { precision: 0 }, title: { display: true, text: 'Tỷ lệ (%)' } },
+                  y: { ticks: { font: { size: 10 } }, title: { display: true, text: 'Nhân viên' } }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `Tỷ lệ: ${ctx.parsed.x}%` } }
+                }
+              }
+            });
+          }
+          
+          // Chart 2: Phân bổ trạng thái CE
+          const canvas2 = document.getElementById('f5a-chart-p3-status');
+          if (canvas2) {
+            const ctx2 = canvas2.getContext('2d');
+            if (F5A_CHART_P3_STATUS) F5A_CHART_P3_STATUS.destroy();
+            
+            const labels = sorted.map(r => r.name);
+            const completed = sorted.map(r => r.completed);
+            const notNeeded = sorted.map(r => r.notNeeded);
+            const pending = sorted.map(r => r.pending);
+            
+            F5A_CHART_P3_STATUS = new Chart(ctx2, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [
+                  { label: 'Đã hoàn thiện', data: completed, backgroundColor: 'rgba(34,197,94,0.7)', borderColor: '#22c55e', borderWidth: 1, stack: 'status' },
+                  { label: 'Không cần', data: notNeeded, backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1, stack: 'status' },
+                  { label: 'Chưa hoàn thành', data: pending, backgroundColor: 'rgba(234,179,8,0.7)', borderColor: '#eab308', borderWidth: 1, stack: 'status' }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: { stacked: true, ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } },
+                  y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: {
+                  legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                  tooltip: { mode: 'index', intersect: false }
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error('[Dashboard P3] Error:', err);
+        }
+      }
+      
+      // Render Dashboard P4
+      function renderDashboardP4() {
+        try {
+          const dashboard = document.getElementById('f5a-dashboard-p4');
+          if (!dashboard) return;
+          
+          if (!F5A_P4_RAW || !Array.isArray(F5A_P4_RAW) || F5A_P4_RAW.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          dashboard.classList.remove('hidden');
+          
+          // Aggregate data (same logic as renderForm5P4)
+          const byName = new Map();
+          const norm = (s) => String(s||'').toLowerCase().trim();
+          const getV = (obj, keys) => {
+            const lower = {};
+            Object.keys(obj||{}).forEach(k=>{ lower[norm(k)] = obj[k]; });
+            for(const k of keys){ const v = lower[norm(k)]; if(v!==undefined) return v; }
+            return '';
+          };
+          
+          const parsePercent = (val) => {
+            if(!val) return 0;
+            let v = String(val).replace('%','').trim();
+            if (v.includes(',') && !v.includes('.')) v = v.replace(',', '.');
+            const num = parseFloat(v);
+            if(isNaN(num)) return 0;
+            return num <= 1 && num > 0 ? num * 100 : num;
+          };
+          
+          F5A_P4_RAW.forEach(r => {
+            const name = String(getV(r, ['assignee','employee','name','nhân viên','phụ trách'])||'').trim();
+            if(!name || name.toLowerCase() === 'x') return;
+            
+            if(!byName.has(name)){
+              byName.set(name, {
+                name,
+                tcktTotal: 0, tcktCompleted: 0,
+                ceTotal: 0, ceCompleted: 0,
+                hdktTotal: 0, hdktCompleted: 0,
+                bbTotal: 0, bbCompleted: 0,
+                jigTotal: 0, jigCompleted: 0,
+                khksclTotal: 0, khksclCompleted: 0
+              });
+            }
+            
+            const rec = byName.get(name);
+            const fourMStatus = String(getV(r, ['4M rà soát','4m rà soát'])||'').trim();
+            const fourMNorm = norm(fourMStatus);
+            const isNotNeeded = (fourMNorm.includes('khong can') || fourMNorm.includes('không cần'));
+            
+            const pTCKT = isNotNeeded ? 100 : parsePercent(getV(r, ['TCKT(% hoàn thành)','tckt']));
+            const pCE = isNotNeeded ? 100 : parsePercent(getV(r, ['CE(% hoàn thành)','ce']));
+            const pHDKT = isNotNeeded ? 100 : parsePercent(getV(r, ['HDKT(% hoàn thành)','hdkt']));
+            const pBB = isNotNeeded ? 100 : parsePercent(getV(r, ['BB đào tạo(% hoàn thành)','bb đào tạo']));
+            const pJIG = isNotNeeded ? 100 : parsePercent(getV(r, ['Jig tool(% hoàn thành)','jig tool']));
+            const pKH = isNotNeeded ? 100 : parsePercent(getV(r, ['KHKSCL(% hoàn thành)','khkscl']));
+            
+            rec.tcktTotal += 1; rec.tcktCompleted += pTCKT;
+            rec.ceTotal += 1; rec.ceCompleted += pCE;
+            rec.hdktTotal += 1; rec.hdktCompleted += pHDKT;
+            rec.bbTotal += 1; rec.bbCompleted += pBB;
+            rec.jigTotal += 1; rec.jigCompleted += pJIG;
+            rec.khksclTotal += 1; rec.khksclCompleted += pKH;
+          });
+          
+          const sorted = Array.from(byName.values()).sort((a,b) => a.name.localeCompare(b.name, 'vi'));
+          
+          if (sorted.length === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          // Chart 1: Tỷ lệ hoàn thành các hạng mục
+          const canvas1 = document.getElementById('f5a-chart-p4-categories');
+          if (canvas1) {
+            const ctx1 = canvas1.getContext('2d');
+            if (F5A_CHART_P4_CATEGORIES) F5A_CHART_P4_CATEGORIES.destroy();
+            
+            const labels = sorted.map(r => r.name);
+            const tckt = sorted.map(r => r.tcktTotal > 0 ? (r.tcktCompleted / r.tcktTotal) : 0);
+            const ce = sorted.map(r => r.ceTotal > 0 ? (r.ceCompleted / r.ceTotal) : 0);
+            const hdkt = sorted.map(r => r.hdktTotal > 0 ? (r.hdktCompleted / r.hdktTotal) : 0);
+            const bb = sorted.map(r => r.bbTotal > 0 ? (r.bbCompleted / r.bbTotal) : 0);
+            const jig = sorted.map(r => r.jigTotal > 0 ? (r.jigCompleted / r.jigTotal) : 0);
+            const khkscl = sorted.map(r => r.khksclTotal > 0 ? (r.khksclCompleted / r.khksclTotal) : 0);
+            
+            F5A_CHART_P4_CATEGORIES = new Chart(ctx1, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [
+                  { label: 'TCKT', data: tckt.map(v => v * 100), backgroundColor: 'rgba(59,130,246,0.7)', borderColor: '#3b82f6', borderWidth: 1 },
+                  { label: 'CE', data: ce.map(v => v * 100), backgroundColor: 'rgba(34,197,94,0.7)', borderColor: '#22c55e', borderWidth: 1 },
+                  { label: 'HDKT', data: hdkt.map(v => v * 100), backgroundColor: 'rgba(234,179,8,0.7)', borderColor: '#eab308', borderWidth: 1 },
+                  { label: 'BB đào tạo', data: bb.map(v => v * 100), backgroundColor: 'rgba(168,85,247,0.7)', borderColor: '#a855f7', borderWidth: 1 },
+                  { label: 'Jig tool', data: jig.map(v => v * 100), backgroundColor: 'rgba(236,72,153,0.7)', borderColor: '#ec4899', borderWidth: 1 },
+                  { label: 'KHKSCL', data: khkscl.map(v => v * 100), backgroundColor: 'rgba(251,146,60,0.7)', borderColor: '#fb923c', borderWidth: 1 }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  x: { stacked: false, ticks: { maxRotation: 45, minRotation: 0, font: { size: 9 } } },
+                  y: { beginAtZero: true, max: 100, ticks: { precision: 0 }, title: { display: true, text: 'Tỷ lệ (%)' } }
+                },
+                plugins: {
+                  legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                  tooltip: { mode: 'index', intersect: false, callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` } }
+                }
+              }
+            });
+          }
+          
+          // Chart 2: Thẻ P4 tổng thể
+          const canvas2 = document.getElementById('f5a-chart-p4-overall');
+          if (canvas2) {
+            const ctx2 = canvas2.getContext('2d');
+            if (F5A_CHART_P4_OVERALL) F5A_CHART_P4_OVERALL.destroy();
+            
+            const labels = sorted.map(r => r.name);
+            const p4Values = sorted.map(r => {
+              const tckt = r.tcktTotal > 0 ? (r.tcktCompleted / r.tcktTotal) : 0;
+              const ce = r.ceTotal > 0 ? (r.ceCompleted / r.ceTotal) : 0;
+              const hdkt = r.hdktTotal > 0 ? (r.hdktCompleted / r.hdktTotal) : 0;
+              const bb = r.bbTotal > 0 ? (r.bbCompleted / r.bbTotal) : 0;
+              const jig = r.jigTotal > 0 ? (r.jigCompleted / r.jigTotal) : 0;
+              const khkscl = r.khksclTotal > 0 ? (r.khksclCompleted / r.khksclTotal) : 0;
+              return ((tckt + ce + hdkt + bb + jig + khkscl) / 6) * 100;
+            });
+            
+            F5A_CHART_P4_OVERALL = new Chart(ctx2, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Thẻ P4 (%)',
+                  data: p4Values,
+                  backgroundColor: p4Values.map(v => {
+                    if (v >= 80) return 'rgba(34,197,94,0.7)';
+                    if (v >= 50) return 'rgba(59,130,246,0.7)';
+                    return 'rgba(234,179,8,0.7)';
+                  }),
+                  borderColor: p4Values.map(v => {
+                    if (v >= 80) return '#22c55e';
+                    if (v >= 50) return '#3b82f6';
+                    return '#eab308';
+                  }),
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                  x: { beginAtZero: true, max: 100, ticks: { precision: 0 }, title: { display: true, text: 'Thẻ P4 (%)' } },
+                  y: { ticks: { font: { size: 10 } }, title: { display: true, text: 'Nhân viên' } }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `Thẻ P4: ${ctx.parsed.x.toFixed(1)}%` } }
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error('[Dashboard P4] Error:', err);
         }
       }
 
@@ -13237,6 +13920,9 @@
           // Enable table drag
           try{ enableTableDrag('f5a-body-p3'); }catch(_){ }
           
+          // Render dashboard P3
+          renderDashboardP3();
+          
           console.log('[F5A P3] Rendered', sorted.length, 'employees');
           
           // Debug: Log first employee details
@@ -13286,6 +13972,17 @@
               panels.forEach((p,i)=>{ if (p) p.classList.toggle('hidden', i!==index); });
               tabBtns.forEach((b,i)=> setActiveBtn(b, i===index));
               try{ LS.set('f5a.activeTab', String(index)); }catch(_){ }
+              
+              // Show/hide dashboards based on active tab
+              const dashboards = [
+                document.getElementById('f5a-dashboard-p1'),
+                document.getElementById('f5a-dashboard-p2'),
+                document.getElementById('f5a-dashboard-p3'),
+                document.getElementById('f5a-dashboard-p4')
+              ];
+              dashboards.forEach((d, i) => {
+                if (d) d.classList.toggle('hidden', i !== index);
+              });
               
               // P1: Chỉ hiển thị thông báo nếu chưa có dữ liệu, không tự động fetch
               if(index === 0){
