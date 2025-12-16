@@ -103,6 +103,13 @@
         }
       .spinner{border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
       @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+      /* Christmas decorations */
+      .christmas-tree{display:inline-block;animation:sway 2s ease-in-out infinite;transform-origin:center bottom}
+      .christmas-star{display:inline-block;animation:twinkle 1.5s ease-in-out infinite}
+      .snowflake{display:inline-block;animation:float 3s ease-in-out infinite;opacity:0.8}
+      @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+      @keyframes twinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
+      @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
       .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
       .header-container::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");opacity:.4}
       .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
@@ -395,68 +402,70 @@
     <aside id="sidebar-nav" class="flex h-full w-64 flex-shrink-0 flex-col justify-between p-4 border-r border-border-light">
       <div class="flex flex-col gap-6">
         <div class="flex items-center gap-3 px-2">
-          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">DQA</div>
-          <div class="flex flex-col">
-            <h1 class="text-text-light-primary text-base font-bold leading-normal">Cổng Tác Vụ DQA</h1>
-            <p class="text-text-light-secondary text-sm font-normal leading-normal">Project Management</p>
+          <img src="https://cdn-icons-png.flaticon.com/512/9029/9029692.png" alt="🎄" class="christmas-tree w-16 h-16 object-contain" />
+          <div class="flex flex-col relative">
+            <h1 class="text-text-light-primary text-base font-bold leading-normal flex items-center gap-2">
+              Cổng Tác Vụ DQA
+              <img src="https://cdn-icons-png.flaticon.com/512/9029/9029692.png" alt="⭐" class="christmas-star w-4 h-4 object-contain animate-pulse" />
+            </h1>
           </div>
         </div>
         <nav class="flex flex-col gap-2">
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="material-symbols-outlined text-2xl">description</span>
+              <span class="text-lg">🎁</span>
               <p class="text-sm font-bold leading-normal">Khai báo tác vụ</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form1">
-                <span class="material-symbols-outlined text-xl">search</span>
+                <span class="text-base">🎄</span>
                 <p class="text-sm font-semibold">Form 1: Trả báo cáo & form</p>
               </button>
             </div>
           </div>
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="material-symbols-outlined text-2xl">bar_chart</span>
+              <span class="text-lg">🎅</span>
               <p class="text-sm font-bold leading-normal">KPI nhóm cải tiến</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form4">
-                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                <span class="text-base">📅</span>
                 <p class="text-sm font-semibold">Form 4 · Kế hoạch công việc</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form5">
-                <span class="material-symbols-outlined text-xl">trending_up</span>
+                <span class="text-base">⭐</span>
                 <p class="text-sm font-semibold">Form 5: KPI tháng</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form6">
-                <span class="material-symbols-outlined text-xl">lightbulb</span>
+                <span class="text-base">💡</span>
                 <p class="text-sm font-semibold">Form 6 · Ý tưởng cải tiến</p>
               </button>
             </div>
           </div>
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="material-symbols-outlined text-2xl">folder</span>
+              <span class="text-lg">🔔</span>
               <p class="text-sm font-bold leading-normal">Khai báo</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form7">
-                <span class="material-symbols-outlined text-xl">settings</span>
+                <span class="text-base">🎄</span>
                 <p class="text-sm font-semibold">Form 7 · Triển khai CE</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form8">
-                <span class="material-symbols-outlined text-xl">build</span>
+                <span class="text-base">🎁</span>
                 <p class="text-sm font-semibold">Form 8 · Triển khai 4M</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form9">
-                <span class="material-symbols-outlined text-xl">science</span>
+                <span class="text-base">❄️</span>
                 <p class="text-sm font-semibold">Form 9 · Thống kê test bền</p>
               </button>
             </div>
           </div>
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="material-symbols-outlined text-2xl">more_horiz</span>
+              <span class="text-lg">❄️</span>
               <p class="text-sm font-bold leading-normal">Khác</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
@@ -466,7 +475,7 @@
       </div>
       <div class="flex flex-col gap-1">
         <a href="https://siberbk585-coder.github.io/PhongDQA-noibo2/" target="_blank" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary">
-          <span class="material-symbols-outlined text-2xl">open_in_new</span>
+          <span class="text-lg">🔗</span>
           <p class="text-sm font-semibold leading-normal">Cổng tác vụ 2 - SPM</p>
         </a>
       </div>
@@ -5855,9 +5864,41 @@
             // Reset file inputs của Gate 3
             try { const pdfG3 = document.getElementById('upload-file-pdfzip-g3'); if (pdfG3) pdfG3.value = ''; } catch(_){}
             try { const xlsxG3 = document.getElementById('upload-file-xlsxzip-g3'); if (xlsxG3) xlsxG3.value = ''; } catch(_){}
+            // Reset hiển thị các trường Gate 3 về trạng thái ban đầu (hiển thị tất cả)
+            try {
+              // Hiển thị lại trường PDF
+              const pdfG3Input = document.getElementById('upload-file-pdfzip-g3');
+              if (pdfG3Input) {
+                const pdfG3Div = pdfG3Input.closest('div');
+                if (pdfG3Div) pdfG3Div.style.display = '';
+              }
+              // Hiển thị lại trường Kết luận
+              const gate3WrapEl = document.getElementById('upload-gate3');
+              if (gate3WrapEl) {
+                const conclG3Labels = gate3WrapEl.querySelectorAll('label');
+                if (conclG3Labels) {
+                  conclG3Labels.forEach(label => {
+                    if (label.textContent && label.textContent.includes('Kết luận')) {
+                      const conclG3Div = label.closest('div.mt-3');
+                      if (conclG3Div) conclG3Div.style.display = '';
+                    }
+                  });
+                }
+              }
+              // Hiển thị lại trường Nội dung cập nhật
+              const contentG3Textarea = document.getElementById('upload-gate3-content');
+              if (contentG3Textarea) {
+                const contentG3Div = contentG3Textarea.closest('div.mt-3');
+                if (contentG3Div) contentG3Div.style.display = '';
+              }
+              // Hiển thị lại nút tick BPS
+              const bpsOption = document.getElementById('bps-option');
+              if (bpsOption) bpsOption.style.display = '';
+            } catch(_){}
             
             // Khi system=1: chỉ hiển thị Gate 1, ẩn Gate 2 và Gate 3, chỉ yêu cầu Excel
-            if (isSystemTask) {
+            // NHƯNG nếu isDone = true: hiển thị Gate 3 thay vì Gate 1
+            if (isSystemTask && !isDone) {
               // Ẩn tất cả tabs trừ Gate 1
               const t1 = document.getElementById('tab-gate1');
               const t2 = document.getElementById('tab-gate2');
@@ -5912,8 +5953,8 @@
               if (gate3Tab) gate3Tab.style.display = isDone ? '' : 'none';
             }
             
-            // Nếu isDone = true và không phải system task, chỉ hiển thị Gate 3 và ẩn Gate 1, Gate 2
-            if (isDone && !isSystemTask) {
+            // Nếu isDone = true (bất kể system task hay không), chỉ hiển thị Gate 3 và ẩn Gate 1, Gate 2
+            if (isDone) {
               const t1 = document.getElementById('tab-gate1');
               const t2 = document.getElementById('tab-gate2');
               const t3 = document.getElementById('tab-gate3');
@@ -5937,10 +5978,41 @@
                   t3.classList.add('bg-cyan-700','text-white','border-cyan-800','shadow');
                   t3.classList.remove('bg-cyan-200','text-cyan-900','border-cyan-400');
                 }
-                const bpsOption = document.getElementById('bps-option');
-                if (bpsOption) bpsOption.style.display = '';
-                const bpsCheckbox = document.getElementById('upload-bps');
-                if (bpsCheckbox) bpsCheckbox.checked = true;
+                // Khi system task + done: chỉ hiển thị trường Excel, ẩn PDF, Kết luận, Nội dung cập nhật, BPS
+                if (isSystemTask) {
+                  try {
+                    // Ẩn trường PDF (tìm div cha chứa label và input)
+                    const pdfG3Input = document.getElementById('upload-file-pdfzip-g3');
+                    if (pdfG3Input) {
+                      const pdfG3Div = pdfG3Input.closest('div');
+                      if (pdfG3Div) pdfG3Div.style.display = 'none';
+                    }
+                    // Ẩn trường Kết luận (tìm div chứa label "Kết luận")
+                    const conclG3Labels = gate3Wrap?.querySelectorAll('label');
+                    if (conclG3Labels) {
+                      conclG3Labels.forEach(label => {
+                        if (label.textContent && label.textContent.includes('Kết luận')) {
+                          const conclG3Div = label.closest('div.mt-3');
+                          if (conclG3Div) conclG3Div.style.display = 'none';
+                        }
+                      });
+                    }
+                    // Ẩn trường Nội dung cập nhật (tìm div chứa textarea)
+                    const contentG3Textarea = document.getElementById('upload-gate3-content');
+                    if (contentG3Textarea) {
+                      const contentG3Div = contentG3Textarea.closest('div.mt-3');
+                      if (contentG3Div) contentG3Div.style.display = 'none';
+                    }
+                    // Ẩn nút tick BPS
+                    const bpsOption = document.getElementById('bps-option');
+                    if (bpsOption) bpsOption.style.display = 'none';
+                  } catch(_){}
+                } else {
+                  const bpsOption = document.getElementById('bps-option');
+                  if (bpsOption) bpsOption.style.display = '';
+                  const bpsCheckbox = document.getElementById('upload-bps');
+                  if (bpsCheckbox) bpsCheckbox.checked = true;
+                }
               } catch(_){ }
             } else if (!isSystemTask) {
               // Nếu không phải Done và không phải system task, hiển thị Gate 1 và Gate 2 như bình thường
@@ -6230,7 +6302,9 @@
             // Gate 3: Cập nhật báo cáo (có thể upload file PDF/Excel và nội dung cập nhật)
             const gate3Content = document.getElementById('upload-gate3-content');
             const content = gate3Content ? (gate3Content.value || '').trim() : '';
-            if (!content){ showToast('Vui lòng nhập nội dung cập nhật.','error'); return; }
+            const isSystemTaskG3 = uploadContext?.isSystemTask === true;
+            // Khi system task: không bắt buộc nội dung cập nhật, chỉ cần file Excel
+            if (!isSystemTaskG3 && !content){ showToast('Vui lòng nhập nội dung cập nhật.','error'); return; }
             
             const pdfInputG3 = document.getElementById('upload-file-pdfzip-g3');
             const xlsxInputG3 = document.getElementById('upload-file-xlsxzip-g3');
@@ -6252,6 +6326,11 @@
               fXlsxG3 = xlsxInputG3.files[0];
               const extX = extOf(fXlsxG3.name);
               if (okXlsx.indexOf(extX)===-1){ showToast('File Excel không đúng định dạng (.xlsx).','error'); return; }
+            }
+            // Khi system task: bắt buộc phải có file Excel
+            if (isSystemTaskG3 && !fXlsxG3){
+              showToast('Vui lòng chọn file Excel để cập nhật báo cáo.','error');
+              return;
             }
             
             isModalSubmitting = true;
@@ -6290,6 +6369,10 @@
               if (uploadContext.isSystemTask === true) {
                 fd.append('system', '1');
               }
+              // Thêm flag isupdate="yes" nếu là system task và đã Done
+              if (uploadContext.isSystemTask === true && uploadContext.isDone === true) {
+                fd.append('isupdate', 'yes');
+              }
             }
             // Khi system=1: không gửi is_bps hoặc gửi is_bps = '0'
             if (!uploadContext?.isSystemTask && bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
@@ -6307,6 +6390,7 @@
                 upload_type: fXlsxG3 ? (fPdfG3 ? 'pdf_xlsx' : 'xlsx_only') : (fPdfG3 ? 'pdf_only' : 'text_only'),
                 is_bps: uploadContext?.isSystemTask === true ? '0' : (bpsChecked ? '1' : '0'),
                 system: uploadContext?.isSystemTask === true ? '1' : '0',
+                isupdate: (uploadContext?.isSystemTask === true && uploadContext?.isDone === true) ? 'yes' : '',
                 timestamp_iso: new Date().toISOString()
               };
               fd.append('meta_json', JSON.stringify(meta));
@@ -6748,10 +6832,10 @@
           // Done & Cancel: lọc theo tháng (monthVal)
           let partDoneCancel = items.filter(it=> it.isDone || it.isCancel);
           if (monthVal) partDoneCancel = partDoneCancel.filter(it=> it.monthTagReq === monthVal);
-          // Doing, Chờ phê duyệt, Chờ phân công, Test bền: luôn hiển thị không phụ thuộc thời gian
+          // Doing, Chuyển nhóm SPM, Chuyển SPM cập nhật, Chờ phê duyệt, Chờ phân công, Test bền: luôn hiển thị không phụ thuộc thời gian
           let partTimeRestricted = items.filter(it=> {
             const s = it.statusNorm || '';
-            return s.includes('doing') || s.includes('cho phe duyet') || s.includes('truong nhom review') || s.includes('cho phan cong') || s.includes('test ben');
+            return s.includes('doing') || s.includes('chuyen nhom spm') || s.includes('chuyen spm cap nhat') || s.includes('cho phe duyet') || s.includes('truong nhom review') || s.includes('cho phan cong') || s.includes('test ben');
           });
           // Ưu tiên nhóm thời gian thực (Doing/Chờ phân công/Test bền) lên trước
           const filtered = partTimeRestricted.concat(partDoneCancel);
@@ -6794,7 +6878,7 @@
         };
         function getStatusRank(obj){
           const s = vnLower(getV(obj,['Tình trạng','status','trangthai','trang_thai','trạng thái']) || '');
-          if (s.includes('doing') || s.includes('dang')) return 0; // ưu tiên cao nhất
+          if (s.includes('doing') || s.includes('dang') || s.includes('chuyen nhom spm') || s.includes('chuyen spm cap nhat')) return 0; // ưu tiên cao nhất
           if (s.includes('cho phan cong') || s.includes('test ben')) return 1; // nhóm thứ hai
           return 2; // còn lại
         }
@@ -6830,7 +6914,7 @@
           const isEmptyStatus = statusLower.trim()==='';
           // Cho phép nút hoạt động khi isDone để sử dụng Gate 3, nhưng vẫn khóa các trường hợp khác
           const isLocked = isCancelled || isPendingApproval || isEmptyStatus;
-          const isDoing = statusLower.includes('doing') || statusLower.includes('đang');
+          const isDoing = statusLower.includes('doing') || statusLower.includes('đang') || statusLower.includes('chuyển nhóm spm') || statusLower.includes('chuyen nhom spm') || statusLower.includes('chuyển spm cập nhật') || statusLower.includes('chuyen spm cap nhat');
           const wishDue = getV(item,['Hạn mong muốn','wishdue','hanmongmuon','han_mong_muon','desireddue','hạn mong muốn']);
           const dueDate = parseDateFlexible(wishDue || '');
           if (isDoing && dueDate){
@@ -6860,7 +6944,12 @@
             labelBtn.title = labelBtn.textContent;
           } else if (isDone) {
             // Tác vụ đã Done: luôn cho phép cập nhật báo cáo
-            labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-primary-blue hover:brightness-105 cursor-pointer';
+            // Phân biệt màu: System task + Done (màu tím) vs không phải System task + Done (màu hồng)
+            if (isSystemTask) {
+              labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-purple-600 hover:bg-purple-700 cursor-pointer';
+            } else {
+              labelBtn.className = 'px-3 py-1 inline-block rounded-lg text-white bg-pink-600 hover:bg-pink-700 cursor-pointer';
+            }
             labelBtn.textContent = 'Cập nhật báo cáo';
             labelBtn.disabled = false;
             labelBtn.onclick = (e)=>{ e.preventDefault(); if (labelBtn.disabled) return; labelBtn.disabled=true; labelBtn.classList.add('opacity-50','pointer-events-none'); lastOpenTrigger = labelBtn; const name=(document.getElementById('f1-name')?.value||'').trim(); openUploadModal({ form: 'Form 1', name, code, taskId, taskName: tname, isDone, id: itemId, isSystemTask }); };
@@ -7973,7 +8062,7 @@
             rows = rows.filter(item=>{
               const statusText = String(getV(item,['status','trangthai','trang_thai','trạng thái'])||'');
               const s = statusText.toLowerCase();
-              const isDoing = s.includes('doing') || s.includes('đang');
+              const isDoing = s.includes('doing') || s.includes('đang') || s.includes('chuyển nhóm spm') || s.includes('chuyen nhom spm') || s.includes('chuyển spm cập nhật') || s.includes('chuyen spm cap nhat');
               return isDoing;
             });
           }
@@ -8116,7 +8205,7 @@
             let trClass = isLate ? 'bg-yellow-100' : '';
             // Overdue doing highlight + today highlight (match Form 1)
             const sLower = (status||'').toLowerCase();
-            const isDoing = sLower.includes('doing') || sLower.includes('đang');
+            const isDoing = sLower.includes('doing') || sLower.includes('đang') || sLower.includes('chuyển nhóm spm') || sLower.includes('chuyen nhom spm') || sLower.includes('chuyển spm cập nhật') || sLower.includes('chuyen spm cap nhat');
             const dueDate = parseDateFlexible(dueForCompare);
             if (isDoing && dueDate){
               const today = new Date();
