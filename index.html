@@ -1582,8 +1582,8 @@
                   <th class="px-3 py-2">Mã</th>
                   <th class="px-3 py-2">Tên tác vụ</th>
                   <th class="px-3 py-2">Ngày yêu cầu</th>
-                  <th class="px-3 py-2">Công chuẩn</th>
-                  <th class="px-3 py-2">Số giờ đánh giá thực tế</th>
+                  <th class="px-3 py-2" title="Tổng công chuẩn của sheet (TCKT) và sheet (THEM) của báo cáo">Công chuẩn</th>
+                  <th class="px-3 py-2" title="Khoảng thời gian từ lúc tải (nộp)form đến khi kết quả báo cáo được gửi đi (Tính trong giờ hành chính)">Số giờ đánh giá thực tế</th>
                   <th class="px-3 py-2">Hạn mong muốn</th>
                   <th class="px-3 py-2">Ngày hoàn thành</th>
                   <th class="px-3 py-2">Trạng thái</th>
@@ -7996,7 +7996,7 @@
             </tr>
           `; }
           const groupHeader = (title)=> `<tr class="bg-blue-50"><td class="px-3 py-2 font-semibold" colspan="9">${title}</td></tr>`;
-          const headerRow = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">STT</td><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Tên tác vụ</td><td class="px-3 py-2">Ngày yêu cầu</td><td class="px-3 py-2">Số giờ đánh giá thực tế</td><td class="px-3 py-2">Công chuẩn</td><td class="px-3 py-2">Trạng thái theo công chuẩn</td><td class="px-3 py-2">Hạn mong muốn</td><td class="px-3 py-2">Ngày hoàn thành</td></tr>`;
+          const headerRow = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">STT</td><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Tên tác vụ</td><td class="px-3 py-2">Ngày yêu cầu</td><td class="px-3 py-2" title="Khoảng thời gian từ lúc tải (nộp)form đến khi kết quả báo cáo được gửi đi (Tính trong giờ hành chính)">Số giờ đánh giá thực tế</td><td class="px-3 py-2" title="Tổng công chuẩn của sheet (TCKT) và sheet (THEM) của báo cáo">Công chuẩn</td><td class="px-3 py-2">Trạng thái theo công chuẩn</td><td class="px-3 py-2">Hạn mong muốn</td><td class="px-3 py-2">Ngày hoàn thành</td></tr>`;
           const htmlParts = [];
           htmlParts.push(groupHeader('Nhận trong tháng này và hoàn thành trong tháng'));
           htmlParts.push(headerRow);
