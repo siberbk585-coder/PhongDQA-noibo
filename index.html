@@ -3587,7 +3587,7 @@
         // Thêm tên tại đây nếu cần mở rộng tạm thời
         // "Hà Mỹ Linh",
       ];
-      // Form 5: blacklist tên cần ẩn khỏi P1 và P2
+      // Form 5: blacklist tên cần ẩn khỏi tất cả các thẻ (P1, P2, P3, P4)
       const F5A_BLACKLIST = [
         "Nguyễn Hữu Thịnh",
         "Trần Hiếu Nghĩa",
@@ -3595,6 +3595,7 @@
         "Thái Thị Giang",
         "Vũ Thị Hằng",
         "Bùi Đặng Quốc Huy",
+        "Đào Hoàng Dương",
       ];
       // Helper function để normalize tên và kiểm tra blacklist
       function isNameInBlacklist(name) {
@@ -4126,86 +4127,63 @@
             if (inRef){ rec.totalByRef = (rec.totalByRef || 0) + weight; }
           }catch(_){ }
 
-          // Phân loại vượt/đúng/chậm theo cột "Hiện trạng" khi đã Done VÀ ngày hoàn thành nằm trong tháng chọn
-          dbg.total++;
-          if (done && inDoneMonth){
-            // Xác định điều kiện N/A: có ngày hoàn thành và số giờ thực tế = 0
-            const EPS_NA = 1e-4;
-            let actualNumForNA = 0;
-            try { actualNumForNA = getNumberFrom(row, actualHoursKeys); } catch(_) { actualNumForNA = 0; }
-            const isNA = (hasDoneDate && Number.isFinite(actualNumForNA) && Math.abs(actualNumForNA) < EPS_NA);
-            let handled = false;
-            // done & inDoneMonth nên không cộng missWish/missMan vì không xét task ngoài tháng hoàn thành
-            // Lấy text nếu có
-            const htText = normalizeVi(getTextFrom(row, statusKeys));
-            const wishText = normalizeVi(getTextFrom(row, statusByWishKeys));
-            let manAhead = htText.includes('vuot tien do');
-            let manOn    = htText.includes('dung tien do');
-            let manLate  = htText.includes('cham tien do');
-            let wishOn   = wishText.includes('dung han');
-            let wishLate = wishText.includes('tre han');
-            // Fallback: suy ra Đúng/Trễ hạn nếu thiếu text
-            if (!(wishOn || wishLate)){
-              try{
-                const dWish = parseDateFlexible(wish);
-                const dDone = parseDateFlexible(doneDate);
-                if (dWish && dDone){
-                  const plus1 = new Date(dWish.getFullYear(), dWish.getMonth(), dWish.getDate()+1);
-                  if (dDone.getTime() <= plus1.getTime()) wishOn = true; else wishLate = true;
-                }
-              }catch(_){ }
-            }
-            // Fallback: suy ra theo công chuẩn nếu thiếu text
-            if (!(manAhead || manOn || manLate)){
-              try{
-                const actualNum = getNumberFrom(row, actualHoursKeys);
-                const manNum = weight;
-                const EPS = 1e-4;
-                // Nếu thực tế = 0 thì coi là thiếu dữ liệu -> không phân loại vào Vượt/Đúng/Chậm
-                if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
-                  // giữ nguyên manAhead/manOn/manLate = false để đẩy vào N/A
-                } else if (Number.isFinite(actualNum) && Number.isFinite(manNum)){
-                  // Áp dụng dung sai 10% cho Đúng tiến độ
-                  const tolerance = Math.max(EPS, Math.abs(manNum) * 0.10);
-                  if (actualNum > manNum + tolerance) manLate = true;
-                  else if (Math.abs(actualNum - manNum) <= tolerance) manOn = true;
-                  else manAhead = true;
-                }
-              }catch(_){ }
-            }
-            // Nếu thuộc N/A thì ưu tiên đưa vào N/A và bỏ qua các phân loại khác
-            if (isNA){
-              rec.na = (rec.na || 0) + 1;
-              handled = true;
-            }
-            if (!handled && (wishOn || wishLate) && (manAhead || manOn || manLate)){
-              rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
-              dbg.both++;
-              if (wishOn){
-                if (manAhead) { rec.ahead += 1; dbg.addAhead++; }
-                else if (manOn) { rec.ontime += 1; dbg.addOn++; }
-                else if (manLate) { rec.late += 1; dbg.addLate++; }
-              } else if (wishLate){
-                rec.late += 1; dbg.addLate++;
+            // Phân loại vượt/đúng/chậm CHỈ theo công chuẩn (bỏ logic "Hiện trạng theo hạn mong muốn")
+            // Hạn mong muốn và Ngày hoàn thành chỉ mang tính hiển thị, không tham gia tính toán
+            dbg.total++;
+            if (done && inDoneMonth){
+              // Xác định điều kiện N/A: có ngày hoàn thành và số giờ thực tế = 0
+              const EPS_NA = 1e-4;
+              let actualNumForNA = 0;
+              try { actualNumForNA = getNumberFrom(row, actualHoursKeys); } catch(_) { actualNumForNA = 0; }
+              const isNA = (hasDoneDate && Number.isFinite(actualNumForNA) && Math.abs(actualNumForNA) < EPS_NA);
+              
+              // Lấy text từ cột "Hiện trạng" (theo công chuẩn)
+              const htText = normalizeVi(getTextFrom(row, statusKeys));
+              let manAhead = htText.includes('vuot tien do');
+              let manOn    = htText.includes('dung tien do');
+              let manLate  = htText.includes('cham tien do');
+              
+              // Fallback: suy ra theo công chuẩn nếu thiếu text
+              if (!(manAhead || manOn || manLate)){
+                try{
+                  const actualNum = getNumberFrom(row, actualHoursKeys);
+                  const manNum = weight;
+                  const EPS = 1e-4;
+                  // Nếu thực tế = 0 thì coi là thiếu dữ liệu -> không phân loại vào Vượt/Đúng/Chậm
+                  if (Number.isFinite(actualNum) && Math.abs(actualNum) < EPS) {
+                    // giữ nguyên manAhead/manOn/manLate = false để đẩy vào N/A
+                  } else if (Number.isFinite(actualNum) && Number.isFinite(manNum)){
+                    // Áp dụng dung sai 10% cho Đúng tiến độ
+                    const tolerance = Math.max(EPS, Math.abs(manNum) * 0.10);
+                    if (actualNum > manNum + tolerance) manLate = true;
+                    else if (Math.abs(actualNum - manNum) <= tolerance) manOn = true;
+                    else manAhead = true;
+                  }
+                }catch(_){ }
               }
-            } else if (!handled) {
-              // Nếu chỉ có phân loại theo công chuẩn (thiếu hạn mong muốn) thì vẫn cộng để tránh đếm thiếu
-              if (!wishOn && !wishLate && (manAhead || manOn || manLate)){
+              
+              // Phân loại CHỈ dựa vào công chuẩn (bỏ logic hạn mong muốn)
+              if (isNA){
+                // Nếu thuộc N/A thì ưu tiên đưa vào N/A
+                rec.na = (rec.na || 0) + 1;
+              } else if (manAhead || manOn || manLate){
+                // Phân loại theo công chuẩn
                 rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
-                if (manAhead) { rec.ahead += 1; dbg.addAhead++; }
-                else if (manOn) { rec.ontime += 1; dbg.addOn++; }
-                else if (manLate) { rec.late += 1; dbg.addLate++; }
-              }
-              // Nếu chỉ có Trễ hạn theo hạn mong muốn mà thiếu phân loại theo công chuẩn, vẫn tính là Chậm
-              else if (wishLate && !(manAhead||manOn||manLate)){
-                rec.classifiedCnt = (rec.classifiedCnt || 0) + 1;
-                rec.late += 1; dbg.addLate++;
+                if (manAhead) { 
+                  rec.ahead += 1; 
+                  dbg.addAhead++; 
+                } else if (manOn) { 
+                  rec.ontime += 1; 
+                  dbg.addOn++; 
+                } else if (manLate) { 
+                  rec.late += 1; 
+                  dbg.addLate++; 
+                }
               } else {
-                if (!(wishOn||wishLate)) dbg.missWish++;
-                if (!(manAhead||manOn||manLate)) dbg.missMan++;
+                // Không có đủ thông tin để phân loại
+                dbg.missMan++;
               }
             }
-          }
         });
         const out = Array.from(byName.values());
         out.forEach(r=>{
@@ -7857,7 +7835,7 @@
       function openDetailModal(empName, filter, from, to){
         if (!detailModal) return;
         detailNameEl.textContent = empName || '';
-        detailBody.innerHTML = `<tr><td colspan="10" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
+        detailBody.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-center text-gray-500"><span class="spinner mr-2"></span>Đang tải...</td></tr>`;
         detailNote.textContent = filter === 'Doing' ? 'Chỉ hiển thị tác vụ đang Doing.' : 'Hiển thị tất cả tác vụ.';
         detailModal.classList.add('open');
         detailModal.setAttribute('aria-hidden','false');
@@ -7934,7 +7912,7 @@
           
           // Tìm nhân viên trong dữ liệu từ n8n
           if (!F5A_P1_DATA || !F5A_P1_DATA.success || !Array.isArray(F5A_P1_DATA.data)){
-            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>`;
+            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Không có dữ liệu</td></tr>`;
             return;
           }
           
@@ -7953,7 +7931,7 @@
           });
           
           if (!empData || !empData.details){
-            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu cho nhân viên này</td></tr>`;
+            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Không có dữ liệu cho nhân viên này</td></tr>`;
             return;
           }
           
@@ -8000,7 +7978,7 @@
           if (!listSameMonth.length && !listPrevMonth.length){
             const hasRange = Boolean((from||'').trim() || (to||'').trim());
             const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : 'Không có tác vụ.';
-            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">${msg}</td></tr>`;
+            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">${msg}</td></tr>`;
             return;
           }
           let stt = 0;
@@ -8015,21 +7993,20 @@
               <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(it.statusByMan || it.status)}</td>
               <td class="px-3 py-2">${it.wishDisp||it.wish||''}${it.wishPlus2Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +1: ${it.wishPlus2Disp}</div>`:''}</td>
               <td class="px-3 py-2">${it.doneDisp||it.done||''}</td>
-              <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(it.statusVsWish||'')}</td>
             </tr>
           `; }
-          const groupHeader = (title)=> `<tr class="bg-blue-50"><td class="px-3 py-2 font-semibold" colspan="10">${title}</td></tr>`;
-          const headerRow = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">STT</td><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Tên tác vụ</td><td class="px-3 py-2">Ngày yêu cầu</td><td class="px-3 py-2">Số giờ đánh giá thực tế</td><td class="px-3 py-2">Công chuẩn</td><td class="px-3 py-2">Trạng thái theo công chuẩn</td><td class="px-3 py-2">Hạn mong muốn</td><td class="px-3 py-2">Ngày hoàn thành</td><td class="px-3 py-2">Hiện trạng theo hạn mong muốn</td></tr>`;
+          const groupHeader = (title)=> `<tr class="bg-blue-50"><td class="px-3 py-2 font-semibold" colspan="9">${title}</td></tr>`;
+          const headerRow = `<tr class="bg-slate-100 text-sm font-semibold"><td class="px-3 py-2">STT</td><td class="px-3 py-2">Mã</td><td class="px-3 py-2">Tên tác vụ</td><td class="px-3 py-2">Ngày yêu cầu</td><td class="px-3 py-2">Số giờ đánh giá thực tế</td><td class="px-3 py-2">Công chuẩn</td><td class="px-3 py-2">Trạng thái theo công chuẩn</td><td class="px-3 py-2">Hạn mong muốn</td><td class="px-3 py-2">Ngày hoàn thành</td></tr>`;
           const htmlParts = [];
           htmlParts.push(groupHeader('Nhận trong tháng này và hoàn thành trong tháng'));
           htmlParts.push(headerRow);
-          htmlParts.push(listSameMonth.length ? listSameMonth.map(renderRow).join('') : `<tr><td colspan="10" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
+          htmlParts.push(listSameMonth.length ? listSameMonth.map(renderRow).join('') : `<tr><td colspan="9" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
           htmlParts.push(groupHeader('Nhận tháng trước nhưng hoàn thành trong tháng'));
           htmlParts.push(headerRow);
-          htmlParts.push(listPrevMonth.length ? listPrevMonth.map(renderRow).join('') : `<tr><td colspan="10" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
+          htmlParts.push(listPrevMonth.length ? listPrevMonth.map(renderRow).join('') : `<tr><td colspan="9" class="px-3 py-2 text-gray-500">Không có dữ liệu</td></tr>`);
           detailBody.innerHTML = htmlParts.join('');
         }catch(_){
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi hiển thị dữ liệu.</td></tr>`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="9">Lỗi hiển thị dữ liệu.</td></tr>`;
         }
       }
 
@@ -8134,7 +8111,7 @@
           if (!rows.length){
             const hasRange = Boolean((from||'').trim() || (to||'').trim());
             const msg = hasRange ? 'Không có tác vụ trong tháng đã chọn.' : `Không có tác vụ${filter==='Doing'?' Doing':''}.`;
-            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">${msg}</td></tr>`;
+            detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">${msg}</td></tr>`;
             return;
           }
           // Helper parse date (hỗ trợ YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, có/không giờ)
@@ -8252,13 +8229,12 @@
                 <td class="px-3 py-2">${(function(s){ const t=String(s||'').toLowerCase(); let cls='bg-blue-100 text-blue-800'; if(t.includes('thiếu dữ liệu')) cls='bg-amber-100 text-amber-800'; else if(t.includes('vượt tiến độ')) cls='bg-blue-100 text-blue-800'; else if(t.includes('đúng tiến độ')||t.includes('dung tien do')) cls='bg-green-100 text-green-800'; else if(t.includes('chậm tiến độ')||t.includes('cham tien do')) cls='bg-red-100 text-red-800'; else if(t.includes('chờ phê duyệt')||t.includes('cho phe duyet')) cls='bg-orange-100 text-orange-800'; else if(t.includes('cancel')||t.includes('hủy')||t.includes('huỷ')) cls='bg-gray-200 text-gray-700'; else if(t.includes('doing')||t.includes('đang')) cls='bg-blue-100 text-blue-800'; return `<span class=\"px-2 py-1 rounded text-xs ${cls}\">${s||''}</span>`; })(statusByMan && statusByMan.trim() ? statusByMan : status)}</td>
                 <td class="px-3 py-2">${wishDisp||wish||''}${wishPlus1Disp? `<div class=\"text-xs text-gray-500 mt-0.5\">Hạn +1: ${wishPlus1Disp}</div>`:''}</td>
                 <td class="px-3 py-2">${doneDisp||done||''}</td>
-                <td class="px-3 py-2">${(function(s){ s=String(s||''); const isOn = /đúng hạn yêu cầu/i.test(s); const isLate = /trễ hạn yêu cầu/i.test(s); if(isOn) return `<span class=\"px-2 py-1 rounded text-xs bg-green-100 text-green-800\">${s}</span>`; if(isLate) return `<span class=\"px-2 py-1 rounded text-xs bg-red-100 text-red-800\">${s}</span>`; return s; })(statusVsWish)}</td>
               </tr>
             `;
           }).join('');
           detailBody.innerHTML = html;
         }catch(err){
-          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="9">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+          detailBody.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="8">Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         }
       }
 
@@ -9326,7 +9302,7 @@
               fromVal = firstDay; toVal = lastDay;
             }catch(_){ }
           }
-          // Fetch dữ liệu đã được xử lý từ n8n (đã aggregate và tính toán sẵn)
+          // Fetch dữ liệu đã được xử lý từ n8n (backend đã tính toán với logic mới - bỏ "Hiện trạng theo hạn mong muốn")
           await f5aFetchP1Data(monthVal);
           
           // Kiểm tra cache nếu fetch thất bại
@@ -9348,7 +9324,7 @@
             return;
           }
           
-          // Sử dụng dữ liệu đã được aggregate từ n8n
+          // Sử dụng dữ liệu đã được aggregate từ n8n (backend đã tính toán với logic mới)
           const aggregated = F5A_P1_DATA.data;
           try{ 
             LS.setJSON('f5a.cache', { version: APP_CACHE_VERSION, month: monthVal, rows: aggregated, ts: Date.now() }); 
@@ -9504,12 +9480,60 @@
             const ontime = Number(item.ontime || 0);
             const late = Number(item.late || 0);
             const na = Number(item.na || 0);
-            // % từ n8n (đã làm tròn 1 chữ số thập phân)
-            const rAhead = Number(item.rateAhead || 0);
-            const rOn = Number(item.rateOntime || 0);
-            const rLate = Number(item.rateLate || 0);
-            const rNA = Number(item.rateNA || 0);
             const doneCnt = Number(item.doneCnt || 0);
+            
+            // Kiểm tra và tính lại tỷ lệ % từ số lượng để đảm bảo tính nhất quán
+            // Tổng số task đã DONE (không bao gồm N/A)
+            const totalDoneForRate = ahead + ontime + late;
+            // Tính tỷ lệ % dựa trên số lượng thực tế
+            let rAhead = 0, rOn = 0, rLate = 0, rNA = 0;
+            
+            if (doneCnt > 0) {
+              // Tính tỷ lệ % dựa trên doneCnt (tổng số task đã hoàn thành)
+              rAhead = totalDoneForRate > 0 ? (ahead / doneCnt) * 100 : 0;
+              rOn = totalDoneForRate > 0 ? (ontime / doneCnt) * 100 : 0;
+              rLate = totalDoneForRate > 0 ? (late / doneCnt) * 100 : 0;
+              rNA = (na / doneCnt) * 100;
+            } else {
+              // Nếu không có dữ liệu từ n8n, sử dụng giá trị từ n8n
+              rAhead = Number(item.rateAhead || 0);
+              rOn = Number(item.rateOntime || 0);
+              rLate = Number(item.rateLate || 0);
+              rNA = Number(item.rateNA || 0);
+            }
+            
+            // Làm tròn đến 1 chữ số thập phân
+            rAhead = Math.round(rAhead * 10) / 10;
+            rOn = Math.round(rOn * 10) / 10;
+            rLate = Math.round(rLate * 10) / 10;
+            rNA = Math.round(rNA * 10) / 10;
+            
+            // Kiểm tra tổng tỷ lệ có bằng 100% không (cho phép sai số do làm tròn)
+            const totalRate = rAhead + rOn + rLate + rNA;
+            const rateDiff = Math.abs(totalRate - 100);
+            
+            // Nếu sai số lớn hơn 1% do làm tròn, điều chỉnh lại
+            if (rateDiff > 1 && doneCnt > 0) {
+              // Điều chỉnh tỷ lệ lớn nhất để tổng = 100%
+              const maxRate = Math.max(rAhead, rOn, rLate, rNA);
+              if (maxRate === rAhead) rAhead = 100 - (rOn + rLate + rNA);
+              else if (maxRate === rOn) rOn = 100 - (rAhead + rLate + rNA);
+              else if (maxRate === rLate) rLate = 100 - (rAhead + rOn + rNA);
+              else rNA = 100 - (rAhead + rOn + rLate);
+              
+              // Làm tròn lại sau khi điều chỉnh
+              rAhead = Math.round(rAhead * 10) / 10;
+              rOn = Math.round(rOn * 10) / 10;
+              rLate = Math.round(rLate * 10) / 10;
+              rNA = Math.round(rNA * 10) / 10;
+            }
+            
+            // Kiểm tra tính nhất quán: tổng số lượng phải bằng doneCnt
+            const totalCount = ahead + ontime + late + na;
+            // Nếu có sự không khớp, log warning (không sửa dữ liệu từ n8n)
+            if (Math.abs(totalCount - doneCnt) > 0.1 && doneCnt > 0) {
+              console.warn(`[Form 5 P1] Dữ liệu không khớp cho ${name}: tổng số lượng (${totalCount}) != doneCnt (${doneCnt})`);
+            }
             const need = f5aGetNeedManhour(name);
             // Tính tổng giờ đánh giá thực tế cho nhân viên này (vẫn cần raw data)
             const totalActualHoursData = calculateTotalActualHours(name, fromVal, toVal);
@@ -9541,7 +9565,23 @@
           const sumAhead = sorted.reduce((a,it)=> a + Number(it.ahead||0), 0);
           const sumOn = sorted.reduce((a,it)=> a + Number(it.ontime||0), 0);
           const sumLate = sorted.reduce((a,it)=> a + Number(it.late||0), 0);
+          const sumNA = sorted.reduce((a,it)=> a + Number(it.na||0), 0);
           const sumDone = sorted.reduce((a,it)=> a + Number(it.doneCnt || 0), 0);
+          
+          // Tính tỷ lệ % tổng hợp từ tổng số lượng
+          let totalRateAhead = 0, totalRateOn = 0, totalRateLate = 0, totalRateNA = 0;
+          if (sumDone > 0) {
+            totalRateAhead = (sumAhead / sumDone) * 100;
+            totalRateOn = (sumOn / sumDone) * 100;
+            totalRateLate = (sumLate / sumDone) * 100;
+            totalRateNA = (sumNA / sumDone) * 100;
+          }
+          // Làm tròn đến 1 chữ số thập phân
+          totalRateAhead = Math.round(totalRateAhead * 10) / 10;
+          totalRateOn = Math.round(totalRateOn * 10) / 10;
+          totalRateLate = Math.round(totalRateLate * 10) / 10;
+          totalRateNA = Math.round(totalRateNA * 10) / 10;
+          
           const totalP1 = `
             <tr class="bg-blue-50 font-semibold">
               <td class="px-3 py-2">TỔNG</td>
@@ -9549,7 +9589,11 @@
               <td class="px-3 py-2">${sumAhead}</td>
               <td class="px-3 py-2">${sumOn}</td>
               <td class="px-3 py-2">${sumLate}</td>
-              <td class="px-3 py-2"></td>
+              <td class="px-3 py-2">${sumNA}</td>
+              <td class="px-3 py-2">${totalRateAhead.toFixed(1)}%</td>
+              <td class="px-3 py-2">${totalRateOn.toFixed(1)}%</td>
+              <td class="px-3 py-2">${totalRateLate.toFixed(1)}%</td>
+              <td class="px-3 py-2">${totalRateNA.toFixed(1)}%</td>
             </tr>`;
           try{ const b1 = document.getElementById('f5a-body-p1'); if (b1) b1.innerHTML = (rowsP1.join('') + totalP1); }catch(_){ }
           // P2 đã được tách ra hàm riêng renderForm5P2() - không render ở đây nữa
@@ -10032,7 +10076,7 @@
               const doneKeys=['Ngày hoàn thành thực tế','Ngày hoàn thành','Ngày đóng','Ngày kết thúc','completiondate','completeddate','completion','done_date','ngayhoanthanh','ngay_hoan_thanh','ngay ket thuc'];
               const statusKeys=['Hiện trạng','Trạng thái','Status','status','trangthai','trang_thai','trạng thái'];
               const isCanceled=(o)=>{ const st=String(getV(o,statusKeys)||'').toLowerCase(); const dn=String(getV(o,doneKeys)||'').toLowerCase(); return st.includes('cancel')||st.includes('hủy')||st.includes('huỷ')||/cancel/i.test(dn); };
-              const head=['Nhân viên','Nhóm theo ngày nhận','Mã','Tên tác vụ','Ngày yêu cầu','Số giờ đánh giá thực tế','Công chuẩn','Hạn mong muốn','Hạn +1','Ngày hoàn thành','Trạng thái theo công chuẩn','Hiện trạng theo hạn mong muốn'];
+              const head=['Nhân viên','Nhóm theo ngày nhận','Mã','Tên tác vụ','Ngày yêu cầu','Số giờ đánh giá thực tế','Công chuẩn','Hạn mong muốn','Hạn +1','Ngày hoàn thành','Trạng thái theo công chuẩn'];
               const aoaD=[head];
               rowsRaw.forEach(o=>{
                 if (isCanceled(o)) return;
@@ -10046,7 +10090,6 @@
                 const act=getV(o, actualKeys);
                 const wish=getV(o, wishKeys);
                 let wishP1=''; try{ const dW=toDate(wish); if(dW){ const p1=new Date(dW.getFullYear(), dW.getMonth(), dW.getDate()+1); const pad=n=>String(n).padStart(2,'0'); wishP1=`${pad(p1.getDate())}/${pad(p1.getMonth()+1)}/${p1.getFullYear()}`; } }catch(_){ }
-                const stByWish = getV(o,['Hiện trạng theo hạn mong muốn','status_by_wish','status_wish','statuswish','ht_theo_han_mong_muon']);
                 // Tính "Trạng thái theo công chuẩn" giống modal P1
                 const toNum=(s)=>{ try{ const t=String(s||'').trim().replace(/[^0-9.,-]/g,'').replace(',', '.'); const n=parseFloat(t); return Number.isFinite(n)? n: 0; }catch(_){ return 0; } };
                 let stByMan = '';
@@ -10066,7 +10109,7 @@
                   }
                 }catch(_){ }
                 const fmt=(v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
-                aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP1, fmt(done), stByMan, stByWish ]);
+                aoaD.push([ emp, grp, code, tn, fmt(rq), act, man, wish, wishP1, fmt(done), stByMan ]);
               });
               // Chỉ thêm sheet nếu có dữ liệu (ít nhất có header và 1 dòng dữ liệu)
               if (aoaD && aoaD.length > 1) {
@@ -10755,7 +10798,7 @@
             return [['Chưa có dữ liệu P1. Vui lòng nhấn "Tra cứu P1" trước.']];
           }
           
-          const headers = ['Nhân viên', 'Nhóm', 'STT', 'Mã', 'Tên tác vụ', 'Ngày yêu cầu', 'Số giờ đánh giá thực tế', 'Công chuẩn', 'Trạng thái theo công chuẩn', 'Hạn mong muốn', 'Hạn +1', 'Ngày hoàn thành', 'Hiện trạng theo hạn mong muốn'];
+          const headers = ['Nhân viên', 'Nhóm', 'STT', 'Mã', 'Tên tác vụ', 'Ngày yêu cầu', 'Số giờ đánh giá thực tế', 'Công chuẩn', 'Trạng thái theo công chuẩn', 'Hạn mong muốn', 'Hạn +1', 'Ngày hoàn thành'];
           const aoa = [headers];
           
           const formatNumberVi = (num, minDec, maxDec) => {
@@ -10813,8 +10856,7 @@
                 task.statusByMan || '',
                 wishDisp,
                 wishPlus1Disp,
-                doneDisp,
-                task.statusVsWish || ''
+                doneDisp
               ]);
             });
             
@@ -10845,8 +10887,7 @@
                 task.statusByMan || '',
                 wishDisp,
                 wishPlus1Disp,
-                doneDisp,
-                task.statusVsWish || ''
+                doneDisp
               ]);
             });
           });
@@ -12706,6 +12747,11 @@
               return;
             }
             
+            // Skip tasks assigned to blacklisted employees
+            if (isNameInBlacklist(name)) {
+              return;
+            }
+            
             const completionDateStr = getV(r, [
               'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
               'ngày hoàn thành','ngay hoan thanh',
@@ -13117,7 +13163,7 @@
                 maintainAspectRatio: false,
                 indexAxis: 'y',
                 scales: {
-                  x: { beginAtZero: true, max: 1.2, ticks: { precision: 2 }, title: { display: true, text: 'Hệ số' } },
+                  x: { beginAtZero: true, max: 2, ticks: { precision: 2 }, title: { display: true, text: 'Hệ số' } },
                   y: { ticks: { font: { size: 10 } }, title: { display: true, text: 'Nhân viên' } }
                 },
                 plugins: {
@@ -13367,6 +13413,32 @@
             return;
           }
           
+          // Lấy danh sách nhân viên từ bảng P4 (chỉ những người có trong bảng)
+          const tableBody = document.getElementById('f5a-body-p4');
+          if (!tableBody) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
+          // Lấy tất cả các tên nhân viên từ bảng (bỏ qua hàng TỔNG)
+          const employeeNamesInTable = new Set();
+          const rows = tableBody.querySelectorAll('tr');
+          rows.forEach(row => {
+            const firstCell = row.querySelector('td');
+            if (firstCell && firstCell.textContent.trim() !== 'TỔNG') {
+              const name = firstCell.textContent.trim();
+              if (name) {
+                employeeNamesInTable.add(name);
+              }
+            }
+          });
+          
+          // Nếu không có nhân viên nào trong bảng, ẩn dashboard
+          if (employeeNamesInTable.size === 0) {
+            dashboard.classList.add('hidden');
+            return;
+          }
+          
           dashboard.classList.remove('hidden');
           
           // Aggregate data (same logic as renderForm5P4)
@@ -13388,9 +13460,29 @@
             return num <= 1 && num > 0 ? num * 100 : num;
           };
           
+          // Helper function để so sánh tên (giống như trong renderForm5P4)
+          const sameName = (a, b) => {
+            try {
+              const normalize = (s) => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+              return normalize(a) === normalize(b);
+            } catch (_) {
+              return String(a||'').toLowerCase().trim() === String(b||'').toLowerCase().trim();
+            }
+          };
+          
           F5A_P4_RAW.forEach(r => {
             const name = String(getV(r, ['assignee','employee','name','nhân viên','phụ trách'])||'').trim();
             if(!name || name.toLowerCase() === 'x') return;
+            
+            // CHỈ lấy những nhân viên có trong bảng P4
+            let isInTable = false;
+            for (const tableName of employeeNamesInTable) {
+              if (sameName(name, tableName)) {
+                isInTable = true;
+                break;
+              }
+            }
+            if (!isInTable) return;
             
             if(!byName.has(name)){
               byName.set(name, {
@@ -13424,7 +13516,16 @@
             rec.khksclTotal += 1; rec.khksclCompleted += pKH;
           });
           
-          const sorted = Array.from(byName.values()).sort((a,b) => a.name.localeCompare(b.name, 'vi'));
+          // Sắp xếp theo thứ tự giống như trong bảng (theo tên trong bảng)
+          const sorted = Array.from(byName.values()).sort((a, b) => {
+            // Tìm vị trí trong bảng để sắp xếp đúng thứ tự
+            const aIndex = Array.from(employeeNamesInTable).findIndex(n => sameName(n, a.name));
+            const bIndex = Array.from(employeeNamesInTable).findIndex(n => sameName(n, b.name));
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            return a.name.localeCompare(b.name, 'vi');
+          });
           
           if (sorted.length === 0) {
             dashboard.classList.add('hidden');
@@ -13911,6 +14012,11 @@
               return;
             }
             
+            // Skip tasks assigned to blacklisted employees
+            if (isNameInBlacklist(name)) {
+              return;
+            }
+            
             // Get completion date
             const completionDateStr = getV(r, [
               'ngày hoàn thành thực tế','ngay hoan thanh thuc te',
@@ -14258,10 +14364,25 @@
           
           console.log('[P4 Machine Details] Loading for:', employeeName, 'month:', month);
           
-          // Check if we have P3 data
-          if (!Array.isArray(F5A_P3_RAW) || !F5A_P3_RAW.length) {
-            body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="13">Chưa có dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</td></tr>';
-            return;
+          // Check if we have P4 data, nếu chưa có thì tự động fetch
+          if (!Array.isArray(F5A_P4_RAW) || !F5A_P4_RAW.length) {
+            console.log('[P4 Machine Details] No P4 data found, fetching...');
+            body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Đang tải dữ liệu...</td></tr>';
+            
+            try {
+              await f5aFetchP4Data(month);
+              console.log('[P4 Machine Details] Fetch completed, got', F5A_P4_RAW.length, 'records');
+            } catch(err) {
+              console.error('[P4 Machine Details] Fetch error:', err);
+              body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="13">Lỗi tải dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</td></tr>';
+              return;
+            }
+            
+            // Kiểm tra lại sau khi fetch
+            if (!Array.isArray(F5A_P4_RAW) || !F5A_P4_RAW.length) {
+              body.innerHTML = '<tr><td class="px-3 py-3 text-center text-red-600" colspan="13">Không có dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</td></tr>';
+              return;
+            }
           }
           
           // Helper functions
@@ -14549,8 +14670,14 @@
         try {
           console.log('[P3 Modal] Showing details for:', employeeName, taskType, month);
           
-          // Filter tasks for this employee
-          const employeeTasks = F5A_P4_RAW.filter(r => {
+          // Filter tasks for this employee (sửa từ F5A_P4_RAW sang F5A_P3_RAW)
+          if (!Array.isArray(F5A_P3_RAW) || F5A_P3_RAW.length === 0) {
+            console.warn('[P3 Modal] F5A_P3_RAW is empty or not available');
+            showToast('Chưa có dữ liệu P3. Vui lòng nhấn "Tra cứu P3" trước.', 'warning');
+            return;
+          }
+          
+          const employeeTasks = F5A_P3_RAW.filter(r => {
             const name = String(getV(r, [
               'assignee','employee','name',
               'nhân viên','nhan vien','nhanvien',
@@ -14582,17 +14709,6 @@
               
               const taskMonth = formatYyyyMm(completionDate);
               const matches = taskMonth === month;
-              
-              // Debug logging for first few tasks
-              if(filteredTasks.length < 3) {
-                console.log('[P3 Modal] Month filter debug:', {
-                  completionDateStr,
-                  parsedDate: completionDate,
-                  taskMonth,
-                  targetMonth: month,
-                  matches
-                });
-              }
               
               return matches;
             });
@@ -14694,6 +14810,24 @@
               const conclusion = String(getV(task, ['kết luận','ket luan','ketluan','conclusion','Kết luận','Conclusion'])||'').trim();
               const note = String(getV(task, ['ghi chú','ghi chu','ghichu','note','notes','Ghi chú','Comment','comment'])||'').trim();
               
+              // Xác định màu và text cho cột "CE rà soát"
+              const normCeReview = (s) => String(s||'').toLowerCase().trim();
+              const ceNorm = normCeReview(ceReview);
+              let ceReviewDisplay = ceReview || 'Chưa khai báo';
+              let ceReviewClass = '';
+              
+              if (ceNorm === 'đã gửi' || ceNorm === 'da gui' || ceNorm === 'dagui' || ceNorm === 'đã gửi ce' || ceNorm === 'da gui ce') {
+                ceReviewClass = 'bg-green-100 text-green-800';
+              } else if (ceNorm === 'không cần' || ceNorm === 'khong can' || ceNorm === 'khongcan' || ceNorm === 'không cần làm ce' || ceNorm === 'khong can lam ce') {
+                ceReviewClass = 'bg-blue-100 text-blue-800';
+              } else if (!ceReview || ceNorm === '') {
+                ceReviewDisplay = 'Chưa khai báo';
+                ceReviewClass = 'bg-gray-100 text-gray-600';
+              } else {
+                // Các giá trị khác (nếu có)
+                ceReviewClass = 'bg-orange-100 text-orange-800';
+              }
+              
               content += `
                 <tr class="hover:bg-gray-50">
                   <td class="border border-gray-300 px-3 py-2">${idx + 1}</td>
@@ -14701,11 +14835,7 @@
                   <td class="border border-gray-300 px-3 py-2">${taskName || '-'}</td>
                   <td class="border border-gray-300 px-3 py-2">${completionDate || '-'}</td>
                   <td class="border border-gray-300 px-3 py-2">
-                    <span class="px-2 py-1 rounded text-xs ${
-                      task.status === 'Đã gửi' ? 'bg-green-100 text-green-800' :
-                      task.status === 'Không cần' ? 'bg-blue-100 text-blue-800' :
-                      'bg-orange-100 text-orange-800'
-                    }">${ceReview || '-'}</span>
+                    <span class="px-2 py-1 rounded text-xs ${ceReviewClass}">${ceReviewDisplay}</span>
                   </td>
                   <td class="border border-gray-300 px-3 py-2">${conclusion || '-'}</td>
                   <td class="border border-gray-300 px-3 py-2">${note || '-'}</td>
@@ -14788,9 +14918,42 @@
       }
       
       // P4 Task Details Modal Functions
-      function showP4TaskDetails(employeeName, taskType, month) {
+      async function showP4TaskDetails(employeeName, taskType, month) {
         try {
           console.log('[P4 Modal] Showing details for:', employeeName, taskType, month);
+          
+          const content = document.getElementById('p4-modal-content');
+          const modal = document.getElementById('p4-task-modal');
+          
+          // Check if we have P4 data, nếu chưa có thì tự động fetch
+          if (!Array.isArray(F5A_P4_RAW) || !F5A_P4_RAW.length) {
+            console.log('[P4 Modal] No P4 data found, fetching...');
+            if (content) {
+              content.innerHTML = '<div class="text-center text-gray-500 py-8">Đang tải dữ liệu...</div>';
+            }
+            if (modal) {
+              modal.classList.remove('hidden');
+            }
+            
+            try {
+              await f5aFetchP4Data(month);
+              console.log('[P4 Modal] Fetch completed, got', F5A_P4_RAW.length, 'records');
+            } catch(err) {
+              console.error('[P4 Modal] Fetch error:', err);
+              if (content) {
+                content.innerHTML = '<div class="text-center text-red-600 py-8">Lỗi tải dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</div>';
+              }
+              return;
+            }
+            
+            // Kiểm tra lại sau khi fetch
+            if (!Array.isArray(F5A_P4_RAW) || !F5A_P4_RAW.length) {
+              if (content) {
+                content.innerHTML = '<div class="text-center text-red-600 py-8">Không có dữ liệu. Vui lòng nhấn "Tra cứu P4" trước.</div>';
+              }
+              return;
+            }
+          }
           
           // Helper functions
           const norm = (s) => String(s||'').toLowerCase().trim();
