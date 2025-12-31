@@ -9682,7 +9682,17 @@
           // Helper function để format coefficient với dấu phẩy
           const formatCoefficient = (coef) => {
             if (!coef || coef === '') return '';
-            const num = parseFloat(coef);
+            // Xử lý dấu phẩy: chuyển dấu phẩy thành dấu chấm trước khi parse
+            let cleaned = String(coef).trim();
+            // Nếu có dấu phẩy và không có dấu chấm, thay dấu phẩy thành dấu chấm
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+              cleaned = cleaned.replace(',', '.');
+            }
+            // Nếu có cả dấu phẩy và dấu chấm, loại bỏ dấu chấm (dấu phẩy là dấu phân cách hàng nghìn)
+            else if (cleaned.includes(',') && cleaned.includes('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            }
+            const num = parseFloat(cleaned);
             if (isNaN(num)) return '';
             return num.toFixed(2).replace('.', ',');
           };
@@ -9690,7 +9700,14 @@
           // Helper function để lấy màu cho coefficient
           const getCoefficientColor = (coef) => {
             if (!coef || coef === '') return 'text-gray-500';
-            const val = parseFloat(coef);
+            // Xử lý dấu phẩy: chuyển dấu phẩy thành dấu chấm trước khi parse
+            let cleaned = String(coef).trim();
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+              cleaned = cleaned.replace(',', '.');
+            } else if (cleaned.includes(',') && cleaned.includes('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            }
+            const val = parseFloat(cleaned);
             if (isNaN(val)) return 'text-gray-500';
             if (val >= 0.8) return 'text-green-600 font-semibold';
             if (val >= 0.6) return 'text-blue-600 font-semibold';
@@ -9698,10 +9715,22 @@
             return 'text-red-600 font-semibold';
           };
           
+          // Helper function để parse coefficient (xử lý dấu phẩy)
+          const parseCoefficient = (coef) => {
+            if (!coef || coef === '') return 0;
+            let cleaned = String(coef).trim();
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+              cleaned = cleaned.replace(',', '.');
+            } else if (cleaned.includes(',') && cleaned.includes('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            }
+            return parseFloat(cleaned) || 0;
+          };
+          
           // Sort P2 theo Hệ số từ lớn đến nhỏ
           const sortedData = filteredData.slice().sort((a, b) => {
-            const coefA = parseFloat(a.coefficient || '0');
-            const coefB = parseFloat(b.coefficient || '0');
+            const coefA = parseCoefficient(a.coefficient || '0');
+            const coefB = parseCoefficient(b.coefficient || '0');
             // Nếu hệ số bằng nhau, sort theo tên
             if (coefB === coefA) {
               const nameA = (a.name || a['Phụ trách'] || '').trim();
@@ -10354,7 +10383,17 @@
           // Helper function để format coefficient với dấu phẩy
           const formatCoefficient = (coef) => {
             if (!coef || coef === '') return '';
-            const num = parseFloat(coef);
+            // Xử lý dấu phẩy: chuyển dấu phẩy thành dấu chấm trước khi parse
+            let cleaned = String(coef).trim();
+            // Nếu có dấu phẩy và không có dấu chấm, thay dấu phẩy thành dấu chấm
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+              cleaned = cleaned.replace(',', '.');
+            }
+            // Nếu có cả dấu phẩy và dấu chấm, loại bỏ dấu chấm (dấu phẩy là dấu phân cách hàng nghìn)
+            else if (cleaned.includes(',') && cleaned.includes('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            }
+            const num = parseFloat(cleaned);
             if (isNaN(num)) return '';
             return num.toFixed(2).replace('.', ',');
           };
@@ -11314,32 +11353,46 @@
           const fmt = (v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
           let stt = 0;
           
+          // Helper functions để parse và format số
+          const parseNumber = (str) => {
+            if (!str) return 0;
+            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned) || 0;
+          };
+          const formatNumber = (num) => {
+            if (!Number.isFinite(num)) return '0,00';
+            return num.toFixed(2).replace('.', ',');
+          };
+          
           // Lấy tổng giờ đánh giá thực tế
           let totalActualHours = 0;
           let totalActualHoursFormatted = '0,00';
           
+          // Tính tổng công chuẩn
+          let totalManhour = 0;
+          let totalManhourFormatted = '0,00';
+          
           if (useP2Data) {
             // Tính từ tasks trong P2 data
-            const parseNumber = (str) => {
-              if (!str) return 0;
-              const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
-              return parseFloat(cleaned) || 0;
-            };
-            const formatNumber = (num) => {
-              if (!Number.isFinite(num)) return '0,00';
-              return num.toFixed(2).replace('.', ',');
-            };
-            
             p2Tasks.forEach(task => {
               const actual = task['Số giờ đánh giá thực tế'] || '';
+              const man = task['Công chuẩn'] || '';
               totalActualHours += parseNumber(actual);
+              totalManhour += parseNumber(man);
             });
             totalActualHoursFormatted = formatNumber(totalActualHours);
+            totalManhourFormatted = formatNumber(totalManhour);
           } else {
             // Lấy từ Map (logic cũ)
             const totalActualHoursData = (window.F5A_TOTAL_ACTUAL_HOURS_MAP && window.F5A_TOTAL_ACTUAL_HOURS_MAP.get(empName)) || { raw: 0, formatted: '0,00' };
             totalActualHours = totalActualHoursData.raw;
             totalActualHoursFormatted = totalActualHoursData.formatted;
+            
+            // Tính tổng công chuẩn từ items
+            items.forEach(it => {
+              totalManhour += parseNumber(it.man);
+            });
+            totalManhourFormatted = formatNumber(totalManhour);
           }
           
           // Render các hàng dữ liệu
@@ -11360,7 +11413,8 @@
           // Hàng tổng
           const totalRow = `
             <tr class="bg-blue-50 font-semibold">
-              <td class="px-3 py-2" colspan="5">TỔNG GIỜ ĐÁNH GIÁ THỰC TẾ</td>
+              <td class="px-3 py-2" colspan="4">TỔNG</td>
+              <td class="px-3 py-2">${totalManhourFormatted}</td>
               <td class="px-3 py-2">${totalActualHoursFormatted}</td>
               <td class="px-3 py-2" colspan="3"></td>
             </tr>
@@ -13121,6 +13175,18 @@
             return parseFloat(cleaned) || 0;
           };
           
+          // Helper function để parse coefficient (xử lý dấu phẩy)
+          const parseCoefficient = (coef) => {
+            if (!coef || coef === '') return 0;
+            let cleaned = String(coef).trim();
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+              cleaned = cleaned.replace(',', '.');
+            } else if (cleaned.includes(',') && cleaned.includes('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            }
+            return parseFloat(cleaned) || 0;
+          };
+          
           // Chart 1: Hệ số
           const canvas1 = document.getElementById('f5a-chart-p2-coefficient');
           if (canvas1) {
@@ -13128,13 +13194,13 @@
             if (F5A_CHART_P2_COEFFICIENT) F5A_CHART_P2_COEFFICIENT.destroy();
             
             const sorted = data.slice().sort((a, b) => {
-              const coefA = parseFloat(a.coefficient || '0');
-              const coefB = parseFloat(b.coefficient || '0');
+              const coefA = parseCoefficient(a.coefficient || '0');
+              const coefB = parseCoefficient(b.coefficient || '0');
               return coefB - coefA;
             });
             
             const labels = sorted.map(d => d.name || d['Phụ trách'] || '');
-            const coefficients = sorted.map(d => parseFloat(d.coefficient || '0'));
+            const coefficients = sorted.map(d => parseCoefficient(d.coefficient || '0'));
             
             F5A_CHART_P2_COEFFICIENT = new Chart(ctx1, {
               type: 'bar',
