@@ -423,6 +423,10 @@
                 <span class="text-base">🏮</span>
                 <p class="text-sm font-semibold">Form 1: Trả báo cáo & form</p>
               </button>
+              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form11">
+                <span class="text-base">📋</span>
+                <p class="text-sm font-semibold">Form 11 - Kiểm tra trước khi gửi báo cáo</p>
+              </button>
             </div>
           </div>
           <div class="rounded-md">
@@ -1203,6 +1207,41 @@
               <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="12">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- Form 11 - Kiểm tra trước báo cáo -->
+      <section id="form11" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-blue-800">Form 11 - Kiểm tra trước báo cáo</h2>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-700 mb-3">Vui lòng tải file Excel (.xlsx) để kiểm tra trước khi báo cáo.</p>
+          <div class="flex items-center gap-3 flex-wrap">
+            <input id="f11-file" type="file" accept=".xlsx" class="hidden"/>
+            <button id="f11-upload-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Chọn file XLSX</button>
+            <span id="f11-file-name" class="text-sm text-gray-600">Không có file nào được chọn</span>
+            <button id="f11-submit-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Gửi</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">Chỉ chấp nhận file định dạng .xlsx. Mỗi lần chỉ được tải 1 file.</p>
+        </div>
+
+        <!-- Khu vực hiển thị kết quả -->
+        <div id="f11-results" class="hidden">
+          <!-- Container cho Kết luận và Thống kê (cùng hàng) -->
+          <div class="flex gap-3 mb-4">
+            <!-- Kết luận tổng (50% chiều ngang) -->
+            <div id="f11-conclusion" class="w-1/2 rounded-lg border-2"></div>
+            
+            <!-- Thống kê (50% chiều ngang) -->
+            <div id="f11-statistics" class="w-1/2 grid grid-cols-3 gap-2"></div>
+          </div>
+          
+          <!-- Nhận xét và Báo cáo bất thường -->
+          <div id="f11-comments" class="mb-4 space-y-3"></div>
+          
+          <!-- Container cho tất cả các items -->
+          <div id="f11-items-container" class="mb-4 space-y-6"></div>
         </div>
       </section>
     </main>
@@ -2150,6 +2189,8 @@
       // Riêng bảng phụ (subpanel) - Modal khai báo CE
       const FORM7_SUBPANEL_URL = "https://iatzhxxuk.tino.page/webhook/khaibaoce";
       const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/congguiformbaocao";
+      // Form 11 - Kiểm tra trước báo cáo
+      const FORM11_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/doctruocbaocao";
       // Endpoint for Form 3 submission (single webhook; send form-data with optional files)
       const FORM3_ENDPOINT = "https://iatzhxxuk.tino.page/webhook/form3guitacvu";
       // Endpoints for Form 6 (submit & list)
@@ -9058,14 +9099,12 @@
           "Đỗ Quang Long":"long.do@karofi.vn",
           "Nguyễn Văn Hiếu":"hieu.nguyen2@karofi.vn",
           "Nguyễn Hữu Thịnh":"thinh.nguyen2@karofi.vn",
-          "Nguyễn Văn Hiếu":"hieu.nguyen2@karofi.vn",
           "Nguyễn Văn Linh":"linh.nguyen@karofi.vn",
           "Phạm Thành Trung Kiên":"kien.pham1@karofi.vn",
           "Thái Thị Giang":"giang.thai@karofi.vn",
           "Trần Hiếu Nghĩa":"nghia.tran1@karofi.vn",
           "Vũ Thị Hằng":"hang.vu@karofi.vn",
           "Đào Tuấn Kỳ":"ky.dao@karofi.vn",
-          "Nguyễn Văn Linh":"linh.nguyen@karofi.vn",
           "Lại Quốc Lộc":"loc.lai@karofi.vn",
           "Lê Ngọc Ánh":"anh.le1@karofi.vn",
           "Lê Thị Thanh Nhàn":"nhan.le@karofi.vn",
@@ -9074,7 +9113,43 @@
           "Nguyễn Thị Hiền":"hien.nguyen1@karofi.vn",
           "Phạm Thị Minh":"minh.pham1@karofi.vn",
           "Vũ Duy Minh":"minh.vu@karofi.com",
-          "Vũ Thị Thanh Hiền":"hien.vu2@karofi.vn"
+          "Vũ Thị Thanh Hiền":"hien.vu2@karofi.vn",
+          "Đoàn Thị Minh Thư":"thu.doan@karofi.vn",
+          "Đặng Văn Hải":"haidv1@karofi.vn",
+          "Nguyễn Quang Trọng":"trongnq@karofi.vn",
+          "Phạm Quang Doanh":"doanh.pham@karofi.vn",
+          "Nguyễn Thị Mừng":"mung.nguyen1@karofi.vn",
+          "Vũ Đăng Lương":"luong.vu@karofi.vn",
+          "Hoàng Lê Anh":"anh.hoang2@karofi.com",
+          "Phan Văn Cử":"cupv@karofi.vn",
+          "Phạm Văn Thuận":"thuan.pham2@karofi.vn",
+          "Chu Văn Quang":"quangcv@karofi.vn",
+          "Trần Khắc Lâm":"lamtk@karofi.vn",
+          "Đặng Thế Huy":"huydt@karofi.com",
+          "Trần Hồng Nhung":"nhung.tran2@karofi.vn",
+          "Đỗ Thành Công":"congdt@karofi.vn",
+          "Nguyễn Kim Cương":"cuong.nguyen6@karofi.com",
+          "Nguyễn Chung Nam":"nam.nguyen5@karofi.vn",
+          "Nguyễn Ngọc Quang":"quang.nguyen1@karofi.vn",
+          "Hoàng Thùy Linh":"linh.hoang1@karofi.vn",
+          "Đoàn Văn Minh":"minh.doan@karofi.vn",
+          "Trần Văn Cường":"cuong.tran1@karofi.vn",
+          "Đỗ Công Nhậm":"nham.do@karofi.vn",
+          "Lê Minh Hải":"hai.le3@karofi.vn",
+          "Đỗ Xuân Thái":"thai.do1@karofi.vn",
+          "Trịnh Kế Lực":"luc.trinh@karofi.vn",
+          "Đặng Văn Thuấn":"thuan.dang@karofi.vn",
+          "Lê Thế Anh":"anh.le@karofi.vn",
+          "Dương Quốc Hiếu":"hieudq1@karofi.vn",
+          "Phùng Chí Tiến":"tien.phung@karofi.vn",
+          "Nguyễn Thị Hương Thúy":"thuy.nguyen@karofi.vn",
+          "Nguyễn Mạnh Hùng":"hung.nguyen2@karofi.vn",
+          "Nguyễn Hồng Hiếu":"hieu.nguyen@karofi.vn",
+          "Đàm Huy Hùng":"hung.dam@karofi.vn",
+          "Khương Đức Tình":"tinh.khuong@karofi.vn",
+          "Đặng Thị Chín":"chindt@karofi.vn",
+          "Hoàng Văn Thành":"thanhhv@karofi.vn",
+          "Nguyễn Thị Thủy":"thuynt3@karofi.vn"
         };
         const map = {};
         Object.keys(raw).forEach(k => map[normalize(k)] = raw[k]);
@@ -15274,7 +15349,550 @@
             }
           });
         }
+
+        // Form 11 - Kiểm tra trước báo cáo
+        const f11UploadBtn = document.getElementById('f11-upload-btn');
+        const f11FileInput = document.getElementById('f11-file');
+        const f11FileName = document.getElementById('f11-file-name');
+        const f11SubmitBtn = document.getElementById('f11-submit-btn');
+        
+        if (f11UploadBtn && f11FileInput && f11FileName && f11SubmitBtn) {
+          // Nút chọn file
+          f11UploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            f11FileInput.click();
+          });
+          
+          // Hiển thị tên file khi chọn và enable nút Gửi
+          f11FileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+              // Kiểm tra định dạng file
+              const fileName = file.name.toLowerCase();
+              if (!fileName.endsWith('.xlsx')) {
+                showToast('Chỉ chấp nhận file định dạng .xlsx', 'error');
+                f11FileInput.value = '';
+                f11FileName.textContent = 'Không có file nào được chọn';
+                f11FileName.className = 'text-sm text-gray-600';
+                f11SubmitBtn.disabled = true;
+                // Ẩn kết quả cũ
+                const resultsContainer = document.getElementById('f11-results');
+                if (resultsContainer) resultsContainer.classList.add('hidden');
+                return;
+              }
+              
+              f11FileName.textContent = file.name;
+              f11FileName.className = 'text-sm text-green-600 font-medium';
+              f11SubmitBtn.disabled = false;
+              // Ẩn kết quả cũ khi chọn file mới
+              const resultsContainer = document.getElementById('f11-results');
+              if (resultsContainer) resultsContainer.classList.add('hidden');
+            } else {
+              f11FileName.textContent = 'Không có file nào được chọn';
+              f11FileName.className = 'text-sm text-gray-600';
+              f11SubmitBtn.disabled = true;
+              // Ẩn kết quả
+              const resultsContainer = document.getElementById('f11-results');
+              if (resultsContainer) resultsContainer.classList.add('hidden');
+            }
+          });
+          
+          // Nút Gửi - upload file
+          f11SubmitBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const file = f11FileInput.files[0];
+            if (!file) {
+              showToast('Vui lòng chọn file trước', 'error');
+              return;
+            }
+            await handleForm11Upload(file);
+          });
+        }
       });
+
+      // Hàm xử lý upload cho Form 11
+      async function handleForm11Upload(file) {
+        if (!file) {
+          showToast('Vui lòng chọn file', 'error');
+          return;
+        }
+
+        // Kiểm tra định dạng
+        const fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.xlsx')) {
+          showToast('Chỉ chấp nhận file định dạng .xlsx', 'error');
+          return;
+        }
+
+        const submitBtn = document.getElementById('f11-submit-btn');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        
+        try {
+          // Disable nút và hiển thị loading
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+          }
+
+          // Tạo FormData với key "data0" cho file binary
+          const fd = new FormData();
+          // Gửi file với key "data0" - đảm bảo file được append đúng cách
+          fd.append('data0', file, file.name);
+          
+          // Thêm các metadata khác nếu cần
+          fd.append('file_name', file.name || '');
+          fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
+          fd.append('timestamp_yyyy_mm_dd', formatYyyyMmDdHHmm(new Date()));
+          fd.append('action', 'form11_upload');
+
+          console.log('[Form 11] Gửi file:', file.name, 'Size:', file.size, 'bytes');
+          console.log('[Form 11] URL:', FORM11_UPLOAD_URL);
+          console.log('[Form 11] FormData keys:', Array.from(fd.keys()));
+
+          // Gửi request - thử cors trước để có thể đọc response
+          let response = null;
+          let responseData = null;
+          try {
+            response = await fetch(FORM11_UPLOAD_URL, {
+              method: 'POST',
+              body: fd,
+              mode: 'cors',
+              credentials: 'omit'
+            });
+            console.log('[Form 11] Response status:', response.status);
+            if (response.ok) {
+              try {
+                const responseText = await response.text();
+                console.log('[Form 11] Response:', responseText);
+                // Parse JSON response
+                try {
+                  responseData = JSON.parse(responseText);
+                  console.log('[Form 11] Parsed data:', responseData);
+                } catch (parseError) {
+                  console.warn('[Form 11] Không thể parse JSON:', parseError);
+                }
+              } catch (e) {
+                console.log('[Form 11] Không thể đọc response text');
+              }
+            }
+          } catch (corsError) {
+            console.warn('[Form 11] CORS failed, trying no-cors:', corsError);
+            // Fallback về no-cors - không thể đọc response nhưng vẫn gửi được
+            try {
+              await fetch(FORM11_UPLOAD_URL, {
+                method: 'POST',
+                body: fd,
+                mode: 'no-cors'
+              });
+              console.log('[Form 11] Đã gửi với no-cors mode');
+            } catch (noCorsError) {
+              console.error('[Form 11] Cả cors và no-cors đều fail:', noCorsError);
+              throw noCorsError;
+            }
+          }
+
+          // Đợi một chút để đảm bảo webhook đã xử lý xong
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Hiển thị kết quả nếu có
+          if (responseData && Array.isArray(responseData) && responseData.length > 0) {
+            renderForm11Results(responseData);
+            showToast('Đã xử lý file thành công', 'success');
+          } else {
+            showToast('Đã gửi file thành công', 'success');
+          }
+          
+          // Không reset file input sau khi gửi thành công để người dùng có thể xem lại kết quả
+          // Chỉ reset khi người dùng chọn file mới
+        } catch (e) {
+          console.error('[Form 11] Upload error:', e);
+          showToast('Gửi file thất bại: ' + (e.message || 'Lỗi không xác định'), 'error');
+        } finally {
+          // Restore nút
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        }
+      }
+
+      // Hàm hiển thị kết quả Form 11
+      function renderForm11Results(data) {
+        const resultsContainer = document.getElementById('f11-results');
+        if (!resultsContainer) return;
+
+        // Hiển thị container
+        resultsContainer.classList.remove('hidden');
+
+        // Parse dữ liệu - cấu trúc mới: mảng chứa object, object có data và rows
+        let mainData = null; // Dữ liệu chính (có output, nhan_xet, bao_cao_bat_thuong, thong_ke_them, data, rows)
+        let conclusionData = null;
+        let statisticsData = null;
+        let tcktDataArray = []; // Mảng các object có Hạng mục kiểm tra để tạo bảng TCKT
+        let rowsDataArray = []; // Mảng các rows để tạo bảng Hạng mục thêm
+        
+        // Xử lý dữ liệu - có thể là mảng chứa object hoặc object đơn
+        if (Array.isArray(data) && data.length > 0) {
+          // Lấy object đầu tiên (hoặc xử lý nhiều items nếu có)
+          mainData = data[0];
+        } else if (typeof data === 'object' && data !== null) {
+          mainData = data;
+        }
+        
+        if (!mainData) {
+          console.warn('[Form 11] Không có dữ liệu để hiển thị');
+          return;
+        }
+        
+        console.log('[Form 11] Dữ liệu chính:', mainData);
+        
+        // Lấy output (kết luận)
+        conclusionData = mainData;
+        
+        // Lấy thống kê từ data array
+        if (mainData.data && Array.isArray(mainData.data)) {
+          statisticsData = mainData.data.find(item => item && item.thong_ke && item.thong_ke.total !== undefined);
+          
+          // Lọc các object có Hạng mục kiểm tra (loại bỏ object có thong_ke)
+          tcktDataArray = mainData.data.filter(item => {
+            if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+            // Loại bỏ object có thong_ke (thống kê)
+            if (item.thong_ke) return false;
+            // Chỉ lấy object có Hạng mục kiểm tra
+            const hasHangMuc = item['Hạng mục kiểm tra (Index)'] || item['Hạng mục kiểm tra \n(Index)'];
+            return !!hasHangMuc;
+          });
+        }
+        
+        // Lấy rows array
+        if (mainData.rows && Array.isArray(mainData.rows)) {
+          rowsDataArray = mainData.rows;
+        }
+
+        if (tcktDataArray.length === 0 && rowsDataArray.length === 0) {
+          console.warn('[Form 11] Không có dữ liệu TCKT hoặc rows để hiển thị');
+          return;
+        }
+
+        const nhanXet = mainData?.nhan_xet || '';
+        const baoCaoBatThuong = mainData?.bao_cao_bat_thuong || '';
+        const soMauTest = mainData?.so_mau_test || 0;
+        const congChuanSheet = mainData?.Cong_chuan_Sheet_theo_so_mau || 0;
+        const congChuanSheetThem = mainData?.Cong_chuan_Sheetthem_theo_so_mau || 0;
+        const tongCongChuanThuc = mainData?.tong_cong_chuan_thuc || 0;
+        const tongCongChuanThucChuyenDoi = mainData?.tong_cong_chuan_thuc_chuyen_doi || '';
+        const thongKeThem = mainData?.thong_ke_them || {};
+        
+        // Hàm format số thập phân: đổi dấu . thành dấu ,
+        function formatDecimal(value) {
+          if (value === null || value === undefined || value === '') return value;
+          return String(value).replace(/\./g, ',');
+        }
+        
+        // Format công chuẩn Sheet và Sheet thêm
+        const congChuanSheetFormatted = formatDecimal(congChuanSheet);
+        const congChuanSheetThemFormatted = formatDecimal(congChuanSheetThem);
+        
+        // Lấy thống kê từ statisticsData nếu có
+        const thongKe = statisticsData?.thong_ke || {};
+
+        // 1. Hiển thị Kết luận đánh giá (nếu có)
+        const conclusionDiv = document.getElementById('f11-conclusion');
+        if (conclusionDiv) {
+          if (conclusionData && conclusionData.output) {
+            const ketQua = conclusionData.output.Ket_qua_danh_gia || '';
+            const coTestBen = conclusionData.output.co_test_ben || '';
+            const noiDungTestBen = conclusionData.output.Noi_dung_test_ben || '';
+            
+            let bgColor = 'bg-blue-50 border-blue-300';
+            let textColor = 'text-blue-800';
+            if (ketQua.includes('không đạt') || ketQua.includes('KHÔNG ĐẠT')) {
+              bgColor = 'bg-red-50 border-red-300';
+              textColor = 'text-red-800';
+            } else if (ketQua.includes('đạt') || ketQua.includes('ĐẠT')) {
+              bgColor = 'bg-green-50 border-green-300';
+              textColor = 'text-green-800';
+            }
+
+            conclusionDiv.className = `p-3 rounded-lg border-2 ${bgColor}`;
+            conclusionDiv.innerHTML = `
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-semibold ${textColor}">📊 Kết luận:</span>
+                  <span class="text-base font-semibold ${textColor}">${ketQua}</span>
+                </div>
+                ${coTestBen ? `<span class="text-xs ${textColor}">Test bền: ${coTestBen}</span>` : ''}
+              </div>
+              ${noiDungTestBen ? `<div class="text-xs ${textColor} mb-2">Nội dung: ${noiDungTestBen}</div>` : ''}
+              <div class="grid grid-cols-4 gap-2 pt-2 border-t ${textColor.replace('800', '300')}">
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Số mẫu</div>
+                  <div class="text-base font-bold ${textColor}">${soMauTest}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Công chuẩn Sheet</div>
+                  <div class="text-base font-bold ${textColor}">${congChuanSheetFormatted}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Sheet thêm</div>
+                  <div class="text-base font-bold ${textColor}">${congChuanSheetThemFormatted}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Tổng công chuẩn</div>
+                  <div class="text-base font-bold ${textColor}">${tongCongChuanThucChuyenDoi || tongCongChuanThuc}</div>
+                </div>
+              </div>
+            `;
+          } else {
+            // Không có kết luận, chỉ hiển thị thông tin tổng quan
+            conclusionDiv.className = 'p-3 rounded-lg border-2 bg-blue-50 border-blue-300';
+            conclusionDiv.innerHTML = `
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg font-semibold text-blue-800">📊 Thông tin tổng quan</span>
+              </div>
+              <div class="grid grid-cols-4 gap-2">
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Số mẫu</div>
+                  <div class="text-base font-bold text-blue-800">${soMauTest}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Công chuẩn Sheet</div>
+                  <div class="text-base font-bold text-blue-800">${congChuanSheetFormatted}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Sheet thêm</div>
+                  <div class="text-base font-bold text-blue-800">${congChuanSheetThemFormatted}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xs text-gray-600">Tổng công chuẩn</div>
+                  <div class="text-base font-bold text-blue-800">${tongCongChuanThucChuyenDoi || tongCongChuanThuc}</div>
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        // 2. Hiển thị Thống kê
+        const statisticsDiv = document.getElementById('f11-statistics');
+        if (statisticsDiv) {
+          // Ưu tiên thống kê từ thong_ke (tổng) nếu có, nếu không thì dùng thong_ke_them
+          const stats = thongKe.total !== undefined ? thongKe : (thongKeThem.thong_ke_danh_gia || {});
+          const soHangMuc = thongKeThem.so_hang_muc || (thongKe.total !== undefined ? thongKe.total : 0);
+          const soCotMau = thongKeThem.so_cot_mau || 0;
+          const rowsCoCongChuan = thongKeThem.rows_co_cong_chuan || 0;
+          const rowsCoDuLieuMau = thongKeThem.rows_co_du_lieu_mau || 0;
+          
+          statisticsDiv.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">Tổng số</div>
+              <div class="text-lg font-bold text-blue-800">${thongKe.total || soHangMuc || 0}</div>
+            </div>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">OK</div>
+              <div class="text-lg font-bold text-green-800">${stats.OK || thongKe.OK || 0}</div>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">NG</div>
+              <div class="text-lg font-bold text-red-800">${stats.NG || thongKe.NG || 0}</div>
+            </div>
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">KDG</div>
+              <div class="text-lg font-bold text-orange-800">${stats.KDG || thongKe.KDG || 0}</div>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">KKL</div>
+              <div class="text-lg font-bold text-yellow-800">${stats.KKL || thongKe.KKL || 0}</div>
+            </div>
+            ${thongKe.Test_ben !== undefined ? `
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-2 text-center">
+              <div class="text-xs text-gray-600">Test bền</div>
+              <div class="text-lg font-bold text-purple-800">${thongKe.Test_ben || 0}</div>
+            </div>
+            ` : ''}
+          `;
+        }
+
+        // 3. Hiển thị Nhận xét và Báo cáo bất thường
+        const commentsDiv = document.getElementById('f11-comments');
+        if (commentsDiv) {
+          commentsDiv.innerHTML = `
+            ${nhanXet ? `
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="font-semibold text-blue-800 mb-2">💬 Nhận xét</h3>
+                <p class="text-sm text-gray-700 whitespace-pre-wrap">${nhanXet}</p>
+              </div>
+            ` : ''}
+            ${baoCaoBatThuong ? `
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h3 class="font-semibold text-amber-800 mb-2">⚠️ Báo cáo bất thường</h3>
+                <div class="text-sm text-gray-700 whitespace-pre-wrap">${baoCaoBatThuong}</div>
+              </div>
+            ` : ''}
+          `;
+        }
+
+        // 4. Hiển thị Bảng TCKT (từ data array)
+        const itemsContainer = document.getElementById('f11-items-container');
+        if (itemsContainer && tcktDataArray.length > 0) {
+          itemsContainer.innerHTML = ''; // Clear container
+          
+          // Tìm các cột mẫu từ dữ liệu TCKT (M1, M2, M3, M4, M5, ...)
+          const tcktSampleCols = [];
+          tcktDataArray.forEach(item => {
+            Object.keys(item).forEach(key => {
+              if (key.match(/^M\d+$/) && !tcktSampleCols.includes(key)) {
+                tcktSampleCols.push(key);
+              }
+            });
+          });
+          tcktSampleCols.sort();
+          
+          // Tạo section cho bảng TCKT
+          const itemSection = document.createElement('div');
+          itemSection.className = 'mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm';
+          itemSection.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-blue-800">📋 Bảng TCKT</h3>
+              ${thongKe.total ? `
+                <div class="flex items-center gap-4 text-sm">
+                  <span class="text-gray-600">Tổng: <strong class="text-blue-800">${thongKe.total}</strong></span>
+                  <span class="text-green-600">OK: <strong>${thongKe.OK || 0}</strong></span>
+                  <span class="text-red-600">NG: <strong>${thongKe.NG || 0}</strong></span>
+                  <span class="text-orange-600">KDG: <strong>${thongKe.KDG || 0}</strong></span>
+                  <span class="text-yellow-600">KKL: <strong>${thongKe.KKL || 0}</strong></span>
+                </div>
+              ` : ''}
+            </div>
+            <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+              <table class="min-w-full text-sm border-collapse">
+                <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+                  <tr>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công chuẩn</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Đánh giá</th>
+                    ${tcktSampleCols.map(col => `<th class="px-2 py-2 border border-gray-300 text-center font-semibold">${col}</th>`).join('')}
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody id="f11-tckt-tbody">
+                </tbody>
+              </table>
+            </div>
+          `;
+          
+          const tbody = itemSection.querySelector('#f11-tckt-tbody');
+          if (tbody) {
+            tcktDataArray.forEach((row, idx) => {
+              const danhGia = row['Đánh giá'] || '';
+              let rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+              let danhGiaColor = 'text-gray-700';
+              if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
+              else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
+              else if (danhGia === 'KDG' || danhGia === 'KKL') danhGiaColor = 'text-orange-700 font-semibold';
+
+              const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
+              const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
+              const ghiChu = row['Ghi chú'] || '';
+              const congChuan = row['Công chuẩn'] || '';
+
+              const tr = document.createElement('tr');
+              tr.className = rowBg;
+              tr.innerHTML = `
+                <td class="px-3 py-2 border border-gray-300">${idx + 1}</td>
+                <td class="px-3 py-2 border border-gray-300">${hangMuc}</td>
+                <td class="px-3 py-2 border border-gray-300">${tieuChuan}</td>
+                <td class="px-3 py-2 border border-gray-300 text-right">${congChuan}</td>
+                <td class="px-3 py-2 border border-gray-300 ${danhGiaColor}">${danhGia}</td>
+                ${tcktSampleCols.map(col => `<td class="px-2 py-2 border border-gray-300 text-center">${row[col] !== null && row[col] !== undefined ? row[col] : '-'}</td>`).join('')}
+                <td class="px-3 py-2 border border-gray-300 text-xs">${ghiChu || '-'}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+          
+          itemsContainer.appendChild(itemSection);
+        }
+
+        // 5. Hiển thị Bảng Hạng mục thêm (từ rows array)
+        if (itemsContainer && rowsDataArray.length > 0) {
+          // Lấy danh sách cột mẫu từ thong_ke_them hoặc từ dữ liệu
+          const sampleCols = thongKeThem.sample_cols || [];
+          let allSampleCols = [...sampleCols];
+          
+          // Nếu không có trong thong_ke_them, tự động tìm từ rows
+          if (allSampleCols.length === 0) {
+            rowsDataArray.forEach(row => {
+              Object.keys(row).forEach(key => {
+                if (key.match(/^Mẫu \d+$/) && !allSampleCols.includes(key)) {
+                  allSampleCols.push(key);
+                }
+              });
+            });
+            allSampleCols.sort();
+          }
+
+          // Tạo section cho bảng Hạng mục thêm
+          const rowsSection = document.createElement('div');
+          rowsSection.className = 'mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm';
+          rowsSection.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-blue-800">📋 Bảng Hạng mục thêm</h3>
+            </div>
+            <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+              <table class="min-w-full text-sm border-collapse">
+                <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+                  <tr>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công chuẩn</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Đánh giá</th>
+                    ${allSampleCols.map(col => `<th class="px-2 py-2 border border-gray-300 text-center font-semibold">${col}</th>`).join('')}
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody id="f11-rows-tbody">
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          const tbody = rowsSection.querySelector('#f11-rows-tbody');
+          if (tbody) {
+            rowsDataArray.forEach((row, rowIndex) => {
+              const danhGia = row['Đánh giá'] || '';
+              let rowBg = rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+              let danhGiaColor = 'text-gray-700';
+              if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
+              else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
+              else if (danhGia === 'KDG' || danhGia === 'KKL') danhGiaColor = 'text-orange-700 font-semibold';
+
+              // Xử lý các key có thể có \n trong tên
+              const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
+              const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
+              const ghiChu = row['Ghi chú'] || '';
+              const congChuan = row['Công chuẩn'] || '';
+
+              const tr = document.createElement('tr');
+              tr.className = rowBg;
+              tr.innerHTML = `
+                <td class="px-3 py-2 border border-gray-300">${row.STT || rowIndex + 1}</td>
+                <td class="px-3 py-2 border border-gray-300">${hangMuc}</td>
+                <td class="px-3 py-2 border border-gray-300">${tieuChuan}</td>
+                <td class="px-3 py-2 border border-gray-300 text-right">${congChuan}</td>
+                <td class="px-3 py-2 border border-gray-300 ${danhGiaColor}">${danhGia}</td>
+                ${allSampleCols.map(col => `<td class="px-2 py-2 border border-gray-300 text-center">${row[col] !== null && row[col] !== undefined ? row[col] : '-'}</td>`).join('')}
+                <td class="px-3 py-2 border border-gray-300 text-xs">${ghiChu || '-'}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+          
+          itemsContainer.appendChild(rowsSection);
+        }
+      }
 
       // ===== NAVIGATION AND FORM VISIBILITY CONTROL =====
       // Hàm ẩn tất cả các form
