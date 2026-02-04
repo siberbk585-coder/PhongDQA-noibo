@@ -427,6 +427,10 @@
                 <span class="text-base">📋</span>
                 <p class="text-sm font-semibold">Form 11 - Kiểm tra trước khi gửi báo cáo</p>
               </button>
+              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form12">
+                <span class="text-base">📑</span>
+                <p class="text-sm font-semibold">Form 12 - Mã danh mục</p>
+              </button>
             </div>
           </div>
           <div class="rounded-md">
@@ -443,7 +447,7 @@
                 <span class="text-base">🌼</span>
                 <p class="text-sm font-semibold">Form 5: KPI tháng</p>
               </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form6">
+              <button class="nav-btn hidden flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form6">
                 <span class="text-base">🌸</span>
                 <p class="text-sm font-semibold">Form 6 · Ý tưởng cải tiến</p>
               </button>
@@ -1244,7 +1248,110 @@
           <div id="f11-items-container" class="mb-4 space-y-6"></div>
         </div>
       </section>
+
+      <!-- Form 12 - Mã danh mục -->
+      <section id="form12" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-blue-800">Form 12 - Mã danh mục</h2>
+          <div class="flex items-center gap-2">
+            <button id="f12-search" class="submit-btn px-4 py-2 text-white font-semibold transition">Tra cứu</button>
+            <button id="f12-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 mb-4 flex-wrap">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Lọc Hạng mục kiểm tra:</label>
+            <button id="f12-filter-hangmuc-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-300 bg-white hover:bg-blue-50 text-gray-700 text-sm font-medium shadow-sm transition min-w-[200px] justify-between">
+              <span id="f12-filter-hangmuc-label">Tất cả</span>
+              <span class="material-symbols-outlined text-lg text-blue-600">filter_list</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 hidden">
+            <label class="text-sm font-medium text-gray-700">Tick theo Tên linh kiện:</label>
+            <button id="f12-filter-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-300 bg-white hover:bg-blue-50 text-gray-700 text-sm font-medium shadow-sm transition min-w-[200px] justify-between">
+              <span id="f12-filter-label">Chọn linh kiện để tick</span>
+              <span class="material-symbols-outlined text-lg text-blue-600">checklist</span>
+            </button>
+          </div>
+          <span id="f12-ticked-count" class="text-sm text-gray-600">Đã chọn: 0</span>
+          <button id="f12-show-ticked-only-btn" type="button" class="px-3 py-1.5 rounded-lg border border-blue-300 bg-white hover:bg-blue-50 text-gray-700 text-sm font-medium transition">
+            <span id="f12-show-ticked-only-label">Chỉ hiện đã tick</span>
+          </button>
+        </div>
+        <div id="f12-loading" class="hidden text-center py-4">
+          <span class="spinner"></span>
+          <span class="ml-2 text-gray-600">Đang tải...</span>
+        </div>
+        <div id="f12-results" class="mt-4 -mx-6">
+          <div class="overflow-auto max-h-[70vh] border border-gray-200 rounded-lg bg-white">
+            <table class="min-w-[1200px] w-full text-sm table-zebra">
+              <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+                <tr class="text-left text-gray-700">
+                  <th class="px-3 py-2 w-10"><input id="f12-select-all" type="checkbox" class="rounded border-gray-400" title="Chọn/bỏ chọn tất cả" /></th>
+                  <th class="px-3 py-2">Id</th>
+                  <th class="px-3 py-2">Mã danh mục</th>
+                  <th class="px-3 py-2">Hạng mục kiểm tra</th>
+                  <th class="px-3 py-2">Tiêu chuẩn</th>
+                  <th class="px-3 py-2">Công cụ</th>
+                  <th class="px-3 py-2">Type</th>
+                  <th class="px-3 py-2">Hướng dẫn</th>
+                  <th class="px-3 py-2">Available</th>
+                  <th class="px-3 py-2">Công chuẩn</th>
+                </tr>
+              </thead>
+              <tbody id="f12-body" class="divide-y divide-gray-100">
+                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Nhấn "Tra cứu" để tải dữ liệu</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <!-- Form 12: Modal lọc Tên linh kiện -->
+    <div id="f12-filter-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f12-filter-modal-title">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="px-5 py-4 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+          <h3 id="f12-filter-modal-title" class="text-lg font-semibold text-gray-800">Tick theo Tên linh kiện</h3>
+          <button id="f12-filter-modal-close" type="button" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">&times;</button>
+        </div>
+        <div class="p-4">
+          <div class="relative mb-4">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
+            <input id="f12-filter-search" type="text" placeholder="Tìm kiếm theo từ khóa..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" />
+          </div>
+          <div id="f12-filter-list" class="max-h-[320px] overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+            <div class="p-3 text-center text-gray-500 text-sm">Nhấn "Tra cứu" để tải dữ liệu</div>
+          </div>
+        </div>
+        <div class="px-4 py-3 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
+          <button id="f12-filter-apply" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form 12: Modal lọc Hạng mục kiểm tra -->
+    <div id="f12-filter-hangmuc-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f12-filter-hangmuc-title">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="px-5 py-4 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
+          <h3 id="f12-filter-hangmuc-title" class="text-lg font-semibold text-gray-800">Lọc theo Hạng mục kiểm tra</h3>
+          <button id="f12-filter-hangmuc-close" type="button" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">&times;</button>
+        </div>
+        <div class="p-4">
+          <div class="relative mb-4">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
+            <input id="f12-filter-hangmuc-search" type="text" placeholder="Tìm kiếm theo từ khóa..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" />
+          </div>
+          <div id="f12-filter-hangmuc-list" class="max-h-[320px] overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+            <div class="p-3 text-center text-gray-500 text-sm">Nhấn "Tra cứu" để tải dữ liệu</div>
+          </div>
+        </div>
+        <div class="px-4 py-3 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
+          <button id="f12-filter-hangmuc-apply" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Áp dụng</button>
+          <button id="f12-filter-hangmuc-reset" type="button" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Xóa lọc</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Form 9: Modal chi tiết Test bền -->
     <div id="f9-dur-modal" class="modal" aria-hidden="true">
@@ -2191,6 +2298,8 @@
       const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/congguiformbaocao";
       // Form 11 - Kiểm tra trước báo cáo
       const FORM11_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/doctruocbaocao";
+      // Form 12 - Mã danh mục (tra cứu)
+      const FORM12_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/tracuumadanhmuc";
       // Endpoint for Form 3 submission (single webhook; send form-data with optional files)
       const FORM3_ENDPOINT = "https://iatzhxxuk.tino.page/webhook/form3guitacvu";
       // Endpoints for Form 6 (submit & list)
@@ -4480,7 +4589,7 @@
       // Global helper: parse various date/time formats robustly (ISO/TZ, DD/MM/YYYY, YYYY-MM-DD, with optional time & AM/PM)
       // Sidebar navigation
       const navBtns = document.querySelectorAll('.nav-btn');
-      const sections = ['form1','form4','form5','form6','form7','form8','form9'].map(id=>document.getElementById(id));
+      const sections = ['form1','form11','form12','form4','form5','form6','form7','form8','form9'].map(id=>document.getElementById(id));
       function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
       navBtns.forEach((btn)=>{
         btn.onclick=()=>{
@@ -4518,6 +4627,11 @@
           if (target === 'form9') {
             try {
               restoreForm9FromCache();
+            } catch(_){}
+          }
+          if (target === 'form12') {
+            try {
+              if (!F12_LAST_ROWS || F12_LAST_ROWS.length === 0) { renderForm12Data(); }
             } catch(_){}
           }
         }
@@ -5792,6 +5906,7 @@
             if (any) showSection(any.id);
           } else {
             showSection(defaultId);
+            if (defaultId === 'form12') { setTimeout(function(){ try { if (typeof renderForm12Data === 'function' && (!F12_LAST_ROWS || F12_LAST_ROWS.length === 0)) renderForm12Data(); } catch(_){} }, 0); }
           }
           // Đánh dấu active cho nhóm chứa form đang mở
           try{
@@ -15408,6 +15523,56 @@
             await handleForm11Upload(file);
           });
         }
+
+        // Form 12 - Mã danh mục
+        const f12SearchBtn = document.getElementById('f12-search');
+        if (f12SearchBtn) {
+          f12SearchBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            await renderForm12Data();
+          });
+        }
+        const f12ExportBtn = document.getElementById('f12-export-xlsx');
+        if (f12ExportBtn) {
+          f12ExportBtn.addEventListener('click', function(e) { e.preventDefault(); f12DownloadXLSX(); });
+        }
+        const f12FilterBtn = document.getElementById('f12-filter-btn');
+        if (f12FilterBtn) f12FilterBtn.addEventListener('click', f12OpenFilterModal);
+        const f12FilterModalClose = document.getElementById('f12-filter-modal-close');
+        if (f12FilterModalClose) f12FilterModalClose.addEventListener('click', f12CloseFilterModal);
+        const f12FilterApply = document.getElementById('f12-filter-apply');
+        if (f12FilterApply) f12FilterApply.addEventListener('click', f12CloseFilterModal);
+        const f12FilterSearch = document.getElementById('f12-filter-search');
+        if (f12FilterSearch) f12FilterSearch.addEventListener('input', function(){ f12RenderFilterList(this.value); });
+        document.getElementById('f12-filter-modal') && document.getElementById('f12-filter-modal').addEventListener('click', function(e){ if (e.target === this) f12CloseFilterModal(); });
+        var f12HangMucBtn = document.getElementById('f12-filter-hangmuc-btn');
+        if (f12HangMucBtn) f12HangMucBtn.addEventListener('click', f12OpenFilterHangMucModal);
+        var f12HangMucClose = document.getElementById('f12-filter-hangmuc-close');
+        if (f12HangMucClose) f12HangMucClose.addEventListener('click', f12CloseFilterHangMucModal);
+        var f12HangMucApply = document.getElementById('f12-filter-hangmuc-apply');
+        if (f12HangMucApply) f12HangMucApply.addEventListener('click', f12CloseFilterHangMucModal);
+        var f12HangMucReset = document.getElementById('f12-filter-hangmuc-reset');
+        if (f12HangMucReset) f12HangMucReset.addEventListener('click', function(){ F12_FILTER_HANG_MUC = ''; f12UpdateFilterHangMucLabel(); f12CloseFilterHangMucModal(); renderForm12Table(f12GetDisplayedRows()); });
+        var f12HangMucSearch = document.getElementById('f12-filter-hangmuc-search');
+        if (f12HangMucSearch) f12HangMucSearch.addEventListener('input', function(){ f12RenderFilterHangMucList(this.value); });
+        document.getElementById('f12-filter-hangmuc-modal') && document.getElementById('f12-filter-hangmuc-modal').addEventListener('click', function(e){ if (e.target === this) f12CloseFilterHangMucModal(); });
+        var f12SelectAll = document.getElementById('f12-select-all');
+        var f12ShowTickedBtn = document.getElementById('f12-show-ticked-only-btn');
+        if (f12ShowTickedBtn) f12ShowTickedBtn.addEventListener('click', function(){
+          F12_SHOW_ONLY_TICKED = !F12_SHOW_ONLY_TICKED;
+          var lbl = document.getElementById('f12-show-ticked-only-label');
+          if (lbl) lbl.textContent = F12_SHOW_ONLY_TICKED ? 'Hiện tất cả' : 'Chỉ hiện đã tick';
+          f12ShowTickedBtn.classList.toggle('bg-blue-100', F12_SHOW_ONLY_TICKED);
+          f12ShowTickedBtn.classList.toggle('border-blue-500', F12_SHOW_ONLY_TICKED);
+          renderForm12Table(f12GetDisplayedRows());
+        });
+        if (f12SelectAll) f12SelectAll.addEventListener('change', function(){
+          var displayed = f12GetDisplayedRows();
+          var allChecked = this.checked;
+          displayed.forEach(function(r){ var i = F12_LAST_ROWS.indexOf(r); if (i >= 0) F12_TICKED_IDS[f12RowKey(i)] = allChecked; });
+          f12UpdateTickedCount();
+          renderForm12Table(displayed);
+        });
       });
 
       // Hàm xử lý upload cho Form 11
@@ -15514,6 +15679,209 @@
             submitBtn.textContent = originalText;
           }
         }
+      }
+
+      // Form 12 - Cache dữ liệu để lọc và xuất
+      let F12_LAST_ROWS = [];
+      let F12_FILTER_HANG_MUC = '';
+      let F12_HANG_MUC_OPTIONS = [];
+      let F12_FILTER_OPTIONS = [];
+      let F12_TICKED_IDS = {};
+      let F12_SHOW_ONLY_TICKED = false;
+      const F12_COLS = ['Id','Tên linh kiện','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn'];
+      const F12_DISPLAY_COLS = ['Id','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn'];
+
+      function f12RowKey(idx) { return 'idx_' + idx; }
+
+      function renderForm12Table(rows) {
+        const bodyEl = document.getElementById('f12-body');
+        if (!bodyEl) return;
+        const escape = (v) => (v == null || v === '') ? '' : String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        if (!rows.length) {
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
+        } else {
+          bodyEl.innerHTML = rows.map(function(row){
+            var globalIdx = F12_LAST_ROWS.indexOf(row);
+            if (globalIdx < 0) globalIdx = F12_LAST_ROWS.length;
+            var key = f12RowKey(globalIdx);
+            var checked = F12_TICKED_IDS[key] ? ' checked' : '';
+            var cells = F12_DISPLAY_COLS.map(k => escape(row[k] ?? ''));
+            return '<tr class="hover:bg-blue-50/50" data-f12-key="' + escape(key) + '"><td class="px-3 py-2 align-middle"><input type="checkbox" class="f12-row-cb rounded border-gray-400" data-key="' + escape(key) + '"' + checked + ' /></td>' + cells.map(c => '<td class="px-3 py-2 text-gray-800 align-top">' + c + '</td>').join('') + '</tr>';
+          }).join('');
+        }
+        bodyEl.querySelectorAll('.f12-row-cb').forEach(function(cb){
+          cb.addEventListener('change', function(){ var k = cb.getAttribute('data-key'); F12_TICKED_IDS[k] = cb.checked; f12UpdateTickedCount(); });
+        });
+        var selAll = document.getElementById('f12-select-all');
+        if (selAll) {
+          if (rows.length === 0) { selAll.checked = false; selAll.indeterminate = false; }
+          else {
+            var anyTicked = rows.some(function(r){ var i = F12_LAST_ROWS.indexOf(r); return i >= 0 && F12_TICKED_IDS[f12RowKey(i)]; });
+            var allTicked = rows.every(function(r){ var i = F12_LAST_ROWS.indexOf(r); return i >= 0 && F12_TICKED_IDS[f12RowKey(i)]; });
+            selAll.checked = allTicked;
+            selAll.indeterminate = anyTicked && !allTicked;
+          }
+        }
+        f12UpdateTickedCount();
+      }
+
+      function f12UpdateTickedCount() {
+        var cnt = Object.keys(F12_TICKED_IDS).filter(function(k){ return F12_TICKED_IDS[k]; }).length;
+        var el = document.getElementById('f12-ticked-count');
+        if (el) el.textContent = 'Đã chọn: ' + cnt;
+      }
+
+      function f12GetDisplayedRows() {
+        var base = !F12_FILTER_HANG_MUC ? F12_LAST_ROWS : F12_LAST_ROWS.filter(function(r){ return String(r['Hạng mục kiểm tra'] || '').trim() === F12_FILTER_HANG_MUC; });
+        if (!F12_SHOW_ONLY_TICKED) return base;
+        return base.filter(function(r, i){ var idx = F12_LAST_ROWS.indexOf(r); return idx >= 0 && F12_TICKED_IDS[f12RowKey(idx)]; });
+      }
+
+      function f12GetTickedRows() {
+        return F12_LAST_ROWS.filter(function(r, i){ return F12_TICKED_IDS[f12RowKey(i)]; });
+      }
+
+      function f12RenderFilterList(keyword) {
+        const listEl = document.getElementById('f12-filter-list');
+        if (!listEl) return;
+        if (F12_FILTER_OPTIONS.length === 0) {
+          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Chưa có dữ liệu. Nhấn "Tra cứu" để tải.</div>';
+          return;
+        }
+        var kw = (keyword || '').toLowerCase().trim();
+        var filtered = kw ? F12_FILTER_OPTIONS.filter(function(v){ return String(v).toLowerCase().indexOf(kw) >= 0; }) : F12_FILTER_OPTIONS;
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Không tìm thấy kết quả</div>';
+          return;
+        }
+        var html = '<div class="f12-tick-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm" data-value="">Tick tất cả</div>';
+        filtered.forEach(function(v){
+          var esc = String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          html += '<div class="f12-tick-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm" data-value="' + esc + '">Tick: ' + esc + '</div>';
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll('.f12-tick-item').forEach(function(el){
+          el.addEventListener('click', function(){
+            var val = el.getAttribute('data-value') || '';
+            F12_LAST_ROWS.forEach(function(r, i){
+              var k = f12RowKey(i);
+              if (!val) { F12_TICKED_IDS[k] = true; }
+              else if (String(r['Tên linh kiện'] || '').trim() === val) { F12_TICKED_IDS[k] = true; }
+            });
+            f12UpdateTickedCount();
+            f12CloseFilterModal();
+            renderForm12Table(f12GetDisplayedRows());
+          });
+        });
+      }
+
+      function f12OpenFilterModal() {
+        var m = document.getElementById('f12-filter-modal');
+        if (m) { m.classList.add('open'); m.setAttribute('aria-hidden','false'); document.getElementById('f12-filter-search').value = ''; f12RenderFilterList(''); }
+      }
+      function f12CloseFilterModal() {
+        var m = document.getElementById('f12-filter-modal');
+        if (m) { m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
+      }
+
+      function f12UpdateFilterHangMucLabel() {
+        var lbl = document.getElementById('f12-filter-hangmuc-label');
+        if (lbl) lbl.textContent = F12_FILTER_HANG_MUC || 'Tất cả';
+      }
+
+      function f12RenderFilterHangMucList(keyword) {
+        var listEl = document.getElementById('f12-filter-hangmuc-list');
+        if (!listEl) return;
+        if (F12_HANG_MUC_OPTIONS.length === 0) {
+          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Chưa có dữ liệu. Nhấn "Tra cứu" để tải.</div>';
+          return;
+        }
+        var kw = (keyword || '').toLowerCase().trim();
+        var filtered = kw ? F12_HANG_MUC_OPTIONS.filter(function(v){ return String(v).toLowerCase().indexOf(kw) >= 0; }) : F12_HANG_MUC_OPTIONS;
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Không tìm thấy kết quả</div>';
+          return;
+        }
+        var sel = F12_FILTER_HANG_MUC;
+        var html = '<div class="f12-hangmuc-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm' + (sel === '' ? ' bg-blue-100 font-medium' : '') + '" data-value="">Tất cả</div>';
+        filtered.forEach(function(v){
+          var esc = String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          html += '<div class="f12-hangmuc-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm' + (sel === v ? ' bg-blue-100 font-medium' : '') + '" data-value="' + esc + '">' + esc + '</div>';
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll('.f12-hangmuc-item').forEach(function(el){
+          el.addEventListener('click', function(){ F12_FILTER_HANG_MUC = (el.getAttribute('data-value') || ''); f12UpdateFilterHangMucLabel(); f12CloseFilterHangMucModal(); renderForm12Table(f12GetDisplayedRows()); });
+        });
+      }
+
+      function f12OpenFilterHangMucModal() {
+        var m = document.getElementById('f12-filter-hangmuc-modal');
+        if (m) { m.classList.add('open'); m.setAttribute('aria-hidden','false'); document.getElementById('f12-filter-hangmuc-search').value = ''; f12RenderFilterHangMucList(''); }
+      }
+      function f12CloseFilterHangMucModal() {
+        var m = document.getElementById('f12-filter-hangmuc-modal');
+        if (m) { m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
+      }
+
+      function f12PopulateFilter(rows) {
+        var arrTen = rows.map(function(r){ return String(r['Tên linh kiện'] || '').trim(); }).filter(Boolean);
+        var arrHangMuc = rows.map(function(r){ return String(r['Hạng mục kiểm tra'] || '').trim(); }).filter(Boolean);
+        F12_FILTER_OPTIONS = [...new Set(arrTen)].sort();
+        F12_HANG_MUC_OPTIONS = [...new Set(arrHangMuc)].sort();
+        F12_FILTER_HANG_MUC = '';
+        f12UpdateFilterHangMucLabel();
+        f12RenderFilterList('');
+        f12RenderFilterHangMucList('');
+      }
+
+      async function renderForm12Data() {
+        const loadingEl = document.getElementById('f12-loading');
+        const bodyEl = document.getElementById('f12-body');
+        if (!bodyEl) return;
+        try {
+          if (loadingEl) loadingEl.classList.remove('hidden');
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10"><span class="spinner mr-2"></span>Đang tải...</td></tr>';
+          const url = `${FORM12_LOOKUP_URL}?_ts=${Date.now()}`;
+          const r = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          let data = await r.json();
+          let rows = [];
+          if (Array.isArray(data)) rows = data;
+          else if (data && typeof data === 'object') {
+            if (Array.isArray(data.data)) rows = data.data;
+            else if (data.json && Array.isArray(data.json.data)) rows = data.json.data;
+            else if (data.json && Array.isArray(data.json)) rows = data.json;
+          }
+          F12_LAST_ROWS = rows;
+          F12_TICKED_IDS = {};
+          F12_SHOW_ONLY_TICKED = false;
+          var stBtn = document.getElementById('f12-show-ticked-only-btn');
+          if (stBtn) { stBtn.classList.remove('bg-blue-100','border-blue-500'); var stLbl = document.getElementById('f12-show-ticked-only-label'); if (stLbl) stLbl.textContent = 'Chỉ hiện đã tick'; }
+          f12PopulateFilter(rows);
+          const displayed = f12GetDisplayedRows();
+          renderForm12Table(displayed);
+          showToast(`Đã tải ${rows.length} bản ghi`, 'success');
+        } catch (e) {
+          console.error('[Form 12] Fetch error:', e);
+          const errMsg = String(e.message || 'Không tải được dữ liệu').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          bodyEl.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="10">Lỗi: ${errMsg}</td></tr>`;
+          showToast('Tải dữ liệu thất bại', 'error');
+        } finally {
+          if (loadingEl) loadingEl.classList.add('hidden');
+        }
+      }
+
+      function f12DownloadXLSX() {
+        try {
+          const rows = f12GetTickedRows();
+          if (!Array.isArray(rows) || !rows.length) { showToast('Form 12: Vui lòng tick ít nhất 1 dòng để xuất.', 'error'); return; }
+          const aoa = [F12_DISPLAY_COLS].concat(rows.map(r => F12_DISPLAY_COLS.map(k => r[k] ?? '')));
+          const ws = XLSX.utils.aoa_to_sheet(aoa);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Mã danh mục');
+          XLSX.writeFile(wb, `Form12_MaDanhMuc_${new Date().toISOString().slice(0,10)}.xlsx`);
+          showToast(`Đã xuất ${rows.length} bản ghi`, 'success');
+        } catch (_) { showToast('Form 12: Xuất XLSX thất bại.', 'error'); }
       }
 
       // Hàm hiển thị kết quả Form 11
