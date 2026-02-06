@@ -471,14 +471,10 @@
                 <span class="text-base">🎊</span>
                 <p class="text-sm font-semibold">Form 9 · Thống kê test bền</p>
               </button>
-            </div>
-          </div>
-          <div class="rounded-md">
-            <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="text-lg">🎉</span>
-              <p class="text-sm font-bold leading-normal">Khác</p>
-            </button>
-            <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
+              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form13">
+                <span class="text-base">🔬</span>
+                <p class="text-sm font-semibold">Form 13 · Hệ thống test bền mới(đang thử nghiệm)</p>
+              </button>
             </div>
           </div>
         </nav>
@@ -1035,7 +1031,7 @@
               </tr>
             </thead>
             <tbody id="f7-body" class="divide-y divide-gray-200">
-              <tr><td class="px-3 py-4 text-center text-gray-500" colspan="14">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-4 text-center text-gray-500" colspan="13">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -1214,6 +1210,41 @@
         </div>
       </section>
 
+      <!-- Form 13 - Thống kê test bền mới (Hệ thống test bền mới) -->
+      <section id="form13" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-blue-800">Form 13 - Hệ thống test bền mới (Đang thử nghiệm)</h2>
+          <button id="f13-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tải dữ liệu</button>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-700">Dữ liệu lấy từ hệ thống test bền mới. Nhấn "Tải dữ liệu" để làm mới.</p>
+        </div>
+        <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
+          <table class="min-w-[1800px] w-full text-sm border-collapse">
+            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+              <tr class="text-left text-gray-700">
+                <th class="px-3 py-2 min-w-[50px] border border-gray-500">Id</th>
+                <th class="px-3 py-2 min-w-[300px] border border-gray-500">Linh kiện</th>
+                <th class="px-3 py-2 min-w-[120px] border border-gray-500">Người lập</th>
+                <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
+                <th class="px-3 py-2 min-w-[90px] border border-gray-500">Mã danh mục</th>
+                <th class="px-3 py-2 min-w-[200px] border border-gray-500">Hạng mục kiểm tra</th>
+                <th class="px-3 py-2 min-w-[220px] border border-gray-500">Tiêu chuẩn</th>
+                <th class="px-3 py-2 min-w-[160px] border border-gray-500">Công cụ</th>
+                <th class="px-3 py-2 min-w-[60px] border border-gray-500">Type</th>
+                <th class="px-3 py-2 min-w-[280px] border border-gray-500">Document</th>
+                <th class="px-3 py-2 min-w-[70px] border border-gray-500">Available</th>
+                <th class="px-3 py-2 min-w-[80px] border border-gray-500">Tình trạng</th>
+                <th class="px-3 py-2 min-w-[140px] border border-gray-500">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="f13-body" class="divide-y divide-gray-100">
+              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="13">Chưa có dữ liệu. Nhấn "Tải dữ liệu" để tải.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- Form 11 - Kiểm tra trước báo cáo -->
       <section id="form11" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
         <div class="flex items-center justify-between mb-4">
@@ -1297,10 +1328,11 @@
                   <th class="px-3 py-2">Hướng dẫn</th>
                   <th class="px-3 py-2">Available</th>
                   <th class="px-3 py-2">Công chuẩn</th>
+                  <th class="px-3 py-2">Test bền</th>
                 </tr>
               </thead>
               <tbody id="f12-body" class="divide-y divide-gray-100">
-                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Nhấn "Tra cứu" để tải dữ liệu</td></tr>
+                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Nhấn "Tra cứu" để tải dữ liệu</td></tr>
               </tbody>
             </table>
           </div>
@@ -2307,6 +2339,8 @@
       // Form 9 endpoints
       const FORM9_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/laydulieuform9";
       const FORM9_POST_URL = "https://iatzhxxuk.tino.page/webhook/Khaibaotestben";
+      // Form 13 - Hệ thống test bền mới
+      const FORM13_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/hethongtestbenmoi";
       const FORM6_LIST_URL = "https://iatzhxxuk.tino.page/webhook/7c18c686-7349-4d09-8769-e6a951096e73";
       // Backward-compat aliases for Form 6 handlers referencing FORM5_* names
       const FORM5_SUBMIT_URL = FORM6_SUBMIT_URL;
@@ -2435,7 +2469,7 @@
         body.innerHTML = '';
         
         if (!filteredData.length) {
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Không có tác vụ'+ (monthFilter ? ' trong tháng đã chọn' : '') +'.</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có tác vụ'+ (monthFilter ? ' trong tháng đã chọn' : '') +'.</td></tr>';
           return;
         }
         
@@ -2574,7 +2608,7 @@
       async function renderForm7(){
         const name = (document.getElementById('f7-name').value || '').trim();
         const body = document.getElementById('f7-body');
-          if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Vui lòng chọn tên</td></tr>'; return; }
+          if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Vui lòng chọn tên</td></tr>'; return; }
         body.innerHTML = "<tr><td colspan='14' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
         try{
           const headerMapF7 = {
@@ -2621,7 +2655,7 @@
           if(!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
           let data = null; try{ data = JSON.parse(text);}catch{ data = null; }
           const rows = pickRows(data);
-          if(!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Không có tác vụ.</td></tr>'; f7AllData=[]; return; }
+          if(!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có tác vụ.</td></tr>'; f7AllData=[]; return; }
           const getV = (obj, keys)=>{
             // Chuẩn hoá key: bỏ dấu, loại emoji/ký tự đặc biệt, gộp khoảng trắng
             const sanitize = (s)=>{
@@ -4589,7 +4623,7 @@
       // Global helper: parse various date/time formats robustly (ISO/TZ, DD/MM/YYYY, YYYY-MM-DD, with optional time & AM/PM)
       // Sidebar navigation
       const navBtns = document.querySelectorAll('.nav-btn');
-      const sections = ['form1','form11','form12','form4','form5','form6','form7','form8','form9'].map(id=>document.getElementById(id));
+      const sections = ['form1','form11','form12','form4','form5','form6','form7','form8','form9','form13'].map(id=>document.getElementById(id));
       function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
       navBtns.forEach((btn)=>{
         btn.onclick=()=>{
@@ -4632,6 +4666,16 @@
           if (target === 'form12') {
             try {
               if (!F12_LAST_ROWS || F12_LAST_ROWS.length === 0) { renderForm12Data(); }
+            } catch(_){}
+          }
+          if (target === 'form13') {
+            try {
+              const cached = LS.getJSON('f13.cache');
+              if (cached && Array.isArray(cached.rows) && cached.rows.length) {
+                renderForm13FromRows(cached.rows);
+              } else {
+                renderForm13();
+              }
             } catch(_){}
           }
         }
@@ -5636,6 +5680,59 @@
         btn._bound = true;
       })();
 
+      // ===== Form 13: Hệ thống test bền mới =====
+      const F13_COLS = ['Id','Linh kiện','Người lập','Mã tác vụ','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Document','Available','Tình trạng','Ghi chú'];
+      function renderForm13FromRows(rows){
+        const body = document.getElementById('f13-body');
+        if (!body) return;
+        if (!Array.isArray(rows) || !rows.length){
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="13">Không có dữ liệu</td></tr>';
+          return;
+        }
+        function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        body.innerHTML = rows.map(function(r){
+          const cells = F13_COLS.map(function(k){
+            let v = r[k];
+            if (v == null || v === undefined) v = '';
+            v = esc(String(v)).replace(/\n/g, '<br>');
+            return '<td class="px-3 py-2 text-gray-800 align-top border border-gray-500">' + (v || '—') + '</td>';
+          }).join('');
+          return '<tr class="hover:bg-blue-50/50">' + cells + '</tr>';
+        }).join('');
+      }
+      async function renderForm13(){
+        const body = document.getElementById('f13-body');
+        const btn = document.getElementById('f13-search');
+        if (!body) return;
+        body.innerHTML = "<tr><td colspan='13' class='px-3 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+        if (btn){ btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải..."; }
+        try {
+          const resp = await fetch(FORM13_LOOKUP_URL, { method: 'GET' });
+          const text = await resp.text();
+          if (!resp.ok) throw new Error(text || 'HTTP ' + resp.status);
+          let data = [];
+          try {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed)) data = parsed;
+            else if (parsed && Array.isArray(parsed.data)) data = parsed.data;
+            else if (parsed && Array.isArray(parsed.rows)) data = parsed.rows;
+          } catch(_){ data = []; }
+          renderForm13FromRows(data);
+          try { LS.setJSON('f13.cache', { rows: data, ts: Date.now() }); } catch(_){}
+        } catch(err) {
+          body.innerHTML = '<tr><td colspan="13" class="px-3 py-3 text-center text-red-600 border border-gray-500">Lỗi: ' + (err.message || 'Không tải được dữ liệu') + '</td></tr>';
+          try { showToast('Form 13: ' + (err.message || 'Lỗi tải dữ liệu'), 'error'); } catch(_){}
+        } finally {
+          if (btn){ btn.disabled = false; btn.innerHTML = 'Tải dữ liệu'; }
+        }
+      }
+      (function initF13(){
+        const btn = document.getElementById('f13-search');
+        if (btn && !btn._bound){
+          btn.addEventListener('click', function(e){ e.preventDefault(); renderForm13(); });
+          btn._bound = true;
+        }
+      })();
 
       function f9RowsToAOA(items){
         const head = ['STT','Khai báo test bền','Ngày trả BC tức thời','Tình trạng test bền','Link bằng chứng','Dự kiến hoàn thành test bền','Mã','Task Name','Assignee','Mã Báo cáo','Mã tác vụ','Ghi chú'];
@@ -15688,8 +15785,8 @@
       let F12_FILTER_OPTIONS = [];
       let F12_TICKED_IDS = {};
       let F12_SHOW_ONLY_TICKED = false;
-      const F12_COLS = ['Id','Tên linh kiện','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn'];
-      const F12_DISPLAY_COLS = ['Id','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn'];
+      const F12_COLS = ['Id','Tên linh kiện','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn','Test bền'];
+      const F12_DISPLAY_COLS = ['Id','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn','Test bền'];
 
       function f12RowKey(idx) { return 'idx_' + idx; }
 
@@ -15698,7 +15795,7 @@
         if (!bodyEl) return;
         const escape = (v) => (v == null || v === '') ? '' : String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         if (!rows.length) {
-          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10">Không có dữ liệu</td></tr>';
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>';
         } else {
           bodyEl.innerHTML = rows.map(function(row){
             var globalIdx = F12_LAST_ROWS.indexOf(row);
@@ -15840,7 +15937,7 @@
         if (!bodyEl) return;
         try {
           if (loadingEl) loadingEl.classList.remove('hidden');
-          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="10"><span class="spinner mr-2"></span>Đang tải...</td></tr>';
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11"><span class="spinner mr-2"></span>Đang tải...</td></tr>';
           const url = `${FORM12_LOOKUP_URL}?_ts=${Date.now()}`;
           const r = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -15864,7 +15961,7 @@
         } catch (e) {
           console.error('[Form 12] Fetch error:', e);
           const errMsg = String(e.message || 'Không tải được dữ liệu').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          bodyEl.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="10">Lỗi: ${errMsg}</td></tr>`;
+          bodyEl.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="11">Lỗi: ${errMsg}</td></tr>`;
           showToast('Tải dữ liệu thất bại', 'error');
         } finally {
           if (loadingEl) loadingEl.classList.add('hidden');
