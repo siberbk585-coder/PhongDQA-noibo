@@ -1263,19 +1263,17 @@
 
         <!-- Khu vực hiển thị kết quả -->
         <div id="f11-results" class="hidden">
-          <!-- Container cho Kết luận và Thống kê (cùng hàng) -->
+          <!-- Thông tin báo cáo (header) -->
+          <div id="f11-report-header" class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg"></div>
+          <!-- Kết luận và Thống kê -->
           <div class="flex gap-3 mb-4">
-            <!-- Kết luận tổng (50% chiều ngang) -->
             <div id="f11-conclusion" class="w-1/2 rounded-lg border-2"></div>
-            
-            <!-- Thống kê (50% chiều ngang) -->
             <div id="f11-statistics" class="w-1/2 grid grid-cols-3 gap-2"></div>
           </div>
-          
-          <!-- Nhận xét và Báo cáo bất thường -->
+          <!-- Nhận xét và Chữ ký -->
           <div id="f11-comments" class="mb-4 space-y-3"></div>
-          
-          <!-- Container cho tất cả các items -->
+          <div id="f11-signatures" class="mb-4"></div>
+          <!-- Bảng hạng mục kiểm tra -->
           <div id="f11-items-container" class="mb-4 space-y-6"></div>
         </div>
       </section>
@@ -2329,7 +2327,7 @@
       const FORM7_SUBPANEL_URL = "https://iatzhxxuk.tino.page/webhook/khaibaoce";
       const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/congguiformbaocao";
       // Form 11 - Kiểm tra trước báo cáo
-      const FORM11_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/doctruocbaocao";
+      const FORM11_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/Docbaocaothunghiem2";
       // Form 12 - Mã danh mục (tra cứu)
       const FORM12_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/tracuumadanhmuc";
       // Endpoint for Form 3 submission (single webhook; send form-data with optional files)
@@ -4681,8 +4679,9 @@
         }
       });
       // Default
-      navBtns[0].classList.add('bg-primary-blue','font-bold');
-      showSection(navBtns[0].getAttribute('data-target'));
+      const defaultNavBtn = document.querySelector('.nav-btn[data-target="form11"]') || navBtns[0];
+      defaultNavBtn.classList.add('bg-primary-blue','font-bold');
+      showSection(defaultNavBtn.getAttribute('data-target'));
       // Hiển thị dòng hướng dẫn dưới các nút Tra cứu của các form khác
       try { updateLastUpdatedNote('f4-search','f4.lastUpdated'); } catch(_){}
       try { updateLastUpdatedNote('f5a-search-p1','f5a.lastUpdated'); } catch(_){}
@@ -15725,13 +15724,16 @@
             if (response.ok) {
               try {
                 const responseText = await response.text();
-                console.log('[Form 11] Response:', responseText);
-                // Parse JSON response
-                try {
-                  responseData = JSON.parse(responseText);
-                  console.log('[Form 11] Parsed data:', responseData);
-                } catch (parseError) {
-                  console.warn('[Form 11] Không thể parse JSON:', parseError);
+                console.log('[Form 11] Response length:', responseText ? responseText.length : 0, 'chars');
+                if (responseText && responseText.trim()) {
+                  try {
+                    responseData = JSON.parse(responseText);
+                    console.log('[Form 11] Parsed data:', responseData);
+                  } catch (parseError) {
+                    console.warn('[Form 11] Không thể parse JSON:', parseError);
+                  }
+                } else {
+                  console.warn('[Form 11] Response rỗng - webhook có thể xử lý bất đồng bộ hoặc chưa trả về dữ liệu');
                 }
               } catch (e) {
                 console.log('[Form 11] Không thể đọc response text');
@@ -15757,11 +15759,22 @@
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Hiển thị kết quả nếu có
-          if (responseData && Array.isArray(responseData) && responseData.length > 0) {
-            renderForm11Results(responseData);
-            showToast('Đã xử lý file thành công', 'success');
+          let dataToRender = responseData;
+          if (responseData) {
+            // Unwrap: [{total, data: [...]}] -> {total, data: [...]}
+            if (Array.isArray(responseData) && responseData.length === 1 && responseData[0] && responseData[0].data) {
+              dataToRender = responseData[0];
+            }
+            // Có dữ liệu dạng {total, data: [...]} hoặc mảng
+            const hasData = dataToRender && (Array.isArray(dataToRender.data) && dataToRender.data.length > 0);
+            if (hasData) {
+              renderForm11Results(dataToRender);
+              showToast('Đã xử lý file thành công', 'success');
+            } else {
+              showToast('Đã gửi file thành công', 'success');
+            }
           } else {
-            showToast('Đã gửi file thành công', 'success');
+            showToast(responseData === null && response && response.ok ? 'Đã gửi file. Webhook trả về response rỗng - kiểm tra cấu hình webhook.' : 'Đã gửi file thành công', 'success');
           }
           
           // Không reset file input sau khi gửi thành công để người dùng có thể xem lại kết quả
@@ -15981,13 +15994,280 @@
         } catch (_) { showToast('Form 12: Xuất XLSX thất bại.', 'error'); }
       }
 
-      // Hàm hiển thị kết quả Form 11
+      // Hàm hiển thị dữ liệu từ file JSON/TXT (format Dữ liệu báo cáo.txt)
+      function renderForm11FromDataFile(parsed) {
+        const resultsContainer = document.getElementById('f11-results');
+        if (!resultsContainer) return;
+        resultsContainer.classList.remove('hidden');
+
+        let item = null;
+        if (parsed && parsed.data && Array.isArray(parsed.data) && parsed.data.length > 0) {
+          item = parsed.data[0];
+        } else if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+          item = parsed[0];
+        } else if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          item = parsed;
+        }
+        if (!item) {
+          showToast('Không có dữ liệu để hiển thị', 'error');
+          return;
+        }
+
+        const rowsA = item.rows_a || [];
+        const rowsB = item.rows_b || [];
+        const rowsAll = item.rows_all || rowsA.concat(rowsB);
+        const meta = item.meta_total || {};
+        const chuKy = item.Chu_ky || {};
+        const esc = (v) => (v == null || v === '') ? '' : String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        // 1. Header thông tin báo cáo
+        const headerEl = document.getElementById('f11-report-header');
+        if (headerEl) {
+          headerEl.innerHTML = `
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div><span class="text-gray-500">Mã vật tư:</span> <strong>${esc(item.Ma_vat_tu)}</strong></div>
+              <div><span class="text-gray-500">Tên vật tư:</span> <strong>${esc(item.Ten_vat_tu)}</strong></div>
+              <div><span class="text-gray-500">Mã số yêu cầu:</span> ${esc(item.Ma_so_yeu_cau)}</div>
+              <div><span class="text-gray-500">NCC/BP:</span> ${esc(item.NCC_BP)}</div>
+              <div><span class="text-gray-500">Bộ phận:</span> ${esc(item.Bo_phan)}</div>
+              <div><span class="text-gray-500">Ngày giao mẫu:</span> ${esc(item.Ngay_giao_mau)}</div>
+              <div><span class="text-gray-500">Ngày hoàn thành:</span> ${esc(item.Ngay_hoan_thanh)}</div>
+              <div><span class="text-gray-500">Số lượng mẫu:</span> ${esc(item.So_luong_mau)}</div>
+              <div><span class="text-gray-500">Tiêu chuẩn áp dụng:</span> ${esc(item.Tieu_chuan_ap_dung)}</div>
+              <div><span class="text-gray-500">Mục đích đánh giá:</span> ${esc(item.Muc_dich_danh_gia)}</div>
+            </div>
+          `;
+        }
+
+        // 2. Kết luận
+        const conclusionEl = document.getElementById('f11-conclusion');
+        if (conclusionEl) {
+          const ketQua = item.Ket_qua_danh_gia || '';
+          const testBen = Array.isArray(item.Ke_hoach_test_ben) ? item.Ke_hoach_test_ben.join(', ') : (item.Ke_hoach_test_ben || '');
+          const summaryA = item.summary_a_text ?? item.summary_a ?? '';
+          const summaryB = item.summary_b_text ?? item.summary_b ?? '';
+          const congChuanTong = item.cong_chuan_tong_text ?? item.cong_chuan_tong ?? '';
+          let bgColor = 'bg-blue-50 border-blue-300';
+          let textColor = 'text-blue-800';
+          if (ketQua.toLowerCase().includes('không đạt')) { bgColor = 'bg-red-50 border-red-300'; textColor = 'text-red-800'; }
+          else if (ketQua.toLowerCase().includes('đạt')) { bgColor = 'bg-green-50 border-green-300'; textColor = 'text-green-800'; }
+          conclusionEl.className = `p-4 rounded-lg border-2 ${bgColor}`;
+          conclusionEl.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-lg font-semibold ${textColor}">📊 Kết luận:</span>
+              <span class="text-base font-semibold ${textColor}">${esc(ketQua)}</span>
+            </div>
+            ${testBen ? `<div class="text-sm ${textColor} mb-2">Kế hoạch test bền: ${esc(testBen)}</div>` : ''}
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-200 mt-2">
+              <div class="text-center"><div class="text-xs text-gray-600">Công chuẩn TCKT</div><div class="font-bold ${textColor}">${esc(summaryA)}</div></div>
+              <div class="text-center"><div class="text-xs text-gray-600">Công chuẩn THÊM</div><div class="font-bold ${textColor}">${esc(summaryB)}</div></div>
+              <div class="text-center"><div class="text-xs text-gray-600">Công chuẩn tổng</div><div class="font-bold ${textColor}">${esc(congChuanTong)}</div></div>
+            </div>
+          `;
+        }
+
+        // 3. Thống kê
+        const statsEl = document.getElementById('f11-statistics');
+        if (statsEl) {
+          function calcStats(rows) {
+            const total = rows.length;
+            let ok = 0, ng = 0, kkl = 0, kdg = 0;
+            rows.forEach(r => {
+              const d = String(r['Đánh giá'] || '').trim();
+              const du = d.toUpperCase();
+              if (du === 'OK') ok++;
+              else if (du === 'NG') ng++;
+              else if (du === 'KKL') kkl++;
+              else if (du === 'KDG' || du === 'KĐG' || d === 'Không đánh giá') kdg++;
+            });
+            return { total, ok, ng, kkl, kdg };
+          }
+
+          const statsA = calcStats(rowsA);
+          const statsB = calcStats(rowsB);
+
+          statsEl.innerHTML = `
+            <div class="flex flex-col gap-3">
+              <div>
+                <div class="text-xs font-semibold text-gray-700 mb-1">TCKT</div>
+                <div class="grid grid-cols-5 gap-2">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Tổng hạng mục</div>
+                    <div class="text-lg font-bold text-blue-800">${statsA.total}</div>
+                  </div>
+                  <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">OK</div>
+                    <div class="text-lg font-bold text-green-800">${statsA.ok}</div>
+                  </div>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">NG</div>
+                    <div class="text-lg font-bold text-red-800">${statsA.ng}</div>
+                  </div>
+                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Không kết luận</div>
+                    <div class="text-lg font-bold text-amber-800">${statsA.kkl}</div>
+                  </div>
+                  <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Không đánh giá</div>
+                    <div class="text-lg font-bold text-slate-800">${statsA.kdg}</div>
+                  </div>
+                </div>
+              </div>
+              ${rowsB.length ? `
+              <div>
+                <div class="text-xs font-semibold text-gray-700 mb-1">THÊM</div>
+                <div class="grid grid-cols-5 gap-2">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Tổng hạng mục</div>
+                    <div class="text-lg font-bold text-blue-800">${statsB.total}</div>
+                  </div>
+                  <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">OK</div>
+                    <div class="text-lg font-bold text-green-800">${statsB.ok}</div>
+                  </div>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">NG</div>
+                    <div class="text-lg font-bold text-red-800">${statsB.ng}</div>
+                  </div>
+                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Không kết luận</div>
+                    <div class="text-lg font-bold text-amber-800">${statsB.kkl}</div>
+                  </div>
+                  <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+                    <div class="text-xs text-gray-600">Không đánh giá</div>
+                    <div class="text-lg font-bold text-slate-800">${statsB.kdg}</div>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        // 4. Nhận xét
+        const commentsEl = document.getElementById('f11-comments');
+        if (commentsEl && item.Nhan_xet) {
+          commentsEl.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 class="font-semibold text-blue-800 mb-2">💬 Nhận xét</h3>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">${esc(item.Nhan_xet)}</p>
+            </div>
+          `;
+        } else if (commentsEl) commentsEl.innerHTML = '';
+
+        // 5. Chữ ký
+        const sigEl = document.getElementById('f11-signatures');
+        if (sigEl && chuKy.NguoiLap) {
+          sigEl.innerHTML = `
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <h3 class="font-semibold text-slate-800 mb-3">✍️ Chữ ký</h3>
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                <div><span class="text-gray-500">Người lập:</span> ${esc(chuKy.NguoiLap)} <span class="text-gray-400">${esc(chuKy.Ngay_NguoiLap)}</span></div>
+                <div><span class="text-gray-500">Kiểm tra:</span> ${esc(chuKy.KiemTra)} <span class="text-gray-400">${esc(chuKy.Ngay_KiemTra)}</span></div>
+                <div><span class="text-gray-500">Xác nhận 1:</span> ${esc(chuKy.XacNhan_1)} <span class="text-gray-400">${esc(chuKy.Ngay_XacNhan_1)}</span></div>
+                <div><span class="text-gray-500">Xác nhận 2:</span> ${esc(chuKy.XacNhan_2)} <span class="text-gray-400">${esc(chuKy.Ngay_XacNhan_2)}</span></div>
+                <div><span class="text-gray-500">Phê duyệt:</span> ${esc(chuKy.PheDuyet)} <span class="text-gray-400">${esc(chuKy.Ngay_PheDuyet)}</span></div>
+              </div>
+            </div>
+          `;
+        } else if (sigEl) sigEl.innerHTML = '';
+
+        // 6. Bảng rows_a và rows_b
+        const itemsContainer = document.getElementById('f11-items-container');
+        if (itemsContainer) {
+          itemsContainer.innerHTML = '';
+          if (rowsAll.length === 0) {
+            itemsContainer.innerHTML = '<p class="text-gray-500 text-sm">Không có dữ liệu hạng mục kiểm tra.</p>';
+          } else {
+            const sampleCols = [];
+            rowsAll.forEach(r => { Object.keys(r).forEach(k => { if (/^M\d+$/.test(k) && !sampleCols.includes(k)) sampleCols.push(k); }); });
+            sampleCols.sort((a,b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+            const congChuanKey = 'Công chuẩn';
+            const congChuanQuyDoiKey = 'Công chuẩn quy đổi';
+            const danhGiaKey = 'Đánh giá';
+            const ghiChuKey = 'Ghi chú';
+
+            function renderRowsTable(rows, title) {
+              if (!rows || !rows.length) return '';
+              return `
+              <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-blue-800 mb-4">${title}</h3>
+                <div class="overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
+                  <table class="min-w-full text-sm border-collapse">
+                    <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+                      <tr>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công cụ</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Type</th>
+                        <th class="px-3 py-2 border border-gray-300 text-right font-semibold">Công chuẩn</th>
+                        <th class="px-3 py-2 border border-gray-300 text-right font-semibold">Công chuẩn quy đổi</th>
+                        ${sampleCols.map(c => `<th class="px-2 py-2 border border-gray-300 text-center font-semibold">${c}</th>`).join('')}
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Đánh giá</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Ghi chú</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${rows.map((row, idx) => {
+                        const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
+                        const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
+                        const congChuan = row[congChuanKey] ?? '';
+                        const congChuanQuyDoi = row[congChuanQuyDoiKey] ?? '';
+                        const danhGia = row[danhGiaKey] || '';
+                        const ghiChu = row[ghiChuKey] || '';
+                        const tool = row['Công cụ (Tool)'] || row['Công cụ\n(Tool)'] || '';
+                        const type = row['Type'] || '';
+                        let dgColor = 'text-gray-700';
+                        if (danhGia === 'OK') dgColor = 'text-green-700 font-semibold';
+                        else if (danhGia === 'NG') dgColor = 'text-red-700 font-semibold';
+                        return `<tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
+                          <td class="px-3 py-2 border border-gray-300">${row.STT ?? idx + 1}</td>
+                          <td class="px-3 py-2 border border-gray-300">${esc(hangMuc)}</td>
+                          <td class="px-3 py-2 border border-gray-300 text-xs">${esc(tieuChuan)}</td>
+                          <td class="px-3 py-2 border border-gray-300">${esc(tool)}</td>
+                          <td class="px-3 py-2 border border-gray-300">${esc(type)}</td>
+                          <td class="px-3 py-2 border border-gray-300 text-right">${esc(congChuan)}</td>
+                          <td class="px-3 py-2 border border-gray-300 text-right">${congChuanQuyDoi != null && congChuanQuyDoi !== '' ? esc(congChuanQuyDoi) : '-'}</td>
+                          ${sampleCols.map(c => `<td class="px-2 py-2 border border-gray-300 text-center">${row[c] != null && row[c] !== '' ? esc(row[c]) : '-'}</td>`).join('')}
+                          <td class="px-3 py-2 border border-gray-300 ${dgColor}">${esc(danhGia)}</td>
+                          <td class="px-3 py-2 border border-gray-300 text-xs">${esc(ghiChu) || '-'}</td>
+                        </tr>`;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              `;
+            }
+
+            const htmlA = renderRowsTable(rowsA, '📋 Bảng hạng mục kiểm tra TCKT');
+            const htmlB = renderRowsTable(rowsB, '📋 Bảng hạng mục kiểm tra THÊM');
+            itemsContainer.innerHTML = (htmlA || '') + (htmlB || '');
+          }
+        }
+      }
+
+      // Hàm hiển thị kết quả Form 11 (từ webhook XLSX)
       function renderForm11Results(data) {
         const resultsContainer = document.getElementById('f11-results');
         if (!resultsContainer) return;
 
+        // Nếu dữ liệu có format {total, data: [...]} (giống Dữ liệu báo cáo.txt) thì dùng renderForm11FromDataFile
+        if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+          const first = data.data[0];
+          if (first && (first.rows_all || first.Ma_vat_tu || first.Ten_vat_tu)) {
+            renderForm11FromDataFile(data);
+            return;
+          }
+        }
+
         // Hiển thị container
         resultsContainer.classList.remove('hidden');
+        const headerEl = document.getElementById('f11-report-header');
+        const sigEl = document.getElementById('f11-signatures');
+        if (headerEl) headerEl.innerHTML = '';
+        if (sigEl) sigEl.innerHTML = '';
 
         // Parse dữ liệu - cấu trúc mới: mảng chứa object, object có data và rows
         let mainData = null; // Dữ liệu chính (có output, nhan_xet, bao_cao_bat_thuong, thong_ke_them, data, rows)
