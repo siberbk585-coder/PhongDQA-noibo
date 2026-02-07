@@ -1265,13 +1265,13 @@
         <div id="f11-results" class="hidden">
           <!-- Thông tin báo cáo (header) -->
           <div id="f11-report-header" class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg"></div>
-          <!-- Kết luận và Thống kê -->
-          <div class="flex gap-3 mb-4">
-            <div id="f11-conclusion" class="w-1/2 rounded-lg border-2"></div>
-            <div id="f11-statistics" class="w-1/2 grid grid-cols-3 gap-2"></div>
+          <!-- Kết luận, Nhận xét và Thống kê - 3 cột trải đều -->
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div id="f11-conclusion" class="min-w-0 rounded-lg border-2 p-3 flex flex-col"></div>
+            <div id="f11-comments" class="min-w-0 rounded-lg p-2 flex flex-col overflow-auto max-h-[220px]"></div>
+            <div id="f11-statistics" class="min-w-0 rounded-lg grid grid-cols-3 gap-2"></div>
           </div>
-          <!-- Nhận xét và Chữ ký -->
-          <div id="f11-comments" class="mb-4 space-y-3"></div>
+          <!-- Chữ ký -->
           <div id="f11-signatures" class="mb-4"></div>
           <!-- Bảng hạng mục kiểm tra -->
           <div id="f11-items-container" class="mb-4 space-y-6"></div>
@@ -16051,7 +16051,7 @@
           let textColor = 'text-blue-800';
           if (ketQua.toLowerCase().includes('không đạt')) { bgColor = 'bg-red-50 border-red-300'; textColor = 'text-red-800'; }
           else if (ketQua.toLowerCase().includes('đạt')) { bgColor = 'bg-green-50 border-green-300'; textColor = 'text-green-800'; }
-          conclusionEl.className = `p-4 rounded-lg border-2 ${bgColor}`;
+          conclusionEl.className = `min-w-0 p-4 rounded-lg border-2 ${bgColor}`;
           conclusionEl.innerHTML = `
             <div class="flex items-center justify-between mb-2">
               <span class="text-lg font-semibold ${textColor}">📊 Kết luận:</span>
@@ -16087,7 +16087,7 @@
           const statsB = calcStats(rowsB);
 
           statsEl.innerHTML = `
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-3 col-span-3">
               <div>
                 <div class="text-xs font-semibold text-gray-700 mb-1">TCKT</div>
                 <div class="grid grid-cols-5 gap-2">
@@ -16187,8 +16187,18 @@
             const danhGiaKey = 'Đánh giá';
             const ghiChuKey = 'Ghi chú';
 
+            function sortBySTT(rows) {
+              return [...rows].sort((a, b) => {
+                const nA = Number(a.STT ?? a['STT']);
+                const nB = Number(b.STT ?? b['STT']);
+                const sttA = isNaN(nA) ? Infinity : nA;
+                const sttB = isNaN(nB) ? Infinity : nB;
+                return sttA - sttB;
+              });
+            }
             function renderRowsTable(rows, title) {
               if (!rows || !rows.length) return '';
+              rows = sortBySTT(rows);
               return `
               <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                 <h3 class="text-lg font-semibold text-blue-800 mb-4">${title}</h3>
@@ -16197,6 +16207,7 @@
                     <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
                       <tr>
                         <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                        <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Mã danh mục</th>
                         <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
                         <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
                         <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công cụ</th>
@@ -16210,6 +16221,7 @@
                     </thead>
                     <tbody>
                       ${rows.map((row, idx) => {
+                        const maDanhMuc = row['Mã danh mục'] || row['Ma_danh_muc'] || '';
                         const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
                         const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
                         const congChuan = row[congChuanKey] ?? '';
@@ -16218,11 +16230,14 @@
                         const ghiChu = row[ghiChuKey] || '';
                         const tool = row['Công cụ (Tool)'] || row['Công cụ\n(Tool)'] || '';
                         const type = row['Type'] || '';
+                        const noMaDanhMuc = !maDanhMuc || String(maDanhMuc).trim() === '';
                         let dgColor = 'text-gray-700';
                         if (danhGia === 'OK') dgColor = 'text-green-700 font-semibold';
                         else if (danhGia === 'NG') dgColor = 'text-red-700 font-semibold';
-                        return `<tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
+                        const rowBg = noMaDanhMuc ? 'bg-yellow-100' : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50');
+                        return `<tr class="${rowBg}">
                           <td class="px-3 py-2 border border-gray-300">${row.STT ?? idx + 1}</td>
+                          <td class="px-3 py-2 border border-gray-300">${esc(maDanhMuc) || '-'}</td>
                           <td class="px-3 py-2 border border-gray-300">${esc(hangMuc)}</td>
                           <td class="px-3 py-2 border border-gray-300 text-xs">${esc(tieuChuan)}</td>
                           <td class="px-3 py-2 border border-gray-300">${esc(tool)}</td>
@@ -16359,7 +16374,7 @@
               textColor = 'text-green-800';
             }
 
-            conclusionDiv.className = `p-3 rounded-lg border-2 ${bgColor}`;
+            conclusionDiv.className = `min-w-0 p-3 rounded-lg border-2 ${bgColor}`;
             conclusionDiv.innerHTML = `
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
@@ -16390,7 +16405,7 @@
             `;
           } else {
             // Không có kết luận, chỉ hiển thị thông tin tổng quan
-            conclusionDiv.className = 'p-3 rounded-lg border-2 bg-blue-50 border-blue-300';
+            conclusionDiv.className = 'min-w-0 p-3 rounded-lg border-2 bg-blue-50 border-blue-300';
             conclusionDiv.innerHTML = `
               <div class="flex items-center gap-2 mb-2">
                 <span class="text-lg font-semibold text-blue-800">📊 Thông tin tổng quan</span>
@@ -16491,6 +16506,11 @@
             });
           });
           tcktSampleCols.sort();
+          tcktDataArray = [...tcktDataArray].sort((a, b) => {
+            const nA = Number(a.STT ?? a['STT']); const nB = Number(b.STT ?? b['STT']);
+            const sttA = isNaN(nA) ? Infinity : nA; const sttB = isNaN(nB) ? Infinity : nB;
+            return sttA - sttB;
+          });
           
           // Tạo section cho bảng TCKT
           const itemSection = document.createElement('div');
@@ -16513,6 +16533,7 @@
                 <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
                   <tr>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Mã danh mục</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công chuẩn</th>
@@ -16531,7 +16552,10 @@
           if (tbody) {
             tcktDataArray.forEach((row, idx) => {
               const danhGia = row['Đánh giá'] || '';
+              const maDanhMucVal = row['Mã danh mục'] || row['Ma_danh_muc'] || '';
+              const noMaDanhMuc = !maDanhMucVal || String(maDanhMucVal).trim() === '';
               let rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+              if (noMaDanhMuc) rowBg = 'bg-yellow-100';
               let danhGiaColor = 'text-gray-700';
               if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
               else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
@@ -16546,6 +16570,7 @@
               tr.className = rowBg;
               tr.innerHTML = `
                 <td class="px-3 py-2 border border-gray-300">${idx + 1}</td>
+                <td class="px-3 py-2 border border-gray-300">${maDanhMucVal || '-'}</td>
                 <td class="px-3 py-2 border border-gray-300">${hangMuc}</td>
                 <td class="px-3 py-2 border border-gray-300">${tieuChuan}</td>
                 <td class="px-3 py-2 border border-gray-300 text-right">${congChuan}</td>
@@ -16577,6 +16602,11 @@
             });
             allSampleCols.sort();
           }
+          rowsDataArray = [...rowsDataArray].sort((a, b) => {
+            const nA = Number(a.STT ?? a['STT']); const nB = Number(b.STT ?? b['STT']);
+            const sttA = isNaN(nA) ? Infinity : nA; const sttB = isNaN(nB) ? Infinity : nB;
+            return sttA - sttB;
+          });
 
           // Tạo section cho bảng Hạng mục thêm
           const rowsSection = document.createElement('div');
@@ -16590,6 +16620,7 @@
                 <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
                   <tr>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">STT</th>
+                    <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Mã danh mục</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Hạng mục kiểm tra</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Tiêu chuẩn</th>
                     <th class="px-3 py-2 border border-gray-300 text-left font-semibold">Công chuẩn</th>
@@ -16608,7 +16639,10 @@
           if (tbody) {
             rowsDataArray.forEach((row, rowIndex) => {
               const danhGia = row['Đánh giá'] || '';
+              const maDanhMuc = row['Mã danh mục'] || row['Ma_danh_muc'] || '';
+              const noMaDanhMuc = !maDanhMuc || String(maDanhMuc).trim() === '';
               let rowBg = rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+              if (noMaDanhMuc) rowBg = 'bg-yellow-100';
               let danhGiaColor = 'text-gray-700';
               if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
               else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
@@ -16624,6 +16658,7 @@
               tr.className = rowBg;
               tr.innerHTML = `
                 <td class="px-3 py-2 border border-gray-300">${row.STT || rowIndex + 1}</td>
+                <td class="px-3 py-2 border border-gray-300">${maDanhMuc || '-'}</td>
                 <td class="px-3 py-2 border border-gray-300">${hangMuc}</td>
                 <td class="px-3 py-2 border border-gray-300">${tieuChuan}</td>
                 <td class="px-3 py-2 border border-gray-300 text-right">${congChuan}</td>
