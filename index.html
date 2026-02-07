@@ -127,6 +127,22 @@
       .toast.show{opacity:1;transform:translateY(0)}
       /* Form 5: zebra rows & vertical dividers */
       .table-zebra tbody tr:nth-child(even){ background-color:#f8fafc; }
+      /* Form 13: bảng tông xanh da trời */
+      .table-f13 { border-collapse: separate; border-spacing: 0; }
+      .table-f13 thead th { font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.75rem; padding: 12px 14px; }
+      .table-f13 tbody tr { transition: background-color 0.15s ease; }
+      .table-f13 tbody tr:nth-child(even) { background-color: #e0f2fe; }
+      .table-f13 tbody tr:nth-child(odd) { background-color: #f0f9ff; }
+      .table-f13 tbody tr:hover { background-color: #bae6fd !important; }
+      .table-f13 tbody td { padding: 10px 14px; border-color: #e2e8f0; }
+      .table-f13 thead th { border-color: rgba(255,255,255,0.2); }
+      .table-f13 th + th, .table-f13 td + td { border-left: 1px solid #94a3b8; }
+      .table-f13 thead th + th { border-left-color: rgba(255,255,255,0.35); }
+      .table-f13 thead th:first-child { border-top-left-radius: 8px; }
+      .table-f13 thead th:last-child { border-top-right-radius: 8px; }
+      .f13-badge-ok { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:600; background:#bbf7d0; color:#166534; }
+      .f13-badge-kdg { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:600; background:#fed7aa; color:#9a3412; }
+      .table-f13 th:nth-child(11), .table-f13 th:nth-child(14), .table-f13 td:nth-child(11), .table-f13 td:nth-child(14) { display: none; }
       .cell-div{ border-left:1px solid #e5e7eb; }
       .table-vdiv{ border-collapse: separate; border-spacing: 0; }
       .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
@@ -1211,35 +1227,46 @@
       </section>
 
       <!-- Form 13 - Thống kê test bền mới (Hệ thống test bền mới) -->
-      <section id="form13" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+      <section id="form13" class="w-full max-w-none bg-white p-6 rounded-xl shadow-lg hidden">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-blue-800">Form 13 - Hệ thống test bền mới (Đang thử nghiệm)</h2>
-          <button id="f13-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tải dữ liệu</button>
+          <h2 class="text-xl font-semibold text-sky-800">Form 13 - Hệ thống test bền mới (Đang thử nghiệm)</h2>
+          <button id="f13-search" class="px-4 py-2 rounded-lg text-white font-semibold bg-sky-600 hover:bg-sky-700 transition shadow-sm">Tải dữ liệu</button>
         </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p class="text-sm text-gray-700">Dữ liệu lấy từ hệ thống test bền mới. Nhấn "Tải dữ liệu" để làm mới.</p>
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
+          <label class="text-sm font-medium text-gray-700">Lọc theo Người lập:</label>
+          <select id="f13-filter-nguoi-lap" class="px-4 py-2 rounded-lg border border-sky-300 bg-white text-gray-700 text-sm font-medium shadow-sm min-w-[200px] focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+            <option value="">Tất cả</option>
+          </select>
+          <label class="text-sm font-medium text-gray-700">Lọc theo Tình trạng:</label>
+          <select id="f13-filter-tinh-trang" class="px-4 py-2 rounded-lg border border-sky-300 bg-white text-gray-700 text-sm font-medium shadow-sm min-w-[160px] focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+            <option value="">Tất cả</option>
+          </select>
+          <span id="f13-filter-count" class="text-sm text-gray-600"></span>
         </div>
-        <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
-          <table class="min-w-[1800px] w-full text-sm border-collapse">
-            <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
-              <tr class="text-left text-gray-700">
-                <th class="px-3 py-2 min-w-[50px] border border-gray-500">Id</th>
-                <th class="px-3 py-2 min-w-[300px] border border-gray-500">Linh kiện</th>
-                <th class="px-3 py-2 min-w-[120px] border border-gray-500">Người lập</th>
-                <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
-                <th class="px-3 py-2 min-w-[90px] border border-gray-500">Mã danh mục</th>
-                <th class="px-3 py-2 min-w-[200px] border border-gray-500">Hạng mục kiểm tra</th>
-                <th class="px-3 py-2 min-w-[220px] border border-gray-500">Tiêu chuẩn</th>
-                <th class="px-3 py-2 min-w-[160px] border border-gray-500">Công cụ</th>
-                <th class="px-3 py-2 min-w-[60px] border border-gray-500">Type</th>
-                <th class="px-3 py-2 min-w-[280px] border border-gray-500">Document</th>
-                <th class="px-3 py-2 min-w-[70px] border border-gray-500">Available</th>
-                <th class="px-3 py-2 min-w-[80px] border border-gray-500">Tình trạng</th>
-                <th class="px-3 py-2 min-w-[140px] border border-gray-500">Ghi chú</th>
+        <div class="mt-4 border border-sky-200 rounded-xl shadow-sm overflow-x-auto overflow-y-auto max-h-[70vh]">
+          <table class="table-f13 min-w-[1800px] w-full text-sm">
+            <thead class="bg-gradient-to-r from-sky-600 via-sky-500 to-blue-600 sticky top-0 z-10 shadow-md">
+              <tr class="text-left text-white">
+                <th class="min-w-[50px] border-b border-sky-400/50">Id</th>
+                <th class="min-w-[100px] border-b border-sky-400/50">Khai báo</th>
+                <th class="min-w-[120px] border-b border-sky-400/50">Vị trí</th>
+                <th class="min-w-[130px] border-b border-sky-400/50">Ngày khai báo gần nhất</th>
+                <th class="min-w-[300px] border-b border-sky-400/50">Linh kiện</th>
+                <th class="min-w-[120px] border-b border-sky-400/50">Người lập</th>
+                <th class="min-w-[140px] border-b border-sky-400/50">Mã tác vụ</th>
+                <th class="min-w-[90px] border-b border-sky-400/50">Mã danh mục</th>
+                <th class="min-w-[200px] border-b border-sky-400/50">Hạng mục kiểm tra</th>
+                <th class="min-w-[220px] border-b border-sky-400/50">Tiêu chuẩn</th>
+                <th class="min-w-[160px] border-b border-sky-400/50">Công cụ</th>
+                <th class="min-w-[60px] border-b border-sky-400/50">Type</th>
+                <th class="min-w-[280px] border-b border-sky-400/50">Document</th>
+                <th class="min-w-[70px] border-b border-sky-400/50">Available</th>
+                <th class="min-w-[80px] border-b border-sky-400/50">Tình trạng</th>
+                <th class="min-w-[140px] border-b border-sky-400/50">Ghi chú</th>
               </tr>
             </thead>
-            <tbody id="f13-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="13">Chưa có dữ liệu. Nhấn "Tải dữ liệu" để tải.</td></tr>
+            <tbody id="f13-body">
+              <tr><td class="px-3 py-4 text-center text-gray-500 border-b border-slate-200" colspan="16">Chưa có dữ liệu. Nhấn "Tải dữ liệu" để tải.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1379,6 +1406,36 @@
         <div class="px-4 py-3 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
           <button id="f12-filter-hangmuc-apply" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Áp dụng</button>
           <button id="f12-filter-hangmuc-reset" type="button" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Xóa lọc</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form 13: Modal Khai báo -->
+    <div id="f13-khaibao-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f13-khaibao-title">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="px-5 py-4 bg-gradient-to-r from-sky-600 to-blue-600 text-white flex items-center justify-between">
+          <h3 id="f13-khaibao-title" class="text-lg font-semibold">Khai báo</h3>
+          <button id="f13-khaibao-close" type="button" class="text-white/90 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div id="f13-khaibao-row-info" class="p-3 rounded-lg bg-sky-50 border border-sky-200 text-sm text-sky-900"></div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Thời điểm khai báo <span class="text-red-500">*</span></label>
+            <input id="f13-khaibao-thoidiem" type="datetime-local" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Vị trí test <span class="text-red-500">*</span></label>
+            <input id="f13-khaibao-vitri" type="text" placeholder="Nhập vị trí test" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh chứng minh <span class="text-red-500">*</span></label>
+            <input id="f13-khaibao-file" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif" required class="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-100 file:text-sky-700 hover:file:bg-sky-200" />
+            <p class="text-xs text-gray-500 mt-1">Chấp nhận ảnh: .jpg, .png, .webp, .gif</p>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
+          <button id="f13-khaibao-cancel" type="button" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Hủy</button>
+          <button id="f13-khaibao-submit" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-sky-600 hover:bg-sky-700">Gửi khai báo</button>
         </div>
       </div>
     </div>
@@ -5680,30 +5737,63 @@
       })();
 
       // ===== Form 13: Hệ thống test bền mới =====
-      const F13_COLS = ['Id','Linh kiện','Người lập','Mã tác vụ','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Document','Available','Tình trạng','Ghi chú'];
+      const F13_COLS = ['Id','Khai báo','Vị trí','Ngày khai báo gần nhất','Linh kiện','Người lập','Mã tác vụ','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Document','Available','Tình trạng','Ghi chú'];
+      const F13_TINH_TRANG_OPTIONS = ['OK','KDG','Test bền','NG','KKL'];
+      var f13AllData = [];
+      var f13CurrentRows = [];
       function renderForm13FromRows(rows){
         const body = document.getElementById('f13-body');
         if (!body) return;
         if (!Array.isArray(rows) || !rows.length){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="13">Không có dữ liệu</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500 border-b border-slate-200" colspan="16">Không có dữ liệu</td></tr>';
           return;
         }
         function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-        body.innerHTML = rows.map(function(r){
+        function fmtTinhTrang(v){
+          if (!v) return '—';
+          var s = String(v).trim().toUpperCase();
+          if (s === 'OK') return '<span class="f13-badge-ok">OK</span>';
+          if (s === 'KDG') return '<span class="f13-badge-kdg">KDG</span>';
+          return esc(v);
+        }
+        f13CurrentRows = rows;
+        body.innerHTML = rows.map(function(r,i){
           const cells = F13_COLS.map(function(k){
             let v = r[k];
             if (v == null || v === undefined) v = '';
+            if (k === 'Tình trạng') return '<td class="text-gray-800 align-top border-b border-slate-200">' + fmtTinhTrang(v) + '</td>';
+            if (k === 'Khai báo') {
+              return '<td class="text-gray-800 align-top border-b border-slate-200"><button type="button" class="f13-khaibao-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-sky-600 text-white hover:bg-sky-700 transition" data-row-idx="' + i + '">Khai báo</button></td>';
+            }
+            if (k === 'Vị trí') {
+              var viTriVal = esc(String(r['Vị trí']||'').replace(/\n/g, '<br>')) || '—';
+              var hinhAnh = String(r['Hình ảnh']||'').trim();
+              if (hinhAnh) {
+                var safeUrl = esc(hinhAnh).replace(/javascript:/gi,'').replace(/data:/gi,'');
+                return '<td class="text-gray-800 align-top border-b border-slate-200"><a href="'+safeUrl+'" target="_blank" rel="noopener" class="text-sky-600 hover:text-sky-800 hover:underline">'+viTriVal+'</a></td>';
+              }
+              return '<td class="text-gray-800 align-top border-b border-slate-200">' + viTriVal + '</td>';
+            }
+            if (k === 'Ngày khai báo gần nhất') {
+              v = r['Thời gian'] != null ? r['Thời gian'] : (r['Ngày khai báo gần nhất'] != null ? r['Ngày khai báo gần nhất'] : '');
+              if (v == null || v === undefined) v = '';
+              v = esc(String(v)).replace(/\n/g, '<br>');
+              return '<td class="text-gray-800 align-top border-b border-slate-200">' + (v || '—') + '</td>';
+            }
             v = esc(String(v)).replace(/\n/g, '<br>');
-            return '<td class="px-3 py-2 text-gray-800 align-top border border-gray-500">' + (v || '—') + '</td>';
+            return '<td class="text-gray-800 align-top border-b border-slate-200">' + (v || '—') + '</td>';
           }).join('');
-          return '<tr class="hover:bg-blue-50/50">' + cells + '</tr>';
+          return '<tr>' + cells + '</tr>';
         }).join('');
+        body.querySelectorAll('.f13-khaibao-btn').forEach(function(btn){
+          btn.addEventListener('click', function(){ var idx=parseInt(btn.getAttribute('data-row-idx'),10); var row=(Array.isArray(f13CurrentRows)&&f13CurrentRows[idx])?f13CurrentRows[idx]:{}; f13OpenKhaibaoModal(row); });
+        });
       }
       async function renderForm13(){
         const body = document.getElementById('f13-body');
         const btn = document.getElementById('f13-search');
         if (!body) return;
-        body.innerHTML = "<tr><td colspan='13' class='px-3 py-4 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+        body.innerHTML = "<tr><td colspan='16' class='px-3 py-6 text-center text-gray-500 border-b border-slate-200'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
         if (btn){ btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải..."; }
         try {
           const resp = await fetch(FORM13_LOOKUP_URL, { method: 'GET' });
@@ -5716,13 +5806,106 @@
             else if (parsed && Array.isArray(parsed.data)) data = parsed.data;
             else if (parsed && Array.isArray(parsed.rows)) data = parsed.rows;
           } catch(_){ data = []; }
-          renderForm13FromRows(data);
+          f13AllData = data;
+          f13PopulateFilterTinhTrang();
+          f13ApplyFilter();
           try { LS.setJSON('f13.cache', { rows: data, ts: Date.now() }); } catch(_){}
         } catch(err) {
-          body.innerHTML = '<tr><td colspan="13" class="px-3 py-3 text-center text-red-600 border border-gray-500">Lỗi: ' + (err.message || 'Không tải được dữ liệu') + '</td></tr>';
+          body.innerHTML = '<tr><td colspan="16" class="px-3 py-4 text-center text-red-600 border-b border-slate-200 bg-red-50">Lỗi: ' + (err.message || 'Không tải được dữ liệu') + '</td></tr>';
           try { showToast('Form 13: ' + (err.message || 'Lỗi tải dữ liệu'), 'error'); } catch(_){}
         } finally {
           if (btn){ btn.disabled = false; btn.innerHTML = 'Tải dữ liệu'; }
+        }
+      }
+      function f13ApplyFilter(){
+        var selNguoi = document.getElementById('f13-filter-nguoi-lap');
+        var selTinhTrang = document.getElementById('f13-filter-tinh-trang');
+        var countEl = document.getElementById('f13-filter-count');
+        var valNguoi = selNguoi ? selNguoi.value : '';
+        var valTinhTrang = selTinhTrang ? selTinhTrang.value : '';
+        var rows = Array.isArray(f13AllData) ? f13AllData : [];
+        if (valNguoi) rows = rows.filter(function(r){ return String(r['Người lập']||'').trim() === valNguoi; });
+        if (valTinhTrang) rows = rows.filter(function(r){ return String(r['Tình trạng']||'').trim() === valTinhTrang; });
+        renderForm13FromRows(rows);
+        if (countEl) countEl.textContent = rows.length + ' / ' + (Array.isArray(f13AllData) ? f13AllData.length : 0) + ' dòng';
+      }
+      function f13PopulateFilterSelect(){
+        var sel = document.getElementById('f13-filter-nguoi-lap');
+        if (!sel) return;
+        var names = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
+        names.sort(function(a,b){ return (a||'').localeCompare(b||''); });
+        var cur = sel.value;
+        function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        sel.innerHTML = '<option value="">Tất cả</option>' + names.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+        if (cur && names.indexOf(cur)>=0) sel.value = cur;
+        else sel.value = '';
+      }
+      function f13PopulateFilterTinhTrang(){
+        var sel = document.getElementById('f13-filter-tinh-trang');
+        if (!sel) return;
+        var opts = F13_TINH_TRANG_OPTIONS.slice();
+        var seen = {};
+        (Array.isArray(f13AllData) ? f13AllData : []).forEach(function(r){
+          var t = String(r['Tình trạng']||'').trim();
+          if (t && !seen[t]){ seen[t]=1; if (opts.indexOf(t)<0) opts.push(t); }
+        });
+        opts.sort(function(a,b){ return (a||'').localeCompare(b||''); });
+        var cur = sel.value;
+        function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        sel.innerHTML = '<option value="">Tất cả</option>' + opts.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+        if (cur && opts.indexOf(cur)>=0) sel.value = cur;
+        else sel.value = '';
+      }
+      var f13KhaibaoRow = null;
+      function f13OpenKhaibaoModal(row){
+        f13KhaibaoRow = row || {};
+        var modal = document.getElementById('f13-khaibao-modal');
+        var info = document.getElementById('f13-khaibao-row-info');
+        var thoidiem = document.getElementById('f13-khaibao-thoidiem');
+        var vitri = document.getElementById('f13-khaibao-vitri');
+        var fileEl = document.getElementById('f13-khaibao-file');
+        if (!modal) return;
+        if (info) { var lk = String(row['Linh kiện']||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); info.innerHTML = '<strong>Id:</strong> ' + (row.Id||'—') + ' &nbsp;|&nbsp; <strong>Linh kiện:</strong> ' + lk.substring(0,60) + (lk.length>60?'...':''); }
+        var now = new Date();
+        var ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + 'T' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        if (thoidiem) thoidiem.value = ts;
+        if (vitri) vitri.value = '';
+        if (fileEl) fileEl.value = '';
+        modal.classList.add('open');
+      }
+      function f13CloseKhaibaoModal(){
+        var modal = document.getElementById('f13-khaibao-modal');
+        if (modal) modal.classList.remove('open');
+        f13KhaibaoRow = null;
+      }
+      async function f13SubmitKhaibao(){
+        var row = f13KhaibaoRow;
+        if (!row) return;
+        var thoidiem = document.getElementById('f13-khaibao-thoidiem');
+        var vitri = document.getElementById('f13-khaibao-vitri');
+        var fileEl = document.getElementById('f13-khaibao-file');
+        var btn = document.getElementById('f13-khaibao-submit');
+        var thoiDiemVal = thoidiem ? thoidiem.value : '';
+        var viTriVal = vitri ? (vitri.value||'').trim() : '';
+        var file = fileEl && fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+        if (!thoiDiemVal){ try{ showToast('Thời điểm khai báo là bắt buộc', 'error'); }catch(_){} return; }
+        if (!viTriVal){ try{ showToast('Vị trí test là bắt buộc', 'error'); }catch(_){} return; }
+        if (!file){ try{ showToast('Ảnh chứng minh là bắt buộc', 'error'); }catch(_){} return; }
+        if (btn){ btn.disabled = true; btn.textContent = 'Đang gửi...'; }
+        try {
+          var fd = new FormData();
+          fd.append('body', JSON.stringify({ rowData: row, ThoiDiemKhaiBao: thoiDiemVal, ViTriTest: viTriVal }));
+          fd.append('AnhChungMinh', file);
+          var resp = await fetch(FORM13_LOOKUP_URL, { method: 'POST', body: fd });
+          var text = await resp.text();
+          if (!resp.ok) throw new Error(text || 'HTTP ' + resp.status);
+          try{ showToast('Khai báo thành công', 'success'); }catch(_){}
+          f13CloseKhaibaoModal();
+          renderForm13();
+        } catch(err) {
+          try{ showToast('Lỗi: ' + (err.message||'Không gửi được'), 'error'); }catch(_){}
+        } finally {
+          if (btn){ btn.disabled = false; btn.textContent = 'Gửi khai báo'; }
         }
       }
       (function initF13(){
@@ -5731,6 +5914,26 @@
           btn.addEventListener('click', function(e){ e.preventDefault(); renderForm13(); });
           btn._bound = true;
         }
+        var filterSel = document.getElementById('f13-filter-nguoi-lap');
+        if (filterSel && !filterSel._bound){
+          filterSel.addEventListener('change', f13ApplyFilter);
+          filterSel._bound = true;
+        }
+        var filterTinhTrang = document.getElementById('f13-filter-tinh-trang');
+        if (filterTinhTrang && !filterTinhTrang._bound){
+          filterTinhTrang.addEventListener('change', f13ApplyFilter);
+          filterTinhTrang._bound = true;
+        }
+        f13PopulateFilterSelect();
+        f13PopulateFilterTinhTrang();
+        var kbModal = document.getElementById('f13-khaibao-modal');
+        var kbClose = document.getElementById('f13-khaibao-close');
+        var kbCancel = document.getElementById('f13-khaibao-cancel');
+        var kbSubmit = document.getElementById('f13-khaibao-submit');
+        if (kbClose) kbClose.addEventListener('click', f13CloseKhaibaoModal);
+        if (kbCancel) kbCancel.addEventListener('click', f13CloseKhaibaoModal);
+        if (kbSubmit) kbSubmit.addEventListener('click', f13SubmitKhaibao);
+        if (kbModal) kbModal.addEventListener('click', function(e){ if (e.target === kbModal) f13CloseKhaibaoModal(); });
       })();
 
       function f9RowsToAOA(items){
