@@ -1280,12 +1280,12 @@
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p class="text-sm text-gray-700 mb-3">Vui lòng tải file Excel (.xlsx) để kiểm tra trước khi báo cáo.</p>
           <div class="flex items-center gap-3 flex-wrap">
-            <input id="f11-file" type="file" accept=".xlsx" class="hidden"/>
+            <input id="f11-file" type="file" accept=".xlsx,.json,.txt" class="hidden"/>
             <button id="f11-upload-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Chọn file XLSX</button>
             <span id="f11-file-name" class="text-sm text-gray-600">Không có file nào được chọn</span>
             <button id="f11-submit-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Gửi</button>
           </div>
-          <p class="text-xs text-gray-500 mt-2">Chỉ chấp nhận file định dạng .xlsx. Mỗi lần chỉ được tải 1 file.</p>
+          <p class="text-xs text-gray-500 mt-2">Chấp nhận file .xlsx, .json, .txt (format Dữ liệu báo cáo). Mỗi lần chỉ được tải 1 file.</p>
         </div>
 
         <!-- Khu vực hiển thị kết quả -->
@@ -15783,8 +15783,11 @@
             if (file) {
               // Kiểm tra định dạng file
               const fileName = file.name.toLowerCase();
-              if (!fileName.endsWith('.xlsx')) {
-                showToast('Chỉ chấp nhận file định dạng .xlsx', 'error');
+              const isXlsx = fileName.endsWith('.xlsx');
+              const isJson = fileName.endsWith('.json');
+              const isTxt = fileName.endsWith('.txt');
+              if (!isXlsx && !isJson && !isTxt) {
+                showToast('Chỉ chấp nhận file .xlsx, .json, .txt', 'error');
                 f11FileInput.value = '';
                 f11FileName.textContent = 'Không có file nào được chọn';
                 f11FileName.className = 'text-sm text-gray-600';
@@ -15883,8 +15886,28 @@
 
         // Kiểm tra định dạng
         const fileName = file.name.toLowerCase();
-        if (!fileName.endsWith('.xlsx')) {
-          showToast('Chỉ chấp nhận file định dạng .xlsx', 'error');
+        const isXlsx = fileName.endsWith('.xlsx');
+        const isJson = fileName.endsWith('.json');
+        const isTxt = fileName.endsWith('.txt');
+        if (!isXlsx && !isJson && !isTxt) {
+          showToast('Chỉ chấp nhận file .xlsx, .json, .txt', 'error');
+          return;
+        }
+
+        // File .json hoặc .txt: đọc local và hiển thị (format Dữ liệu báo cáo)
+        if (isJson || isTxt) {
+          const btn = document.getElementById('f11-submit-btn');
+          if (btn) { btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang đọc..."; }
+          try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            renderForm11Results(parsed);
+            showToast('Đã tải dữ liệu thành công', 'success');
+          } catch (e) {
+            showToast('Không thể đọc file: ' + (e.message || 'Lỗi'), 'error');
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Gửi'; }
+          }
           return;
         }
 
@@ -16382,13 +16405,37 @@
           if (rowsAll.length === 0) {
             itemsContainer.innerHTML = '<p class="text-gray-500 text-sm">Không có dữ liệu hạng mục kiểm tra.</p>';
           } else {
-            const sampleCols = [];
-            rowsAll.forEach(r => { Object.keys(r).forEach(k => { if (/^M\d+$/.test(k) && !sampleCols.includes(k)) sampleCols.push(k); }); });
-            sampleCols.sort((a,b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
             const congChuanKey = 'Công chuẩn';
             const congChuanQuyDoiKey = 'Công chuẩn quy đổi';
             const danhGiaKey = 'Đánh giá';
             const ghiChuKey = 'Ghi chú';
+            const sampleKeyOrder = ['Mẫu 1','Mẫu 2','Mẫu cũ 1','Mẫu cũ 2','Mẫu cũ 3','M1','M2'];
+
+            function getSampleColsForRows(rows) {
+              const sampleCols = [];
+              if (!rows || !rows.length) return sampleCols;
+              rows.forEach(r => {
+                const keysUsed = r._sample_keys_used;
+                if (Array.isArray(keysUsed)) {
+                  keysUsed.forEach(k => { if (k && !sampleCols.includes(k)) sampleCols.push(k); });
+                } else {
+                  Object.keys(r).forEach(k => {
+                    if ((/^Mẫu cũ \d+$/.test(k) || /^Mẫu \d+$/.test(k) || /^M\d+$/.test(k)) && !sampleCols.includes(k)) sampleCols.push(k);
+                  });
+                }
+              });
+              sampleCols.sort((a,b) => {
+                const iA = sampleKeyOrder.indexOf(a);
+                const iB = sampleKeyOrder.indexOf(b);
+                if (iA >= 0 && iB >= 0) return iA - iB;
+                if (iA >= 0) return -1;
+                if (iB >= 0) return 1;
+                const numA = parseInt(String(a).replace(/\D/g,'')) || 0;
+                const numB = parseInt(String(b).replace(/\D/g,'')) || 0;
+                return numA - numB;
+              });
+              return sampleCols;
+            }
 
             function sortBySTT(rows) {
               return [...rows].sort((a, b) => {
@@ -16402,6 +16449,7 @@
             function renderRowsTable(rows, title) {
               if (!rows || !rows.length) return '';
               rows = sortBySTT(rows);
+              const sampleCols = getSampleColsForRows(rows);
               return `
               <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                 <h3 class="text-lg font-semibold text-blue-800 mb-4">${title}</h3>
@@ -16453,6 +16501,16 @@
                         </tr>`;
                       }).join('')}
                     </tbody>
+                    <tfoot class="bg-blue-100 border-t-2 border-blue-300">
+                      <tr class="font-semibold text-blue-900">
+                        <td colspan="6" class="px-3 py-2 border border-gray-300 text-right">Tổng</td>
+                        <td class="px-3 py-2 border border-gray-300 text-right">${rows.reduce((s,r)=>{const v=parseFloat(r[congChuanKey]);return s+(isNaN(v)?0:v);},0).toFixed(2)}</td>
+                        <td class="px-3 py-2 border border-gray-300 text-right">${rows.reduce((s,r)=>{const v=parseFloat(r[congChuanQuyDoiKey]);return s+(isNaN(v)?0:v);},0).toFixed(2)}</td>
+                        ${sampleCols.map(()=>`<td class="px-2 py-2 border border-gray-300"></td>`).join('')}
+                        <td class="px-3 py-2 border border-gray-300"></td>
+                        <td class="px-3 py-2 border border-gray-300"></td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>
