@@ -27,9 +27,9 @@
                 'sidebar-hover': '#e0f0ff',
                 'muted': '#f7f8fc'
               },
-              fontFamily: {
-                "display": ["Inter", "sans-serif"]
-              },
+                  fontFamily: {
+                    "display": ["Inter", "sans-serif"]
+                  },
               borderRadius: {
                 "DEFAULT": "0.75rem",
                 "lg": "1rem",
@@ -38,7 +38,7 @@
               },
               boxShadow: {
                 'soft': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
-              }
+              } 
             },
           },
         };
@@ -104,7 +104,7 @@
       .spinner{border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
       @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
       .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
-      .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+      .modal{position:fixed;inset:0;background:rgba(15,23,42,0.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000;transition:opacity 0.2s ease}
       .modal.open{display:flex}
       .section-title{display:flex;align-items:center;gap:8px}
       .section-title .badge{background:rgba(90,169,255,.15);color:#1e40af;border:1px solid rgba(90,169,255,.35);padding:2px 8px;border-radius:9999px;font-size:12px;font-weight:600}
@@ -190,63 +190,28 @@
         }
       }
       /* Sidebar effects for groups */
-      .group-btn{ 
-        position:relative; 
-        transition: all 0.2s ease;
-      }
-      .group-btn.active{ 
-        background:rgba(74,144,226,.1); 
-        color:#4A90E2; 
-      }
-      .group-btn.active .material-symbols-outlined{ 
-        font-variation-settings: 'FILL' 1; 
-      }
-      .group-items{ 
-        transition: all .2s ease; 
-      }
-      .group-items .nav-btn{ 
-        background: transparent; 
-        transition: all 0.2s ease;
-        border-radius: 0.5rem;
-      }
-      .group-items .nav-btn:hover{ 
-        background: rgba(90,169,255,0.08); 
-        transform: translateX(2px);
-      }
-      .group-items .nav-btn.active{ 
-        background:rgba(74,144,226,.1); 
-        color:#4A90E2; 
-        font-weight: 600;
-      }
-      /* Sidebar styles */
+      .group-btn{ position:relative; transition: all 0.2s ease; }
+      .group-items{ transition: all .2s ease; }
+      /* Sidebar - tham khảo code.html */
       #sidebar-nav {
         position: sticky;
         top: 0;
         align-self: flex-start;
         max-height: 100vh;
-        overflow-y: auto;
-        background: linear-gradient(180deg, #f0f7ff 0%, #e8f4ff 100%);
-        box-shadow: 2px 0 8px rgba(90,169,255,0.08), 4px 0 16px rgba(90,169,255,0.04);
-        border-right: 1px solid rgba(90,169,255,0.2);
       }
-      /* Cải thiện các mục trong sidebar */
-      #sidebar-nav .group-btn {
-        margin-bottom: 0.25rem;
-        border-radius: 0.5rem;
+      #sidebar-nav .group-btn.active {
+        background: #eff6ff !important;
+        color: #1d4ed8;
       }
-      #sidebar-nav .group-btn:hover {
-        background: rgba(90,169,255,0.15);
-        transform: translateX(1px);
+      #sidebar-nav .group-btn.active .material-symbols-outlined {
+        color: #3b82f6 !important;
       }
-      #sidebar-nav .nav-btn {
-        margin-bottom: 0.125rem;
-        padding: 0.625rem 0.75rem;
-        transition: all 0.2s ease;
-        background: transparent;
-      }
-      #sidebar-nav .nav-btn:hover {
-        background: rgba(90,169,255,0.12);
-        color: #2563eb;
+      #sidebar-nav .nav-btn.bg-primary-blue,
+      #sidebar-nav .nav-btn.font-bold {
+        background: #fff !important;
+        color: #1d4ed8 !important;
+        font-weight: 600;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
       }
       #sidebar-nav nav {
         gap: 0.375rem;
@@ -256,6 +221,14 @@
         margin: 0;
         padding: 0;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      /* Section cards - giao diện thống nhất */
+      section[id^="form"] {
+        border-radius: 0.75rem;
+        transition: box-shadow 0.2s ease;
+      }
+      section[id^="form"]:hover {
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
       }
       .flex {
         display: flex;
@@ -356,7 +329,7 @@
       .text-text-light-primary {
         color: #111827;
       }
-      .text-text-light-secondary {
+      .text-slate-600 {
         color: #6b7280;
       }
       .border-border-light {
@@ -404,100 +377,83 @@
       }
     </style>
   </head>
-  <body class="bg-background-light font-display text-text-light-primary antialiased">
+  <body class="bg-slate-50 font-display text-slate-800 antialiased">
     <div class="flex h-screen w-full overflow-hidden">
-    <!-- Sidebar -->
-    <aside id="sidebar-nav" class="flex h-full w-64 flex-shrink-0 flex-col justify-between p-4 border-r border-border-light">
-      <div class="flex flex-col gap-6">
-        <div class="flex items-center gap-3 px-2">
-          <div class="flex flex-col relative">
-            <h1 class="text-text-light-primary text-base font-bold leading-normal">
-              Cổng Tác Vụ DQA
-            </h1>
+    <!-- Sidebar - tham khảo code.html -->
+    <aside id="sidebar-nav" class="w-64 flex-shrink-0 h-full min-h-screen bg-white border-r border-gray-200 flex flex-col">
+      <div class="h-16 flex items-center px-6 border-b border-gray-200">
+        <span class="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500 text-2xl">analytics</span>
+          DQA Portal
+        </span>
+      </div>
+      <nav class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <div class="rounded-md pb-2">
+          <button class="group-btn flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md w-full text-left transition-colors" type="button">
+            <span class="material-symbols-outlined mr-3 text-lg text-gray-400 group-hover:text-gray-500">assignment_return</span>
+            Khai báo tác vụ
+          </button>
+          <div class="group-items hidden ml-8 mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form1">1: Trả báo cáo & form</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form11">11 - Kiểm tra trước khi gửi báo cáo</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form12">12 - Mã danh mục</button>
           </div>
         </div>
-        <nav class="flex flex-col gap-2">
-          <div class="rounded-md">
-            <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <p class="text-sm font-bold leading-normal">Khai báo tác vụ</p>
-            </button>
-            <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form1">
-                <p class="text-sm font-semibold">Form 1: Trả báo cáo & form</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form11">
-                <p class="text-sm font-semibold">Form 11 - Kiểm tra trước khi gửi báo cáo</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form12">
-                <p class="text-sm font-semibold">Form 12 - Mã danh mục</p>
-              </button>
-            </div>
+        <div class="rounded-md pt-4 pb-2">
+          <button class="group-btn flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md w-full text-left transition-colors" type="button">
+            <span class="material-symbols-outlined mr-3 text-lg text-gray-400 group-hover:text-gray-500">bar_chart</span>
+            KPI nhóm cải tiến
+          </button>
+          <div class="group-items hidden ml-8 mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form4">4 · Kế hoạch công việc</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form5">5: KPI tháng</button>
+            <button class="nav-btn hidden block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form6">6 · Ý tưởng cải tiến</button>
           </div>
-          <div class="rounded-md">
-            <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <p class="text-sm font-bold leading-normal">KPI nhóm cải tiến</p>
-            </button>
-            <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form4">
-                <p class="text-sm font-semibold">Form 4 · Kế hoạch công việc</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form5">
-                <p class="text-sm font-semibold">Form 5: KPI tháng</p>
-              </button>
-              <button class="nav-btn hidden flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form6">
-                <p class="text-sm font-semibold">Form 6 · Ý tưởng cải tiến</p>
-              </button>
-            </div>
+        </div>
+        <div class="rounded-md pt-4 pb-2">
+          <button class="group-btn flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md w-full text-left transition-colors" type="button">
+            <span class="material-symbols-outlined mr-3 text-lg text-gray-400 group-hover:text-gray-500">build</span>
+            Khai báo
+          </button>
+          <div class="group-items hidden ml-8 mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form7">7 · Triển khai CE</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form8">8 · Triển khai 4M</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form9">9 · Thống kê test bền</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form13">13 · Hệ thống test bền mới</button>
           </div>
-          <div class="rounded-md">
-            <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <p class="text-sm font-bold leading-normal">Khai báo</p>
-            </button>
-            <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form7">
-                <p class="text-sm font-semibold">Form 7 · Triển khai CE</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form8">
-                <p class="text-sm font-semibold">Form 8 · Triển khai 4M</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form9">
-                <p class="text-sm font-semibold">Form 9 · Thống kê test bền</p>
-              </button>
-              <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form13">
-                <p class="text-sm font-semibold">Form 13 · Hệ thống test bền mới(đang thử nghiệm)</p>
-              </button>
-            </div>
-          </div>
-        </nav>
-      </div>
-      <div class="flex flex-col gap-1">
-        <a href="https://siberbk585-coder.github.io/PhongDQA-noibo2/" target="_blank" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary">
-          <p class="text-sm font-semibold leading-normal">Cổng tác vụ 2 - SPM</p>
-        </a>
-      </div>
+        </div>
+        </div>
+        <div class="flex-shrink-0 p-3 border-t border-gray-100">
+          <a href="https://siberbk585-coder.github.io/PhongDQA-noibo2/" target="_blank" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined mr-3 text-lg text-gray-400 group-hover:text-gray-500">settings</span>
+            Cổng tác vụ 2 - SPM
+          </a>
+        </div>
+      </nav>
     </aside>
 
     <!-- Main -->
     <main class="flex-1 flex flex-col overflow-y-auto">
-      <header class="flex-shrink-0 flex items-center justify-between gap-4 p-4 border-b border-border-light bg-surface-light/80 backdrop-blur-sm sticky top-0 z-10">
+      <header class="flex-shrink-0 flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
         <div class="flex-1 flex items-center gap-6 min-w-0">
           <div class="flex flex-wrap items-center gap-2">
-            <a class="text-text-light-secondary text-sm font-medium hover:text-primary" href="#">Projects</a>
-            <span class="text-text-light-secondary text-sm font-medium">/</span>
-            <span class="text-text-light-primary text-sm font-medium truncate">Cổng Tác Vụ DQA</span>
+            <a class="text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors" href="#">Projects</a>
+            <span class="text-slate-300 text-sm">/</span>
+            <span class="text-slate-800 text-sm font-medium truncate">Cổng Tác Vụ DQA</span>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button id="create-task-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-green-500 hover:bg-green-600 transition">+ Tạo tác vụ</button>
-          <button class="p-2.5 rounded-lg text-text-light-secondary hover:bg-gray-100 transition-colors border border-border-light bg-white">
+          <button id="create-task-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 transition-all duration-200 shadow-sm">+ Tạo tác vụ</button>
+          <button class="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200 bg-white">
             <span class="material-symbols-outlined text-xl">tune</span>
           </button>
-          <button class="p-2.5 rounded-lg text-text-light-secondary hover:bg-gray-100 transition-colors border border-border-light bg-white">
+          <button class="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200 bg-white">
             <span class="material-symbols-outlined text-xl">filter_list</span>
           </button>
         </div>
       </header>
-      <div class="flex-1 p-6 lg:p-8 overflow-x-auto">
+      <div class="flex-1 p-6 lg:p-8 overflow-x-auto bg-slate-50/50">
       <div class="header-container relative w-full max-w-6xl rounded-xl overflow-hidden mb-8" style="display:none;">
         <div class="relative z-10 p-8 md:p-10">
           <div class="flex items-center space-x-2 mb-3">
@@ -509,16 +465,16 @@
       </div>
 
       <!-- Form 1 -->
-      <section id="form1" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-blue-800">Form 1: Trả báo cáo</h2>
+      <section id="form1" class="w-full max-w-none bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-slate-100">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-slate-800">Form 1: Trả báo cáo</h2>
           <div class="flex items-center gap-2">
             <button id="f1-export-xlsx" class="px-3 py-1 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Xuất XLSX</button>
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Chọn tên</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="f1-name">Chọn tên</label>
             <div class="flex gap-2">
               <select id="f1-name" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
                 <option value="">— Chọn người —</option>
@@ -530,8 +486,11 @@
         </div>
         <div class="mt-2 flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-700">Tháng</label>
+            <label class="text-sm text-gray-700" for="f1-month">Tháng</label>
             <input id="f1-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+          </div>
+          <div id="f1-note-container" class="ml-auto">
+            <span data-last-updated class="text-xs text-gray-500 italic"></span>
           </div>
         </div>
         <div class="mt-4 space-y-6 overflow-auto max-h-[60vh] border border-gray-200 rounded-lg">
@@ -4621,7 +4580,11 @@
         try{
           const btn = document.getElementById(btnId);
           if (!btn) return;
-          const parent = btn.parentElement || btn;
+          let parent = btn.parentElement || btn;
+          if (btnId === 'f1-search') {
+            const c = document.getElementById('f1-note-container');
+            if (c) parent = c;
+          }
           // Ghi chú thời gian
           let note = parent.querySelector('[data-last-updated]');
           if (!note){
@@ -4635,7 +4598,8 @@
           const show = tsStr ? (isNaN(ts) ? '' : `Dữ liệu cập nhật lúc ${formatHHmmDdMmYyyy(new Date(ts))}`) : '';
           note.textContent = show;
 
-          // Dòng hướng dẫn nổi bật bên dưới
+          // Dòng hướng dẫn nổi bật bên dưới (bỏ qua Form 1 - đã có hướng dẫn sẵn)
+          if (btnId === 'f1-search') return;
           const hintId = `${btnId}-refresh-hint`;
           let hint = document.getElementById(hintId);
           if (!hint){
@@ -8073,7 +8037,24 @@
       if (f1Prev) f1Prev.onclick = (e)=>{ e.preventDefault(); if(F1_PAGE>1){ F1_PAGE--; applyForm1Paging(); } };
       if (f1Next) f1Next.onclick = (e)=>{ e.preventDefault(); F1_PAGE++; applyForm1Paging(); };
       if (f1Size) f1Size.onchange = (e)=>{ F1_SIZE = parseInt(e.target.value||'20',10)||20; F1_PAGE=1; applyForm1Paging(); };
-      // Default month and change handler for Form 1 filter (Done/Cancel)
+      // Bộ lọc tháng Form 1 - prev/next/Tháng này
+      function navigateF1Month(direction){
+        const m = document.getElementById('f1-month');
+        if (!m) return;
+        if (!m.value){
+          const d = new Date();
+          m.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          applyForm1MonthFilter();
+          return;
+        }
+        const [yy, mm] = m.value.split('-').map(Number);
+        const d = new Date(yy, mm - 1, 1);
+        if (direction === 'prev') d.setMonth(d.getMonth() - 1);
+        else if (direction === 'next') d.setMonth(d.getMonth() + 1);
+        else if (direction === 'current'){ const n = new Date(); d.setFullYear(n.getFullYear()); d.setMonth(n.getMonth()); }
+        m.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        applyForm1MonthFilter();
+      }
       (function initF1Month(){
         const m = document.getElementById('f1-month');
         if (!m) return;
@@ -8082,6 +8063,12 @@
         const mm = String(d.getMonth()+1).padStart(2,'0');
         if (!m.value) m.value = `${yy}-${mm}`;
         if (!m._bound){ m.addEventListener('change', ()=> applyForm1MonthFilter()); m._bound = true; }
+        const prev = document.getElementById('f1-month-prev');
+        const next = document.getElementById('f1-month-next');
+        const cur = document.getElementById('f1-month-current');
+        if (prev) prev.onclick = (e)=>{ e.preventDefault(); navigateF1Month('prev'); };
+        if (next) next.onclick = (e)=>{ e.preventDefault(); navigateF1Month('next'); };
+        if (cur) cur.onclick = (e)=>{ e.preventDefault(); navigateF1Month('current'); };
       })();
 
       // Helper: ưu tiên chọn Mã tác vụ theo tiền tố QA.Y/QA.NB
