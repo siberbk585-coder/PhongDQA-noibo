@@ -103,18 +103,7 @@
         }
       .spinner{border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
       @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-      /* Tết Nguyên Đán decorations */
-      .christmas-tree{display:inline-block;animation:sway 2s ease-in-out infinite;transform-origin:center bottom}
-      .christmas-star{display:inline-block;animation:twinkle 1.5s ease-in-out infinite}
-      .snowflake{display:inline-block;animation:float 3s ease-in-out infinite;opacity:0.8}
-      .peach-blossom{display:inline-block;animation:bloom 2.5s ease-in-out infinite;transform-origin:center}
-      .apricot-blossom{display:inline-block;animation:bloom 2.8s ease-in-out infinite;transform-origin:center;animation-delay:0.3s}
-      @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-      @keyframes twinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.2)}}
-      @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-      @keyframes bloom{0%,100%{opacity:0.8;transform:scale(1) rotate(0deg)}25%{opacity:1;transform:scale(1.1) rotate(2deg)}50%{opacity:0.9;transform:scale(1.05) rotate(-1deg)}75%{opacity:1;transform:scale(1.08) rotate(1deg)}}
       .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
-      .header-container::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");opacity:.4}
       .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
       .modal.open{display:flex}
       .section-title{display:flex;align-items:center;gap:8px}
@@ -142,7 +131,7 @@
       .table-f13 thead th:last-child { border-top-right-radius: 8px; }
       .f13-badge-ok { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:600; background:#bbf7d0; color:#166534; }
       .f13-badge-kdg { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:600; background:#fed7aa; color:#9a3412; }
-      .table-f13 th:nth-child(11), .table-f13 th:nth-child(14), .table-f13 td:nth-child(11), .table-f13 td:nth-child(14) { display: none; }
+      .table-f13 th:nth-child(11), .table-f13 th:nth-child(12), .table-f13 th:nth-child(14), .table-f13 td:nth-child(11), .table-f13 td:nth-child(12), .table-f13 td:nth-child(14) { display: none; }
       .cell-div{ border-left:1px solid #e5e7eb; }
       .table-vdiv{ border-collapse: separate; border-spacing: 0; }
       .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
@@ -421,7 +410,6 @@
     <aside id="sidebar-nav" class="flex h-full w-64 flex-shrink-0 flex-col justify-between p-4 border-r border-border-light">
       <div class="flex flex-col gap-6">
         <div class="flex items-center gap-3 px-2">
-          <img src="https://cdn-icons-png.flaticon.com/512/13374/13374464.png" alt="🧧" class="christmas-tree w-16 h-16 object-contain" />
           <div class="flex flex-col relative">
             <h1 class="text-text-light-primary text-base font-bold leading-normal">
               Cổng Tác Vụ DQA
@@ -431,64 +419,51 @@
         <nav class="flex flex-col gap-2">
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="text-lg">🧧</span>
               <p class="text-sm font-bold leading-normal">Khai báo tác vụ</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form1">
-                <span class="text-base">🏮</span>
                 <p class="text-sm font-semibold">Form 1: Trả báo cáo & form</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form11">
-                <span class="text-base">📋</span>
                 <p class="text-sm font-semibold">Form 11 - Kiểm tra trước khi gửi báo cáo</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form12">
-                <span class="text-base">📑</span>
                 <p class="text-sm font-semibold">Form 12 - Mã danh mục</p>
               </button>
             </div>
           </div>
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="text-lg">🐉</span>
               <p class="text-sm font-bold leading-normal">KPI nhóm cải tiến</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form4">
-                <span class="text-base">📅</span>
                 <p class="text-sm font-semibold">Form 4 · Kế hoạch công việc</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form5">
-                <span class="text-base">🌼</span>
                 <p class="text-sm font-semibold">Form 5: KPI tháng</p>
               </button>
               <button class="nav-btn hidden flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form6">
-                <span class="text-base">🌸</span>
                 <p class="text-sm font-semibold">Form 6 · Ý tưởng cải tiến</p>
               </button>
             </div>
           </div>
           <div class="rounded-md">
             <button class="group-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary w-full text-left">
-              <span class="text-lg">🔔</span>
               <p class="text-sm font-bold leading-normal">Khai báo</p>
             </button>
             <div class="group-items hidden mt-1 pl-11 flex flex-col gap-1">
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form7">
-                <span class="text-base">🏮</span>
                 <p class="text-sm font-semibold">Form 7 · Triển khai CE</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form8">
-                <span class="text-base">🧧</span>
                 <p class="text-sm font-semibold">Form 8 · Triển khai 4M</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form9">
-                <span class="text-base">🎊</span>
                 <p class="text-sm font-semibold">Form 9 · Thống kê test bền</p>
               </button>
               <button class="nav-btn flex items-center gap-3 px-3 py-2 rounded-lg text-text-light-secondary text-left text-sm" data-target="form13">
-                <span class="text-base">🔬</span>
                 <p class="text-sm font-semibold">Form 13 · Hệ thống test bền mới(đang thử nghiệm)</p>
               </button>
             </div>
@@ -497,7 +472,6 @@
       </div>
       <div class="flex flex-col gap-1">
         <a href="https://siberbk585-coder.github.io/PhongDQA-noibo2/" target="_blank" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-light-secondary">
-          <span class="text-lg">🔗</span>
           <p class="text-sm font-semibold leading-normal">Cổng tác vụ 2 - SPM</p>
         </a>
       </div>
@@ -4760,10 +4734,10 @@
           return arr.filter(n => !exclude.has(n));
         }catch(_){ return FORM1_NAMES; }
       })();
-      // Danh sách riêng cho Form 3 (Người được giao): loại 3 tên và thêm 3 tên
+      // Danh sách riêng cho Form 3 (Người được giao): loại 2 tên và thêm 3 tên (Hà Mỹ Linh giữ lại)
       const FORM3_ASSIGNEES = (()=>{
         const base = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
-        const exclude = new Set(["Hà Mỹ Linh","Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
+        const exclude = new Set(["Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
         const add = ["Đào Hoàng Dương","Nguyễn Văn Linh","Nguyễn Văn Hiếu"];
         const filtered = base.filter(n => !exclude.has(n));
         add.forEach(n => { if (filtered.indexOf(n) === -1) filtered.push(n); });
@@ -5748,6 +5722,14 @@
           body.innerHTML = '<tr><td class="px-3 py-4 text-center text-gray-500 border-b border-slate-200" colspan="16">Không có dữ liệu</td></tr>';
           return;
         }
+        rows = rows.slice().sort(function(a,b){
+          var idA = a.Id != null ? a.Id : a['Id'];
+          var idB = b.Id != null ? b.Id : b['Id'];
+          var numA = (typeof idA === 'number' && !isNaN(idA)) ? idA : (parseFloat(idA) || 0);
+          var numB = (typeof idB === 'number' && !isNaN(idB)) ? idB : (parseFloat(idB) || 0);
+          if (numA !== numB) return numB - numA;
+          return String(idB || '').localeCompare(String(idA || ''));
+        });
         function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         function fmtTinhTrang(v){
           if (!v) return '—';
