@@ -1501,7 +1501,7 @@
                 <input id="create-output" required type="text" placeholder="Mô tả đầu ra" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
                 <input id="create-deadline" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
@@ -1509,6 +1509,10 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Link KOI</label>
                 <input id="create-odoo-jira" type="text" placeholder="Copy link luồng phê duyệt" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
+                <input id="create-vendor" type="text" placeholder="Nhập tên nhà cung cấp" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm</label>
@@ -4528,7 +4532,7 @@
           return cur;
         }catch(_){ return null; }
       }
-      // Parse number flexible: supports both comma and dot decimals
+      // Parse number flexible: supports both comma (12,5) and dot (12.5) decimals
       function parseNumberFlexible(value){
         try{
           let s = String(value ?? '').trim();
@@ -4543,6 +4547,13 @@
           const n = Number(s);
           return Number.isFinite(n) ? n : NaN;
         }catch(_){ return NaN; }
+      }
+      // Parse số an toàn cho Công chuẩn/giờ: hỗ trợ cả "12,5" và "12.5", tránh đếm nhầm do lẫn đơn vị thập phân
+      function toNumFromDecimal(value){
+        if (value == null || value === '') return 0;
+        if (typeof value === 'number' && Number.isFinite(value)) return value;
+        const n = parseNumberFlexible(value);
+        return Number.isFinite(n) ? n : 0;
       }
       // Number formatters for display only (do not mutate source data)
       function formatNumberVi(num, min=2, max=2){
@@ -8169,6 +8180,7 @@
           const assignee = (document.getElementById('create-f3-assignee').value || '').trim();
           const deadline = document.getElementById('create-deadline').value;
           const odooJira = document.getElementById('create-odoo-jira').value.trim();
+          const vendor = (document.getElementById('create-vendor')?.value || '').trim();
           const taskType = (document.getElementById('create-task-type')?.value || '').trim();
           const purpose = (document.getElementById('create-purpose')?.value || '').trim();
 
@@ -8220,6 +8232,7 @@
             Assignee: assignee,
             desiredDate: deadline ? formatDdMmYyyy(deadline) : '',
             Odoojira: odooJira,
+            vendor: vendor,
             taskType: taskType,
             purpose: purpose,
             deptRequest: 'DQA',
@@ -8372,7 +8385,7 @@
           // Map dữ liệu từ n8n sang format để render
           function mapTaskDetail(task){
             const actualHoursDisp = Number.isFinite(task.actualNum) ? formatNumberVi(task.actualNum, 2, 2) : (task.actualHours || '');
-            const manDisp = formatNumberVi(Number(task.man || 0), 2, 2);
+            const manDisp = formatNumberVi(toNumFromDecimal(task.man), 2, 2);
             const wishDisp = formatDdMmYyyy(task.wish || '');
             let wishPlus2Disp = '';
             try{
@@ -9597,7 +9610,7 @@
               }
               const ctx = chartCanvas.getContext('2d');
               destroyChart();
-              const dataMan = filteredRows.map(r=> Number(r.manhour)||0);
+              const dataMan = filteredRows.map(r=> toNumFromDecimal(r.manhour || r['Tổng công chuẩn'] || r.totalByRef));
               const valueLabelsPlugin = {
                 id: 'valueLabels',
                 afterDatasetsDraw(chart){
@@ -9801,11 +9814,11 @@
                 if (name.toLowerCase() === 'x') return false;
                 if (isNameInBlacklist(name)) return false;
                 return true;
-              }).slice().sort((a,b)=> Number(b.manhour||0) - Number(a.manhour||0));
-              const labels2 = manRows.map(r=> r.name);
+              }).slice().sort((a,b)=> toNumFromDecimal(b.manhour||b['Tổng công chuẩn']||b.totalByRef) - toNumFromDecimal(a.manhour||a['Tổng công chuẩn']||a.totalByRef));
+              const labels2 = manRows.map(r=> r.name || r['Phụ trách'] || '');
               const ctxMan = chartCanvasMan ? chartCanvasMan.getContext('2d') : null;
               if (ctxMan){
-                const dataMan = manRows.map(r=> Number(r.manhour)||0);
+                const dataMan = manRows.map(r=> toNumFromDecimal(r.manhour || r['Tổng công chuẩn'] || r.totalByRef));
                 try{ if (F5A_CHART_MAN) { F5A_CHART_MAN.destroy(); } }catch(_){ }
                 const valueLabelsPlugin2 = {
                   id: 'valueLabels2',
@@ -9873,7 +9886,7 @@
           // Sau khi render, giữ một bản sao trong biến toàn cục để các lần render lại nhanh không phụ thuộc cache/bộ nhớ ngoài
           try { F5A_LAST_ROWS = Array.isArray(aggregated) ? aggregated.slice() : []; } catch(_) {}
           // Lọc theo whitelist tên và loại bỏ nhân viên test "x" và blacklist
-          const filtered = Array.isArray(aggregated) ? aggregated.filter(item => {
+          let filtered = Array.isArray(aggregated) ? aggregated.filter(item => {
             const name = (item['Phụ trách'] || item.name || '').trim();
             // Loại bỏ nhân viên có tên là "x" (dùng cho test code)
             if (name.toLowerCase() === 'x') return false;
@@ -9881,6 +9894,42 @@
             if (isNameInBlacklist(name)) return false;
             return true;
           }) : [];
+          // Gộp trùng tên để tránh đếm nhầm Tổng công chuẩn (cùng người có thể xuất hiện nhiều lần do biến thể tên)
+          filtered = (function mergeByName(arr){
+            if (!arr || arr.length === 0) return arr;
+            const byKey = new Map();
+            const toKey = (s)=>{ try{ return (typeof vnKey==='function' ? vnKey(s) : String(s||'').toLowerCase().trim()).replace(/\s+/g,' '); }catch(_){ return String(s||'').toLowerCase().trim(); } };
+            arr.forEach(it=>{
+              const name = (it['Phụ trách'] || it.name || '').trim();
+              const key = toKey(name);
+              const existing = byKey.get(key);
+              if (existing){
+                existing['Tổng công chuẩn'] = toNumFromDecimal(existing['Tổng công chuẩn']) + toNumFromDecimal(it['Tổng công chuẩn']||it.totalByRef);
+                existing.doneCnt = (Number(existing.doneCnt)||0) + (Number(it.doneCnt)||0);
+                existing.ahead = (Number(existing.ahead)||0) + (Number(it.ahead)||0);
+                existing.ontime = (Number(existing.ontime)||0) + (Number(it.ontime)||0);
+                existing.late = (Number(existing.late)||0) + (Number(it.late)||0);
+                existing.na = (Number(existing.na)||0) + (Number(it.na)||0);
+                existing.totalByRef = toNumFromDecimal(existing['Tổng công chuẩn']);
+                if (it.details && Array.isArray(it.details.sameMonth)){
+                  existing.details = existing.details || {};
+                  const arrA = existing.details.sameMonth || [];
+                  const arrB = it.details.sameMonth || [];
+                  const taskKey = (x)=> (x&&(x['Mã tác vụ']||x['Mã']||x.taskId||x.id||'')) || '';
+                  const seen = new Set(arrA.map(taskKey));
+                  const merged = [...arrA];
+                  arrB.forEach(x=>{ const k = taskKey(x); if (!k){ merged.push(x); } else if (!seen.has(k)){ merged.push(x); seen.add(k); } });
+                  existing.details.sameMonth = merged;
+                }
+              } else {
+                const copy = Object.assign({}, it);
+                copy['Tổng công chuẩn'] = toNumFromDecimal(it['Tổng công chuẩn']||it.totalByRef);
+                copy.totalByRef = copy['Tổng công chuẩn'];
+                byKey.set(key, copy);
+              }
+            });
+            return Array.from(byKey.values());
+          })(filtered);
           if (!filtered.length){
             body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có dữ liệu</td></tr>';
             if (chartWrap) chartWrap.style.display = 'none';
@@ -9928,10 +9977,10 @@
                 const emp = getV(o, assigneeKeys);
                 const rq = getV(o, rqKeys); const rqD = parseDate(rq); const rqIso = rqD? iso(rqD):''; if (!inRange(rqIso)) return;
                 const rk = toKey(emp);
-                // tìm khớp gần đúng với tên hiển thị
+                // Chỉ khớp chính xác để tránh đếm nhầm (vd: "Nguyễn Văn An" không gán vào "Nguyễn Văn")
                 let matchedKey = null;
                 if (map.has(rk)) matchedKey = rk; else {
-                  for (const dk of displayKeys){ if (rk.includes(dk) || dk.includes(rk)) { matchedKey = dk; break; } }
+                  for (const dk of displayKeys){ if (rk === dk) { matchedKey = dk; break; } }
                 }
                 if (!matchedKey) return;
                 map.set(matchedKey, (map.get(matchedKey)||0) + 1);
@@ -10009,8 +10058,8 @@
           sorted.forEach(item=>{
             // Sử dụng dữ liệu từ n8n (đã được aggregate và tính toán sẵn)
             const name = item['Phụ trách'] || item.name || '';
-            // Tổng công chuẩn từ n8n
-            const man = Number(item['Tổng công chuẩn'] || item.totalByRef || 0);
+            // Tổng công chuẩn từ n8n (dùng toNumFromDecimal để hỗ trợ cả "12,5" và "12.5")
+            const man = toNumFromDecimal(item['Tổng công chuẩn'] || item.totalByRef);
             // Số task nhận trong tháng (cần tính từ raw data hoặc từ details)
             const count = f5aCountByAssigneeInline(name);
             const ahead = Number(item.ahead || 0);
@@ -10140,8 +10189,8 @@
           // Chart
           F5A_LAST_ROWS = sorted;
           renderStackedChart(sorted);
-          // Render dashboard P1
-          renderDashboardP1();
+          // Render dashboard P1 (dùng dữ liệu đã gộp trùng tên)
+          renderDashboardP1(sorted);
         }catch(err){
           try{ const b1 = document.getElementById('f5a-body-p1'); if (b1) b1.innerHTML = `<tr><td colspan='10' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
           try{ const b2 = document.getElementById('f5a-body-p2'); if (b2) b2.innerHTML = `<tr><td colspan='6' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`; }catch(_){ }
@@ -10204,11 +10253,7 @@
           let sumWorkHours = 0;
           
           // Helper function để parse số từ format "48,00"
-          const parseNumber = (str) => {
-            if (!str) return 0;
-            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-          };
+          const parseNumber = (str) => (typeof toNumFromDecimal==='function' ? toNumFromDecimal(str) : 0);
           
           // Helper function để format số với dấu phẩy
           const formatNumber = (num) => {
@@ -10376,10 +10421,10 @@
             try{ const chartWrap = document.getElementById('f5a-chart-container'); if(chartWrap) chartWrap.style.display='none'; }catch(_){ }
             return true;
           }
-          const sorted = filtered.slice().sort((a,b)=> Number(b["Tổng công chuẩn"]||b.manhour||0) - Number(a["Tổng công chuẩn"]||a.manhour||0));
+          const sorted = filtered.slice().sort((a,b)=> toNumFromDecimal(b["Tổng công chuẩn"]||b.manhour) - toNumFromDecimal(a["Tổng công chuẩn"]||a.manhour));
           const html = sorted.map(item=>{
             const name = item['Phụ trách'] || item.name || '';
-            const man = Number(((item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour) || 0));
+            const man = toNumFromDecimal(item['Tổng công chuẩn'] ?? item['Tổng điểm (đang xử lý)'] ?? item.manhour);
             const count = Number(((item['Tổng tác vụ đã xử lý'] ?? item.count) || 0));
             const ahead = Number(item.ahead||0);
             const ontime = Number(item.ontime||0);
@@ -10404,7 +10449,7 @@
                 <td class="px-3 py-2">${rNA.toFixed(0)}%</td>
               </tr>`; }).join('');
           // Hàng tổng cuối bảng (khôi phục từ cache)
-          const sumMan = sorted.reduce((a,it)=> a + Number(((it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour) || 0)), 0);
+          const sumMan = sorted.reduce((a,it)=> a + toNumFromDecimal(it['Tổng công chuẩn'] ?? it['Tổng điểm (đang xử lý)'] ?? it.manhour), 0);
           const sumNeed = sorted.reduce((a,it)=> a + Number(f5aGetNeedManhour(it['Phụ trách'] || it.name || '')), 0);
           const sumCount = sorted.reduce((a,it)=> a + Number(((it['Tổng tác vụ đã xử lý'] ?? it.count) || 0)), 0);
           const sumAhead = sorted.reduce((a,it)=> a + Number(it.ahead||0), 0);
@@ -10428,7 +10473,6 @@
               </tr>`;
           body.innerHTML = html + totalRow;
           try{ enableTableDrag('f5a-body'); }catch(_){ }
-          F5A_LAST_ROWS = sorted;
           try{ const chartWrap = document.getElementById('f5a-chart-container'); if(chartWrap) chartWrap.style.display='none'; }catch(_){ }
           return true;
         }catch(_){ return false; }
@@ -10436,9 +10480,11 @@
 
       // Xuất CSV/XLSX
       function f5aRowsToAOA(rows){
-        // Ưu tiên sử dụng dữ liệu từ F5A_P1_DATA nếu có (giống như render)
+        // Ưu tiên dữ liệu đã gộp (F5A_LAST_ROWS) để tránh đếm nhầm, rồi mới F5A_P1_DATA
         let dataToUse = rows;
-        if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
+        if (F5A_LAST_ROWS && Array.isArray(F5A_LAST_ROWS) && F5A_LAST_ROWS.length > 0) {
+          dataToUse = F5A_LAST_ROWS;
+        } else if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
           dataToUse = F5A_P1_DATA.data;
         }
         
@@ -10601,9 +10647,11 @@
         try{
           const wb = XLSX.utils.book_new();
           const month = (document.getElementById('f5a-month')?.value || '').replace(/\s+/g,'');
-          // Sheet P1 - Sử dụng dữ liệu từ F5A_P1_DATA nếu có, nếu không thì dùng rows
+          // Sheet P1 - Ưu tiên F5A_LAST_ROWS (đã gộp trùng tên), rồi F5A_P1_DATA
           let p1Data = rows;
-          if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
+          if (F5A_LAST_ROWS && Array.isArray(F5A_LAST_ROWS) && F5A_LAST_ROWS.length > 0) {
+            p1Data = F5A_LAST_ROWS;
+          } else if (F5A_P1_DATA && F5A_P1_DATA.data && Array.isArray(F5A_P1_DATA.data) && F5A_P1_DATA.data.length > 0) {
             p1Data = F5A_P1_DATA.data;
           }
           const aoa = f5aRowsToAOA(p1Data);
@@ -10905,11 +10953,7 @@
           });
           
           // Helper function để parse số từ format "48,00"
-          const parseNumber = (str) => {
-            if (!str) return 0;
-            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-          };
+          const parseNumber = (str) => (typeof toNumFromDecimal==='function' ? toNumFromDecimal(str) : 0);
           
           // Helper function để format số với dấu phẩy
           const formatNumber = (num) => {
@@ -11407,7 +11451,7 @@
             
             sameMonth.forEach(task => {
               const actualHoursDisp = Number.isFinite(task.actualNum) ? formatNumberVi(task.actualNum, 2, 2) : (task.actualHours || '');
-              const manDisp = formatNumberVi(Number(task.man || 0), 2, 2);
+              const manDisp = formatNumberVi(toNumFromDecimal(task.man), 2, 2);
               const wishDisp = formatDdMmYyyy(task.wish || '');
               let wishPlus1Disp = '';
               try {
@@ -11438,7 +11482,7 @@
             
             prevMonth.forEach(task => {
               const actualHoursDisp = Number.isFinite(task.actualNum) ? formatNumberVi(task.actualNum, 2, 2) : (task.actualHours || '');
-              const manDisp = formatNumberVi(Number(task.man || 0), 2, 2);
+              const manDisp = formatNumberVi(toNumFromDecimal(task.man), 2, 2);
               const wishDisp = formatDdMmYyyy(task.wish || '');
               let wishPlus1Disp = '';
               try {
@@ -11890,12 +11934,8 @@
           const fmt = (v)=>{ try{ return v? formatDdMmYyyy(v):''; }catch(_){ return v||''; } };
           let stt = 0;
           
-          // Helper functions để parse và format số
-          const parseNumber = (str) => {
-            if (!str) return 0;
-            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-          };
+          // Helper parse số: hỗ trợ cả "12,5" và "12.5"
+          const parseNumber = (str) => (typeof toNumFromDecimal==='function' ? toNumFromDecimal(str) : 0);
           const formatNumber = (num) => {
             if (!Number.isFinite(num)) return '0,00';
             return num.toFixed(2).replace('.', ',');
@@ -13575,20 +13615,21 @@
 
       // ===== Form 5: Dashboard Render Functions =====
       
-      // Render Dashboard P1
-      function renderDashboardP1() {
+      // Render Dashboard P1 (mergedData: dữ liệu đã gộp trùng tên từ renderForm5P1, tránh đếm nhầm)
+      function renderDashboardP1(mergedData) {
         try {
           const dashboard = document.getElementById('f5a-dashboard-p1');
           if (!dashboard) return;
           
-          if (!F5A_P1_DATA || !Array.isArray(F5A_P1_DATA.data) || F5A_P1_DATA.data.length === 0) {
+          const source = Array.isArray(mergedData) && mergedData.length > 0 ? mergedData : (F5A_P1_DATA && Array.isArray(F5A_P1_DATA.data) ? F5A_P1_DATA.data : []);
+          if (!source || source.length === 0) {
             dashboard.classList.add('hidden');
             return;
           }
           
           dashboard.classList.remove('hidden');
           
-          const data = F5A_P1_DATA.data.filter(item => {
+          const data = source.filter(item => {
             const name = (item['Phụ trách'] || item.name || '').trim();
             if (name.toLowerCase() === 'x') return false;
             if (isNameInBlacklist(name)) return false;
@@ -13643,13 +13684,13 @@
             if (F5A_CHART_P1_MANHOUR) F5A_CHART_P1_MANHOUR.destroy();
             
             const sorted = data.slice().sort((a, b) => {
-              const manA = Number(a['Tổng công chuẩn'] || a.totalByRef || 0);
-              const manB = Number(b['Tổng công chuẩn'] || b.totalByRef || 0);
+              const manA = toNumFromDecimal(a['Tổng công chuẩn'] || a.totalByRef);
+              const manB = toNumFromDecimal(b['Tổng công chuẩn'] || b.totalByRef);
               return manB - manA;
             });
             
             const labels2 = sorted.map(d => d['Phụ trách'] || d.name || '');
-            const manhours = sorted.map(d => Number(d['Tổng công chuẩn'] || d.totalByRef || 0));
+            const manhours = sorted.map(d => toNumFromDecimal(d['Tổng công chuẩn'] || d.totalByRef));
             
             F5A_CHART_P1_MANHOUR = new Chart(ctx2, {
               type: 'bar',
@@ -13706,11 +13747,7 @@
             return;
           }
           
-          const parseNumber = (str) => {
-            if (!str) return 0;
-            const cleaned = String(str).replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-          };
+          const parseNumber = (str) => (typeof toNumFromDecimal==='function' ? toNumFromDecimal(str) : 0);
           
           // Helper function để parse coefficient (xử lý dấu phẩy)
           const parseCoefficient = (coef) => {
