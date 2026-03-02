@@ -445,6 +445,7 @@
         </div>
         <div class="flex items-center gap-2">
           <button id="create-task-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700 transition-all duration-200 shadow-sm">+ Tạo tác vụ</button>
+          <button id="task-koi-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-amber-500 hover:bg-amber-600 transition-all duration-200 shadow-sm">Tác vụ KOI</button>
           <button class="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200 bg-white">
             <span class="material-symbols-outlined text-xl">tune</span>
           </button>
@@ -1550,6 +1551,52 @@
         </div>
         <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2 flex-shrink-0">
           <button id="create-task-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Tác vụ KOI -->
+    <div id="task-koi-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="task-koi-title">
+      <div class="w-[95vw] max-w-[1400px] bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-4">
+        <div class="px-6 py-4 bg-gradient-to-r from-sky-600 to-blue-700 border-b border-sky-500 flex-shrink-0 flex items-center justify-between">
+          <h3 id="task-koi-title" class="text-lg font-bold text-white">Tác vụ KOI - Rà soát</h3>
+          <div class="flex items-center gap-2">
+            <button id="task-koi-reload" class="px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-medium flex items-center gap-2 transition-colors">
+              <span class="material-symbols-outlined text-lg">refresh</span>
+              Tải lại
+            </button>
+            <button id="task-koi-close" class="p-2 rounded-lg text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Đóng">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+          <div id="task-koi-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5"></div>
+          <div class="flex gap-2 border-b border-slate-200 mb-4">
+            <button id="task-koi-tab-co" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-sky-600 bg-sky-50 text-sky-800">Đã tạo tác vụ</button>
+            <button id="task-koi-tab-khong" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa tạo tác vụ</button>
+          </div>
+          <div id="task-koi-loading" class="hidden flex items-center justify-center gap-2 py-12 text-sky-600">
+            <span class="spinner"></span>
+            <span>Đang tải...</span>
+          </div>
+          <div id="task-koi-content" class="overflow-auto rounded-lg border border-slate-200 bg-white shadow-sm" style="max-height: 60vh;">
+            <table class="w-full text-sm table-zebra">
+              <thead class="bg-sky-50 sticky top-0 border-b border-sky-100">
+                <tr class="text-left">
+                  <th class="px-4 py-3 font-semibold text-sky-800">Mã phê duyệt</th>
+                  <th class="px-4 py-3 font-semibold text-sky-800">Tên phê duyệt</th>
+                  <th class="px-4 py-3 font-semibold text-sky-800">Ngày yêu cầu</th>
+                  <th class="px-4 py-3 font-semibold text-sky-800">Trạng thái</th>
+                  <th class="px-4 py-3 font-semibold text-sky-800">Link KOI</th>
+                </tr>
+              </thead>
+              <tbody id="task-koi-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 flex-shrink-0 bg-white">
+          <button id="task-koi-cancel" class="px-5 py-2.5 rounded-lg bg-sky-100 text-sky-800 hover:bg-sky-200 font-medium transition-colors">Đóng</button>
         </div>
       </div>
     </div>
@@ -8132,6 +8179,130 @@
         createTaskModal.addEventListener('click', (e) => { if(e.target === createTaskModal) closeCreateTaskModal(); });
         document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && createTaskModal.classList.contains('open')) closeCreateTaskModal(); });
       }
+
+      // Modal Tác vụ KOI - Rà soát KOI
+      const TASK_KOI_WEBHOOK = 'https://iatzhxxuk.tino.page/webhook/RasoatKOI';
+      let TASK_KOI_DATA = null;
+      let TASK_KOI_ACTIVE_TAB = 'co';
+
+      function escKoi(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function getStatusBadge(status) {
+        const s = String(status || '').toLowerCase();
+        if (s === 'approved') return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Approved</span>';
+        if (s === 'submitted') return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Submitted</span>';
+        if (s === 'draft') return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">Draft</span>';
+        if (s === 'refused') return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Refused</span>';
+        if (s === 'cancel') return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">Cancel</span>';
+        return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">' + escKoi(status) + '</span>';
+      }
+
+      function renderTaskKoiStats(data) {
+        const el = document.getElementById('task-koi-stats');
+        if (!el || !data?.thong_ke) return;
+        const tk = data.thong_ke;
+        const cards = [
+          { label: 'Số tác vụ trên KOI', value: tk.approvals_items_goc ?? '-' },
+          { label: 'Số KOI đã tạo tác vụ', value: tk.so_koi_co_trong_task ?? '-' },
+          { label: 'KOI chưa tạo tác vụ', value: tk.so_koi_khong_co_trong_task ?? '-' },
+        ];
+        el.innerHTML = cards.map(c => `
+          <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-xs text-sky-600 font-medium uppercase tracking-wide">${escKoi(c.label)}</div>
+            <div class="text-2xl font-bold text-sky-800 mt-1">${escKoi(c.value)}</div>
+          </div>
+        `).join('');
+      }
+
+      function renderTaskKoiTable(rows) {
+        const tbody = document.getElementById('task-koi-table-body');
+        if (!tbody) return;
+        if (!Array.isArray(rows) || rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">Không có dữ liệu.</td></tr>';
+          return;
+        }
+        const sorted = [...rows].sort((a, b) => {
+          const da = a.request_date ? new Date(a.request_date.replace(' ', 'T')).getTime() : 0;
+          const db = b.request_date ? new Date(b.request_date.replace(' ', 'T')).getTime() : 0;
+          return db - da;
+        });
+        tbody.innerHTML = sorted.map(r => `
+          <tr class="border-b border-slate-100 hover:bg-sky-50/50 transition-colors">
+            <td class="px-4 py-3 font-medium text-slate-800">${escKoi(r.ma_phe_duyet)}</td>
+            <td class="px-4 py-3 text-slate-700">${escKoi(r.ten_phe_duyet)}</td>
+            <td class="px-4 py-3 text-slate-600 text-xs">${escKoi(r.request_date || '-')}</td>
+            <td class="px-4 py-3">${getStatusBadge(r.trang_thai_phe_duyet)}</td>
+            <td class="px-4 py-3">
+              ${r.link_koi ? `<a href="${escKoi(r.link_koi)}" target="_blank" rel="noopener" class="text-sky-600 hover:text-sky-800 hover:underline font-medium">Mở KOI</a>` : '-'}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async function loadTaskKoiData() {
+        const loading = document.getElementById('task-koi-loading');
+        const content = document.getElementById('task-koi-content');
+        try {
+          if (loading) loading.classList.remove('hidden');
+          if (content) content.classList.add('opacity-50');
+          const resp = await fetch(TASK_KOI_WEBHOOK, { method: 'GET', headers: { 'Accept': 'application/json' } });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          let raw = await resp.json();
+          const data = Array.isArray(raw) && raw.length > 0 ? raw[0] : raw;
+          TASK_KOI_DATA = data;
+          renderTaskKoiStats(data);
+          const rows = TASK_KOI_ACTIVE_TAB === 'co' ? (data?.co_trong_task || []) : (data?.khong_co_trong_task || []);
+          renderTaskKoiTable(rows);
+          if (typeof showToast === 'function') showToast('Đã tải dữ liệu Tác vụ KOI.', 'success');
+        } catch (err) {
+          console.error('[Task KOI] Lỗi tải dữ liệu:', err);
+          if (typeof showToast === 'function') showToast('Lỗi: ' + (err.message || err), 'error');
+          renderTaskKoiStats({ thong_ke: {} });
+          renderTaskKoiTable([]);
+        } finally {
+          if (loading) loading.classList.add('hidden');
+          if (content) content.classList.remove('opacity-50');
+        }
+      }
+
+      function openTaskKoiModal() {
+        const modal = document.getElementById('task-koi-modal');
+        if (!modal) return;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        loadTaskKoiData();
+      }
+      function closeTaskKoiModal() {
+        const modal = document.getElementById('task-koi-modal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      const taskKoiBtn = document.getElementById('task-koi-btn');
+      if (taskKoiBtn) taskKoiBtn.onclick = (e) => { e.preventDefault(); openTaskKoiModal(); };
+      document.getElementById('task-koi-close')?.addEventListener('click', closeTaskKoiModal);
+      document.getElementById('task-koi-cancel')?.addEventListener('click', closeTaskKoiModal);
+      document.getElementById('task-koi-reload')?.addEventListener('click', loadTaskKoiData);
+      const taskKoiModal = document.getElementById('task-koi-modal');
+      if (taskKoiModal) {
+        taskKoiModal.addEventListener('click', (e) => { if (e.target === taskKoiModal) closeTaskKoiModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && taskKoiModal.classList.contains('open')) closeTaskKoiModal(); });
+      }
+      document.getElementById('task-koi-tab-co')?.addEventListener('click', () => {
+        TASK_KOI_ACTIVE_TAB = 'co';
+        document.getElementById('task-koi-tab-co').classList.add('border-sky-600', 'bg-sky-50', 'text-sky-800');
+        document.getElementById('task-koi-tab-co').classList.remove('border-transparent');
+        document.getElementById('task-koi-tab-khong').classList.remove('border-sky-600', 'bg-sky-50', 'text-sky-800');
+        document.getElementById('task-koi-tab-khong').classList.add('border-transparent', 'text-slate-500');
+        if (TASK_KOI_DATA) renderTaskKoiTable(TASK_KOI_DATA.co_trong_task || []);
+      });
+      document.getElementById('task-koi-tab-khong')?.addEventListener('click', () => {
+        TASK_KOI_ACTIVE_TAB = 'khong';
+        document.getElementById('task-koi-tab-khong').classList.add('border-sky-600', 'bg-sky-50', 'text-sky-800');
+        document.getElementById('task-koi-tab-khong').classList.remove('border-transparent');
+        document.getElementById('task-koi-tab-co').classList.remove('border-sky-600', 'bg-sky-50', 'text-sky-800');
+        document.getElementById('task-koi-tab-co').classList.add('border-transparent', 'text-slate-500');
+        if (TASK_KOI_DATA) renderTaskKoiTable(TASK_KOI_DATA.khong_co_trong_task || []);
+      });
       
       function setCreateRqTime(){ const d=new Date(); const el=document.getElementById('create-rq-time'); if (el) el.value = formatYyyyMmDdHHmm(d); }
       setCreateRqTime();
@@ -17103,11 +17274,16 @@
           return `${dateText} ${timeText}`;
         }
 
+        const COLOR_NSPM = 'rgba(251, 146, 60, 0.85)';      // Vàng cam nhẹ - Sản phẩm mới (-NSPM)
+        const COLOR_SOP = 'rgba(59, 130, 246, 0.8)';        // Xanh dương - Sản phẩm SOP/tác vụ khác
+        function isNspmTask(taskCode) {
+          return taskCode && String(taskCode).trim().toUpperCase().endsWith('-NSPM');
+        }
+        function getColorForTaskCode(taskCode) {
+          return isNspmTask(taskCode) ? COLOR_NSPM : COLOR_SOP;
+        }
         function getColorForAssignee(name) {
-          if (!colorCache.has(name)) {
-            colorCache.set(name, palette[colorCache.size % palette.length]);
-          }
-          return colorCache.get(name);
+          return COLOR_SOP;
         }
 
         function isWorkingDay(dt) {
@@ -17514,13 +17690,11 @@
               renderTaskList(scheduleRows, filterValue);
             };
             
-            const color = getColorForAssignee(assignee);
             header.innerHTML = `
               <div class="flex items-center gap-2 flex-1">
                 <svg class="w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
-                <span class="h-3 w-3 rounded-full" style="background-color: ${color}"></span>
                 <span class="text-sm font-semibold text-gray-700">${assignee}</span>
                 <span class="text-xs text-gray-500">(${tasks.length})</span>
               </div>
@@ -17536,12 +17710,16 @@
                 taskItem.className = 'task-item px-6 py-2 border-b border-gray-100 hover:bg-blue-50 transition text-sm cursor-pointer';
                 taskItem.setAttribute('data-task-id', task.taskId);
                 
+                const taskColor = getColorForTaskCode(task.task_code);
                 taskItem.innerHTML = `
                   <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                      <div class="font-medium text-gray-800">${task.task_name || task.task_code || `Task #${task.order}`}</div>
-                      <div class="text-xs text-gray-500 mt-1">
-                        ${formatDateTime(task.start)} → ${formatDateTime(task.end)}
+                    <div class="flex-1 flex items-start gap-2">
+                      <span class="h-2.5 w-2.5 rounded-full flex-shrink-0 mt-1.5" style="background-color: ${taskColor}"></span>
+                      <div>
+                        <div class="font-medium text-gray-800">${task.task_name || task.task_code || `Task #${task.order}`}</div>
+                        <div class="text-xs text-gray-500 mt-1">
+                          ${formatDateTime(task.start)} → ${formatDateTime(task.end)}
+                        </div>
                       </div>
                     </div>
                     <div class="text-xs font-semibold text-gray-600 ml-4">
@@ -17567,16 +17745,16 @@
           const uniqueAssignees = Array.from(new Set(filtered.map((segment) => segment.assignee)));
           
           if (legendContainer) {
-            legendContainer.innerHTML = '';
-            uniqueAssignees.forEach((assignee) => {
-              const legendItem = document.createElement('span');
-              legendItem.className = 'flex items-center gap-2 rounded-lg bg-white border border-brand-200 px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm hover:shadow-md transition-shadow';
-              legendItem.innerHTML = `
-                <span class="h-3 w-3 rounded-full shadow-sm" style="background-color: ${getColorForAssignee(assignee)}"></span>
-                <span>${assignee}</span>
-              `;
-              legendContainer.appendChild(legendItem);
-            });
+            legendContainer.innerHTML = `
+              <span class="flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm">
+                <span class="h-3 w-3 rounded-full" style="background-color: ${COLOR_NSPM}"></span>
+                <span>Sản phẩm mới</span>
+              </span>
+              <span class="flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm">
+                <span class="h-3 w-3 rounded-full" style="background-color: ${COLOR_SOP}"></span>
+                <span>Sản phẩm SOP/tác vụ khác</span>
+              </span>
+            `;
           }
 
           if (!filtered.length) {
@@ -17592,11 +17770,6 @@
           const currentTimePos = getCurrentTimePosition(dateRange);
           const now = DateTime.now().setZone(ZONE);
           const currentTimeLabel = now.toFormat('HH:mm');
-          
-          const colors = [
-            'rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(236, 72, 153, 0.8)', 'rgba(245, 158, 11, 0.8)',
-            'rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(132, 204, 22, 0.8)',
-          ];
           
           let html = `
             <div class="w-full h-full">
@@ -17629,7 +17802,6 @@
               <div>
                 ${uniqueAssignees.map((assignee, assigneeIndex) => {
                   const assigneeSegments = filtered.filter(seg => seg.assignee === assignee);
-                  const assigneeColor = colors[assigneeIndex % colors.length];
                   const totalHours = assigneeSegments.reduce((sum, seg) => sum + seg.points, 0);
                   
                   return `
@@ -17810,7 +17982,7 @@
                           
                           return assigneeSegments.map((segment, taskIndex) => {
                             const pos = getTaskPosition(segment, dateRange);
-                            const taskColor = assigneeColor;
+                            const taskColor = getColorForTaskCode(segment.task_code);
                             const taskId = `f4-task-${segment.order}`;
                             
                             const startTime = segment.start.toFormat('HH:mm');
