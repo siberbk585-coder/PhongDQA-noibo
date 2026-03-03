@@ -1577,6 +1577,11 @@
             <button id="task-koi-tab-khong" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa tạo tác vụ</button>
             <button id="task-koi-tab-chua-xac-dinh" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa xác định</button>
           </div>
+          <div class="flex items-center gap-2 mb-4">
+            <label class="text-sm text-slate-700">Lọc theo tháng (ngày yêu cầu)</label>
+            <input id="task-koi-month" type="month" class="border border-sky-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:bg-white"/>
+            <button id="task-koi-clear-month" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm">Xóa lọc</button>
+          </div>
           <div id="task-koi-loading" class="hidden flex items-center justify-center gap-2 py-12 text-sky-600">
             <span class="spinner"></span>
             <span>Đang tải...</span>
@@ -8219,6 +8224,40 @@
         return s === 'draft' || s === 'cancel' || s === 'refused';
       }
 
+      function getTaskKoiRequestMonth(row) {
+        const s = String(row?.request_date || '').trim();
+        if (!s) return null;
+        const match = s.match(/^(\d{4})[\/\-\.](\d{1,2})/);
+        if (match) return match[1] + '-' + match[2].padStart(2, '0');
+        try {
+          const d = new Date(s.replace(' ', 'T'));
+          if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        } catch (_) {}
+        return null;
+      }
+
+      function getTaskKoiRowsForTab() {
+        if (!TASK_KOI_DATA) return [];
+        const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
+        let rows;
+        if (TASK_KOI_ACTIVE_TAB === 'co') {
+          rows = TASK_KOI_DATA.co_trong_task || [];
+        } else if (TASK_KOI_ACTIVE_TAB === 'chua_xac_dinh') {
+          rows = khongCo.filter(r => isDraftOrCancel(r));
+        } else {
+          rows = khongCo.filter(r => !isDraftOrCancel(r));
+        }
+        const monthFilter = (document.getElementById('task-koi-month')?.value || '').trim();
+        if (monthFilter) {
+          rows = rows.filter(r => getTaskKoiRequestMonth(r) === monthFilter);
+        }
+        return rows;
+      }
+
+      function refreshTaskKoiTable() {
+        renderTaskKoiTable(getTaskKoiRowsForTab());
+      }
+
       function renderTaskKoiTable(rows) {
         const tbody = document.getElementById('task-koi-table-body');
         if (!tbody) return;
@@ -8256,16 +8295,7 @@
           const data = Array.isArray(raw) && raw.length > 0 ? raw[0] : raw;
           TASK_KOI_DATA = data;
           renderTaskKoiStats(data);
-          const khongCo = data?.khong_co_trong_task || [];
-          let rows;
-          if (TASK_KOI_ACTIVE_TAB === 'co') {
-            rows = data?.co_trong_task || [];
-          } else if (TASK_KOI_ACTIVE_TAB === 'chua_xac_dinh') {
-            rows = khongCo.filter(r => isDraftOrCancel(r));
-          } else {
-            rows = khongCo.filter(r => !isDraftOrCancel(r));
-          }
-          renderTaskKoiTable(rows);
+          refreshTaskKoiTable();
           if (typeof showToast === 'function') showToast('Đã tải dữ liệu Tác vụ KOI.', 'success');
         } catch (err) {
           console.error('[Task KOI] Lỗi tải dữ liệu:', err);
@@ -8281,6 +8311,9 @@
       function openTaskKoiModal() {
         const modal = document.getElementById('task-koi-modal');
         if (!modal) return;
+        const d = new Date();
+        const monthEl = document.getElementById('task-koi-month');
+        if (monthEl) monthEl.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
         loadTaskKoiData();
@@ -8317,23 +8350,22 @@
       document.getElementById('task-koi-tab-co')?.addEventListener('click', () => {
         TASK_KOI_ACTIVE_TAB = 'co';
         setTaskKoiTabActive('task-koi-tab-co');
-        if (TASK_KOI_DATA) renderTaskKoiTable(TASK_KOI_DATA.co_trong_task || []);
+        if (TASK_KOI_DATA) refreshTaskKoiTable();
       });
       document.getElementById('task-koi-tab-khong')?.addEventListener('click', () => {
         TASK_KOI_ACTIVE_TAB = 'khong';
         setTaskKoiTabActive('task-koi-tab-khong');
-        if (TASK_KOI_DATA) {
-          const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
-          renderTaskKoiTable(khongCo.filter(r => !isDraftOrCancel(r)));
-        }
+        if (TASK_KOI_DATA) refreshTaskKoiTable();
       });
       document.getElementById('task-koi-tab-chua-xac-dinh')?.addEventListener('click', () => {
         TASK_KOI_ACTIVE_TAB = 'chua_xac_dinh';
         setTaskKoiTabActive('task-koi-tab-chua-xac-dinh');
-        if (TASK_KOI_DATA) {
-          const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
-          renderTaskKoiTable(khongCo.filter(r => isDraftOrCancel(r)));
-        }
+        if (TASK_KOI_DATA) refreshTaskKoiTable();
+      });
+      document.getElementById('task-koi-month')?.addEventListener('change', () => { if (TASK_KOI_DATA) refreshTaskKoiTable(); });
+      document.getElementById('task-koi-clear-month')?.addEventListener('click', () => {
+        const el = document.getElementById('task-koi-month');
+        if (el) { el.value = ''; if (TASK_KOI_DATA) refreshTaskKoiTable(); }
       });
       
       function setCreateRqTime(){ const d=new Date(); const el=document.getElementById('create-rq-time'); if (el) el.value = formatYyyyMmDdHHmm(d); }
