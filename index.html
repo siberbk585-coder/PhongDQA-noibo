@@ -1575,6 +1575,7 @@
           <div class="flex gap-2 border-b border-slate-200 mb-4">
             <button id="task-koi-tab-co" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-sky-600 bg-sky-50 text-sky-800">Đã tạo tác vụ</button>
             <button id="task-koi-tab-khong" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa tạo tác vụ</button>
+            <button id="task-koi-tab-chua-xac-dinh" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa xác định</button>
           </div>
           <div id="task-koi-loading" class="hidden flex items-center justify-center gap-2 py-12 text-sky-600">
             <span class="spinner"></span>
@@ -8213,6 +8214,11 @@
         `).join('');
       }
 
+      function isDraftOrCancel(row) {
+        const s = String(row?.trang_thai_phe_duyet || '').toLowerCase();
+        return s === 'draft' || s === 'cancel' || s === 'refused';
+      }
+
       function renderTaskKoiTable(rows) {
         const tbody = document.getElementById('task-koi-table-body');
         if (!tbody) return;
@@ -8250,7 +8256,15 @@
           const data = Array.isArray(raw) && raw.length > 0 ? raw[0] : raw;
           TASK_KOI_DATA = data;
           renderTaskKoiStats(data);
-          const rows = TASK_KOI_ACTIVE_TAB === 'co' ? (data?.co_trong_task || []) : (data?.khong_co_trong_task || []);
+          const khongCo = data?.khong_co_trong_task || [];
+          let rows;
+          if (TASK_KOI_ACTIVE_TAB === 'co') {
+            rows = data?.co_trong_task || [];
+          } else if (TASK_KOI_ACTIVE_TAB === 'chua_xac_dinh') {
+            rows = khongCo.filter(r => isDraftOrCancel(r));
+          } else {
+            rows = khongCo.filter(r => !isDraftOrCancel(r));
+          }
           renderTaskKoiTable(rows);
           if (typeof showToast === 'function') showToast('Đã tải dữ liệu Tác vụ KOI.', 'success');
         } catch (err) {
@@ -8287,21 +8301,39 @@
         taskKoiModal.addEventListener('click', (e) => { if (e.target === taskKoiModal) closeTaskKoiModal(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && taskKoiModal.classList.contains('open')) closeTaskKoiModal(); });
       }
+      function setTaskKoiTabActive(tabId) {
+        ['task-koi-tab-co', 'task-koi-tab-khong', 'task-koi-tab-chua-xac-dinh'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          if (id === tabId) {
+            btn.classList.add('border-sky-600', 'bg-sky-50', 'text-sky-800');
+            btn.classList.remove('border-transparent', 'text-slate-500');
+          } else {
+            btn.classList.remove('border-sky-600', 'bg-sky-50', 'text-sky-800');
+            btn.classList.add('border-transparent', 'text-slate-500');
+          }
+        });
+      }
       document.getElementById('task-koi-tab-co')?.addEventListener('click', () => {
         TASK_KOI_ACTIVE_TAB = 'co';
-        document.getElementById('task-koi-tab-co').classList.add('border-sky-600', 'bg-sky-50', 'text-sky-800');
-        document.getElementById('task-koi-tab-co').classList.remove('border-transparent');
-        document.getElementById('task-koi-tab-khong').classList.remove('border-sky-600', 'bg-sky-50', 'text-sky-800');
-        document.getElementById('task-koi-tab-khong').classList.add('border-transparent', 'text-slate-500');
+        setTaskKoiTabActive('task-koi-tab-co');
         if (TASK_KOI_DATA) renderTaskKoiTable(TASK_KOI_DATA.co_trong_task || []);
       });
       document.getElementById('task-koi-tab-khong')?.addEventListener('click', () => {
         TASK_KOI_ACTIVE_TAB = 'khong';
-        document.getElementById('task-koi-tab-khong').classList.add('border-sky-600', 'bg-sky-50', 'text-sky-800');
-        document.getElementById('task-koi-tab-khong').classList.remove('border-transparent');
-        document.getElementById('task-koi-tab-co').classList.remove('border-sky-600', 'bg-sky-50', 'text-sky-800');
-        document.getElementById('task-koi-tab-co').classList.add('border-transparent', 'text-slate-500');
-        if (TASK_KOI_DATA) renderTaskKoiTable(TASK_KOI_DATA.khong_co_trong_task || []);
+        setTaskKoiTabActive('task-koi-tab-khong');
+        if (TASK_KOI_DATA) {
+          const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
+          renderTaskKoiTable(khongCo.filter(r => !isDraftOrCancel(r)));
+        }
+      });
+      document.getElementById('task-koi-tab-chua-xac-dinh')?.addEventListener('click', () => {
+        TASK_KOI_ACTIVE_TAB = 'chua_xac_dinh';
+        setTaskKoiTabActive('task-koi-tab-chua-xac-dinh');
+        if (TASK_KOI_DATA) {
+          const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
+          renderTaskKoiTable(khongCo.filter(r => isDraftOrCancel(r)));
+        }
       });
       
       function setCreateRqTime(){ const d=new Date(); const el=document.getElementById('create-rq-time'); if (el) el.value = formatYyyyMmDdHHmm(d); }
