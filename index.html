@@ -1531,8 +1531,8 @@
                 <input id="create-vendor" required type="text" placeholder="Nhập tên nhà cung cấp" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div id="create-attach-wrap">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
-                <input id="create-attach" required type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm</label>
+                <input id="create-attach" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
                 <div id="create-f3-upload-list" class="mt-2 text-sm"></div>
               </div>
             </div>
@@ -8177,7 +8177,7 @@
         if (form) form.reset();
         if (timeEl) timeEl.value = formatYyyyMmDdHHmm(d);
         // Bôi vàng tất cả các ô bắt buộc ngay từ đầu (đang trống)
-        const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-attach-wrap','create-task-type','create-purpose'];
+        const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'];
         requiredIds.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add('empty-required-warning');
@@ -8443,10 +8443,6 @@
           if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
             t.classList.remove('empty-required-warning');
           }
-          if (t && t.id === 'create-attach' && t.files && t.files.length > 0) {
-            const wrap = document.getElementById('create-attach-wrap');
-            if (wrap) wrap.classList.remove('empty-required-warning');
-          }
         });
         createTaskForm.onsubmit = async (e) => {
           e.preventDefault();
@@ -8464,12 +8460,11 @@
           const purpose = (document.getElementById('create-purpose')?.value || '').trim();
 
           const componentCode = (document.getElementById('create-component-code')?.value || '').trim();
-          const hasFile = (document.getElementById('create-attach')?.files?.length || 0) > 0;
-          if(!requester || !taskName || !componentCode || !output || !manHourRaw || !assignee || !deadline || !odooJira || !vendor || !taskType || !purpose || !hasFile){ 
+          if(!requester || !taskName || !componentCode || !output || !manHourRaw || !assignee || !deadline || !odooJira || !vendor || !taskType || !purpose){ 
             showToast('Vui lòng điền đủ tất cả các trường bắt buộc.','error'); 
             // Bôi vàng các ô trống để cảnh báo
-            const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-attach-wrap','create-task-type','create-purpose'];
-            const requiredValues = [requester, taskName, componentCode, assignee, manHourRaw, output, deadline, odooJira, vendor, hasFile ? 'ok' : '', taskType, purpose];
+            const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'];
+            const requiredValues = [requester, taskName, componentCode, assignee, manHourRaw, output, deadline, odooJira, vendor, taskType, purpose];
             requiredIds.forEach((id, i) => {
               const el = document.getElementById(id);
               if (el) {
