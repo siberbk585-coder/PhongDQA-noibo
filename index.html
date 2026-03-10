@@ -1224,6 +1224,17 @@
         </div>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p class="text-sm text-gray-700 mb-3">Vui lòng tải file Excel (.xlsx) để kiểm tra trước khi báo cáo.</p>
+          <div class="flex items-center gap-6 mb-3">
+            <span class="text-sm font-medium text-gray-700">Loại:</span>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="f11-type" value="Sản phẩm" checked class="rounded border-gray-400 text-primary-blue focus:ring-primary-blue"/>
+              <span class="text-sm text-gray-700">Sản phẩm</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="f11-type" value="Linh kiện" class="rounded border-gray-400 text-primary-blue focus:ring-primary-blue"/>
+              <span class="text-sm text-gray-700">Linh kiện</span>
+            </label>
+          </div>
           <div class="flex items-center gap-3 flex-wrap">
             <input id="f11-file" type="file" accept=".xlsx,.json,.txt" class="hidden"/>
             <button id="f11-upload-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Chọn file XLSX</button>
@@ -16224,6 +16235,8 @@
           fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
           fd.append('timestamp_yyyy_mm_dd', formatYyyyMmDdHHmm(new Date()));
           fd.append('action', 'form11_upload');
+          const f11Type = document.querySelector('input[name="f11-type"]:checked');
+          fd.append('Loai', f11Type ? f11Type.value : 'Sản phẩm');
 
           console.log('[Form 11] Gửi file:', file.name, 'Size:', file.size, 'bytes');
           console.log('[Form 11] URL:', FORM11_UPLOAD_URL);
@@ -16539,6 +16552,22 @@
         const chuKy = item.Chu_ky || {};
         const esc = (v) => (v == null || v === '') ? '' : String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+        // Tính Công chuẩn TCKT và THÊM từ tổng "Công chuẩn quy đổi" trong bảng (khớp với Tổng ở footer)
+        function sumCongChuanQuyDoi(rows) {
+          let s = 0;
+          rows.forEach(r => {
+            const v = r['Công chuẩn quy đổi'];
+            if (v !== null && v !== undefined && v !== '') {
+              const n = parseFloat(String(v).replace(',', '.'));
+              if (!isNaN(n)) s += n;
+            }
+          });
+          return s;
+        }
+        const sumA = sumCongChuanQuyDoi(rowsA);
+        const sumB = sumCongChuanQuyDoi(rowsB);
+        const formatCC = (x) => (x == null || x === '' || isNaN(x)) ? '' : Number(x).toFixed(2).replace('.', ',');
+
         // 1. Header thông tin báo cáo
         const headerEl = document.getElementById('f11-report-header');
         if (headerEl) {
@@ -16563,9 +16592,10 @@
         if (conclusionEl) {
           const ketQua = item.Ket_qua_danh_gia || '';
           const testBen = Array.isArray(item.Ke_hoach_test_ben) ? item.Ke_hoach_test_ben.join(', ') : (item.Ke_hoach_test_ben || '');
-          const summaryA = item.summary_a_text ?? item.summary_a ?? '';
-          const summaryB = item.summary_b_text ?? item.summary_b ?? '';
-          const congChuanTong = item.cong_chuan_tong_text ?? item.cong_chuan_tong ?? '';
+          // Ưu tiên tính từ tổng Công chuẩn quy đổi trong bảng (khớp với Tổng ở footer)
+          const summaryA = (rowsA.length > 0) ? formatCC(sumA) : (item.summary_a_text ?? item.summary_a ?? '');
+          const summaryB = (rowsB.length > 0) ? formatCC(sumB) : (item.summary_b_text ?? item.summary_b ?? '');
+          const congChuanTong = (rowsA.length > 0 || rowsB.length > 0) ? formatCC(sumA + sumB) : (item.cong_chuan_tong_text ?? item.cong_chuan_tong ?? '');
           let bgColor = 'bg-blue-50 border-blue-300';
           let textColor = 'text-blue-800';
           if (ketQua.toLowerCase().includes('không đạt')) { bgColor = 'bg-red-50 border-red-300'; textColor = 'text-red-800'; }
