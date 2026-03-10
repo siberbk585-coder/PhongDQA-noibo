@@ -164,6 +164,17 @@
           max-height: 95vh;
         }
       }
+      /* Cảnh báo ô trống bắt buộc trong form tạo tác vụ */
+      #create-task-modal .empty-required-warning {
+        background-color: #fef9c3 !important;
+        border-color: #eab308 !important;
+        border-width: 2px;
+      }
+      #create-task-modal #create-attach-wrap.empty-required-warning {
+        padding: 8px;
+        border-radius: 0.5rem;
+        border: 2px solid #eab308;
+      }
       /* Highlight effect for Form 1 upload sections */
       .highlight-section{
         animation: highlightPulse 2s ease-in-out;
@@ -1482,6 +1493,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tên tác vụ <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
                 <input id="create-task-name" required type="text" placeholder="Nhập tên tác vụ" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mã linh kiện <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <input id="create-component-code" required type="text" placeholder="Nhập mã linh kiện" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+              </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -1502,22 +1517,22 @@
                 <input id="create-output" required type="text" placeholder="Mô tả đầu ra" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
-                <input id="create-deadline" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Deadline <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <input id="create-deadline" required type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Link KOI</label>
-                <input id="create-odoo-jira" type="text" placeholder="Copy link luồng phê duyệt" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Link KOI <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <input id="create-odoo-jira" required type="text" placeholder="Copy link luồng phê duyệt" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                <input id="create-vendor" type="text" placeholder="Nhập tên nhà cung cấp" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <input id="create-vendor" required type="text" placeholder="Nhập tên nhà cung cấp" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm</label>
-                <input id="create-attach" type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
+              <div id="create-attach-wrap">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tài liệu đính kèm <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
+                <input id="create-attach" required type="file" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-primary-blue file:text-white"/>
                 <div id="create-f3-upload-list" class="mt-2 text-sm"></div>
               </div>
             </div>
@@ -1571,11 +1586,10 @@
           </div>
         </div>
         <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
-          <div id="task-koi-stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5"></div>
           <div class="flex gap-2 border-b border-slate-200 mb-4">
-            <button id="task-koi-tab-co" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-sky-600 bg-sky-50 text-sky-800">Đã tạo tác vụ</button>
-            <button id="task-koi-tab-khong" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa tạo tác vụ</button>
-            <button id="task-koi-tab-chua-xac-dinh" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa xác định</button>
+            <button id="task-koi-tab-co" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-sky-600 bg-sky-50 text-sky-800">Đã tạo tác vụ <span id="task-koi-count-co" class="ml-1 font-normal text-sky-600">(0)</span></button>
+            <button id="task-koi-tab-khong" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa tạo tác vụ <span id="task-koi-count-khong" class="ml-1 font-normal">(0)</span></button>
+            <button id="task-koi-tab-chua-xac-dinh" class="task-koi-tab px-5 py-2.5 font-semibold text-sm rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-700">Chưa xác định <span id="task-koi-count-chua-xac-dinh" class="ml-1 font-normal">(0)</span></button>
           </div>
           <div class="flex items-center gap-2 mb-4">
             <label class="text-sm text-slate-700">Lọc theo tháng (ngày yêu cầu)</label>
@@ -8162,6 +8176,12 @@
         const form = document.getElementById('create-task-form');
         if (form) form.reset();
         if (timeEl) timeEl.value = formatYyyyMmDdHHmm(d);
+        // Bôi vàng tất cả các ô bắt buộc ngay từ đầu (đang trống)
+        const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-attach-wrap','create-task-type','create-purpose'];
+        requiredIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add('empty-required-warning');
+        });
         // Clear file preview
         const list = document.getElementById('create-f3-upload-list');
         if (list) list.innerHTML = '';
@@ -8202,21 +8222,26 @@
         return '<span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">' + escKoi(status) + '</span>';
       }
 
-      function renderTaskKoiStats(data) {
-        const el = document.getElementById('task-koi-stats');
-        if (!el || !data?.thong_ke) return;
-        const tk = data.thong_ke;
-        const cards = [
-          { label: 'Số tác vụ trên KOI', value: tk.approvals_items_goc ?? '-' },
-          { label: 'Số KOI đã tạo tác vụ', value: tk.so_koi_co_trong_task ?? '-' },
-          { label: 'KOI chưa tạo tác vụ', value: tk.so_koi_khong_co_trong_task ?? '-' },
-        ];
-        el.innerHTML = cards.map(c => `
-          <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-            <div class="text-xs text-sky-600 font-medium uppercase tracking-wide">${escKoi(c.label)}</div>
-            <div class="text-2xl font-bold text-sky-800 mt-1">${escKoi(c.value)}</div>
-          </div>
-        `).join('');
+      function updateTaskKoiTabCounts() {
+        if (!TASK_KOI_DATA) {
+          ['task-koi-count-co','task-koi-count-khong','task-koi-count-chua-xac-dinh'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '(0)';
+          });
+          return;
+        }
+        const khongCo = TASK_KOI_DATA.khong_co_trong_task || [];
+        const monthFilter = (document.getElementById('task-koi-month')?.value || '').trim();
+        const filterByMonth = (r) => !monthFilter || getTaskKoiRequestMonth(r) === monthFilter;
+        const co = (TASK_KOI_DATA.co_trong_task || []).filter(filterByMonth).length;
+        const chuaXacDinh = khongCo.filter(r => isDraftOrCancel(r)).filter(filterByMonth).length;
+        const khong = khongCo.filter(r => !isDraftOrCancel(r)).filter(filterByMonth).length;
+        const coEl = document.getElementById('task-koi-count-co');
+        const khongEl = document.getElementById('task-koi-count-khong');
+        const cxEl = document.getElementById('task-koi-count-chua-xac-dinh');
+        if (coEl) coEl.textContent = '(' + co + ')';
+        if (khongEl) khongEl.textContent = '(' + khong + ')';
+        if (cxEl) cxEl.textContent = '(' + chuaXacDinh + ')';
       }
 
       function isDraftOrCancel(row) {
@@ -8255,6 +8280,7 @@
       }
 
       function refreshTaskKoiTable() {
+        updateTaskKoiTabCounts();
         renderTaskKoiTable(getTaskKoiRowsForTab());
       }
 
@@ -8294,13 +8320,14 @@
           let raw = await resp.json();
           const data = Array.isArray(raw) && raw.length > 0 ? raw[0] : raw;
           TASK_KOI_DATA = data;
-          renderTaskKoiStats(data);
+          updateTaskKoiTabCounts();
           refreshTaskKoiTable();
           if (typeof showToast === 'function') showToast('Đã tải dữ liệu Tác vụ KOI.', 'success');
         } catch (err) {
           console.error('[Task KOI] Lỗi tải dữ liệu:', err);
           if (typeof showToast === 'function') showToast('Lỗi: ' + (err.message || err), 'error');
-          renderTaskKoiStats({ thong_ke: {} });
+          TASK_KOI_DATA = null;
+          updateTaskKoiTabCounts();
           renderTaskKoiTable([]);
         } finally {
           if (loading) loading.classList.add('hidden');
@@ -8404,6 +8431,23 @@
       // Submit Form 3 via webhook endpoint (multipart form-data) - Create Task Modal
       const createTaskForm = document.getElementById('create-task-form');
       if (createTaskForm) {
+        // Xóa bôi vàng khi người dùng điền vào ô
+        createTaskForm.addEventListener('input', (e) => {
+          const t = e.target;
+          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
+            t.classList.remove('empty-required-warning');
+          }
+        });
+        createTaskForm.addEventListener('change', (e) => {
+          const t = e.target;
+          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
+            t.classList.remove('empty-required-warning');
+          }
+          if (t && t.id === 'create-attach' && t.files && t.files.length > 0) {
+            const wrap = document.getElementById('create-attach-wrap');
+            if (wrap) wrap.classList.remove('empty-required-warning');
+          }
+        });
         createTaskForm.onsubmit = async (e) => {
           e.preventDefault();
           const requester = document.getElementById('create-rq-by').value.trim();
@@ -8419,8 +8463,20 @@
           const taskType = (document.getElementById('create-task-type')?.value || '').trim();
           const purpose = (document.getElementById('create-purpose')?.value || '').trim();
 
-          if(!requester || !taskName || !output || !manHourRaw || !assignee || !taskType || !purpose){ 
-            showToast('Vui lòng điền đủ trường bắt buộc.','error'); 
+          const componentCode = (document.getElementById('create-component-code')?.value || '').trim();
+          const hasFile = (document.getElementById('create-attach')?.files?.length || 0) > 0;
+          if(!requester || !taskName || !componentCode || !output || !manHourRaw || !assignee || !deadline || !odooJira || !vendor || !taskType || !purpose || !hasFile){ 
+            showToast('Vui lòng điền đủ tất cả các trường bắt buộc.','error'); 
+            // Bôi vàng các ô trống để cảnh báo
+            const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-attach-wrap','create-task-type','create-purpose'];
+            const requiredValues = [requester, taskName, componentCode, assignee, manHourRaw, output, deadline, odooJira, vendor, hasFile ? 'ok' : '', taskType, purpose];
+            requiredIds.forEach((id, i) => {
+              const el = document.getElementById(id);
+              if (el) {
+                if (!requiredValues[i] || !String(requiredValues[i]).trim()) el.classList.add('empty-required-warning');
+                else el.classList.remove('empty-required-warning');
+              }
+            });
             return; 
           }
           
@@ -8462,6 +8518,7 @@
             requesterEmail: requesterEmail,
             requestDate: requestDateFormatted,
             itemName: taskName,
+            code: componentCode,
             Score: String(manHourRaw || '').trim(),
             changeReq: output,
             Assignee: assignee,
