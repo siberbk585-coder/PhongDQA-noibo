@@ -1768,6 +1768,24 @@
               <input id="upload-file-xlsxzip-g3" type="file" accept=".xlsx" class="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-emerald-600 file:text-white"/>
               <p class="text-xs text-gray-500 mt-1">Chỉ nhận tệp .xlsx.</p>
             </div>
+            <!-- Gate 3 extra: Phân loại (chỉ hiển thị khi tác vụ KHÔNG phải -NSPM) -->
+            <div id="upload-classification-group-g3" class="mt-3 highlight-section" style="display:none">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Phân loại</label>
+              <div class="flex flex-col gap-2">
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" name="upload-classification-g3" value="Sản phẩm" class="h-4 w-4"/>
+                  <span class="text-sm">Sản phẩm</span>
+                </label>
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" name="upload-classification-g3" value="Linh kiện" class="h-4 w-4"/>
+                  <span class="text-sm">Linh kiện</span>
+                </label>
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" name="upload-classification-g3" value="Tác vụ khác" class="h-4 w-4"/>
+                  <span class="text-sm">Tác vụ khác</span>
+                </label>
+              </div>
+            </div>
             <!-- Gate 3: Kết luận -->
             <div class="mt-3">
               <label class="block text-sm font-medium text-gray-700 mb-1">Kết luận</label>
@@ -4775,24 +4793,22 @@
 
       // Names
       const FORM1_NAMES = [
-        "Bùi Đặng Quốc Huy","Đào Tuấn Kỳ","Đỗ Quang Long","Hà Mỹ Linh","Lại Quốc Lộc",
-        "Lê Ngọc Ánh","Lê Thị Thanh Nhàn","Lê Thị Thảo","Lê Văn Sơn","Nguyễn Hữu Thịnh","Nguyễn Thị Hiền",
+        "Bùi Đặng Quốc Huy","Đào Hoàng Dương","Đào Tuấn Kỳ","Đỗ Quang Long","Hà Mỹ Linh","Lại Quốc Lộc",
+        "Lê Ngọc Ánh","Lê Thị Thảo","Lê Văn Sơn","Nguyễn Hữu Thịnh","Nguyễn Thị Hiền",
         "Phạm Thành Trung Kiên","Phạm Thị Minh","Thái Thị Giang","Trần Hiếu Nghĩa","Vũ Thị Hằng","Vũ Thị Thanh Hiền"
       ];
       const FORM7_NAMES = FORM1_NAMES;
       const FORM9_NAMES = (function(){
         try{
           const arr = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
-          const exclude = new Set(["Lê Thị Thanh Nhàn"]);
-          return arr.filter(n => !exclude.has(n));
+          return arr;
         }catch(_){ return FORM1_NAMES; }
       })();
-      // Danh sách riêng cho Form 3 (Người được giao): loại 2 tên và thêm 3 tên (Hà Mỹ Linh giữ lại)
+      // Danh sách riêng cho Form 3 (Người được giao): thêm 3 tên
       const FORM3_ASSIGNEES = (()=>{
         const base = Array.isArray(FORM1_NAMES) ? FORM1_NAMES.slice() : [];
-        const exclude = new Set(["Đỗ Thế Cường","Lê Thị Thanh Nhàn"]);
         const add = ["Đào Hoàng Dương","Nguyễn Văn Linh","Nguyễn Văn Hiếu"];
-        const filtered = base.filter(n => !exclude.has(n));
+        const filtered = base.slice();
         add.forEach(n => { if (filtered.indexOf(n) === -1) filtered.push(n); });
         return filtered;
       })();
@@ -6495,6 +6511,16 @@
                   const bpsCheckbox = document.getElementById('upload-bps');
                   if (bpsCheckbox) bpsCheckbox.checked = true;
                 }
+                // Hiển thị Phân loại Gate 3 khi tác vụ KHÔNG phải -NSPM
+                const classifG3 = document.getElementById('upload-classification-group-g3');
+                if (classifG3) {
+                  const taskCode = String(ctx?.taskId || ctx?.code || '').trim().toUpperCase();
+                  const isNspm = taskCode.endsWith('-NSPM');
+                  classifG3.style.display = isNspm ? 'none' : '';
+                  if (!isNspm) {
+                    try { document.querySelectorAll('input[name="upload-classification-g3"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } }); } catch(_){}
+                  }
+                }
               } catch(_){ }
             } else if (!isSystemTask) {
               // Nếu không phải Done và không phải system task, hiển thị Gate 1 và Gate 2 như bình thường
@@ -6698,10 +6724,18 @@
               document.querySelectorAll('input[name="upload-conclusion-g3"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } });
               document.querySelectorAll('input[name="upload-classification"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } });
               document.querySelectorAll('input[name="upload-classification-g2"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } });
+              document.querySelectorAll('input[name="upload-classification-g3"]').forEach(el=>{ try{ el.checked = false; }catch(_){ } });
               try { 
                 const noteEl = document.getElementById('classification-note');
                 if (noteEl) noteEl.style.display = 'none';
               } catch(_){ }
+              // Hiển thị Phân loại Gate 3 khi tác vụ KHÔNG phải -NSPM
+              const classifG3 = document.getElementById('upload-classification-group-g3');
+              if (classifG3 && typeof uploadContext !== 'undefined' && uploadContext) {
+                const taskCode = String(uploadContext.taskId || uploadContext.code || '').trim().toUpperCase();
+                const isNspm = taskCode.endsWith('-NSPM');
+                classifG3.style.display = isNspm ? 'none' : '';
+              }
             }catch(_){ }
             try{ splitWrap && (splitWrap.style.display = 'none'); }catch(_){ }
             try{ if (contentWrap) { contentWrap.style.background = 'linear-gradient(180deg, rgba(34,197,94,0.15), rgba(255,255,255,0))'; contentWrap.style.transition = 'background 200ms ease'; } }catch(_){ }
@@ -6867,6 +6901,7 @@
             if (!uploadContext?.isSystemTask && bpsCheckbox) { fd.append('is_bps', bpsChecked ? '1' : '0'); }
             try{
               const conclusionPicked = (function(){ const els = document.querySelectorAll('input[name="upload-conclusion-g3"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
+              const classifPickedG3 = (function(){ const els = document.querySelectorAll('input[name="upload-classification-g3"]'); for (const el of els){ if (el && el.checked) return el.value || ''; } return ''; })();
               const meta = {
                 action: 'form1_upload',
                 gate: 'Gate 3',
@@ -6876,6 +6911,7 @@
                 taskName: uploadContext?.taskName || '',
                 noi_dung_cap_nhat: content,
                 ket_luan: conclusionPicked || '',
+                phan_loai: classifPickedG3 || '',
                 upload_type: fXlsxG3 ? (fPdfG3 ? 'pdf_xlsx' : 'xlsx_only') : (fPdfG3 ? 'pdf_only' : 'text_only'),
                 is_bps: uploadContext?.isSystemTask === true ? '0' : (bpsChecked ? '1' : '0'),
                 system: uploadContext?.isSystemTask === true ? '1' : '0',
@@ -6884,6 +6920,7 @@
               };
               fd.append('meta_json', JSON.stringify(meta));
               fd.append('body', JSON.stringify(meta));
+              if (classifPickedG3) fd.append('phan_loai', classifPickedG3);
               // Tách riêng id ra body riêng
               if (uploadContext?.id !== undefined && uploadContext?.id !== null && uploadContext?.id !== '') {
                 fd.append('id_body', String(uploadContext.id));
@@ -9801,7 +9838,6 @@
           "Đào Tuấn Kỳ":"ky.dao@karofi.vn",
           "Lại Quốc Lộc":"loc.lai@karofi.vn",
           "Lê Ngọc Ánh":"anh.le1@karofi.vn",
-          "Lê Thị Thanh Nhàn":"nhan.le@karofi.vn",
           "Lê Thị Thảo":"thao.le@karofi.vn",
           "Lê Văn Sơn":"son.le2@karofi.vn",
           "Nguyễn Thị Hiền":"hien.nguyen1@karofi.vn",
