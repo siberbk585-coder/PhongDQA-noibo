@@ -944,7 +944,7 @@
         </div>
       </section>
       
-      <!-- Form 7 · Triển khai CE/4M (clone of Form 2 with wording changes) -->
+      <!-- Form 7 · Triển khai CE/4M (clone of Form 2 với bổ sung cột Người thực hiện) -->
       <section id="form7" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-blue-800">Form 7 · Triển khai CE</h2>
@@ -955,26 +955,40 @@
             <div class="flex gap-2">
               <select id="f7-name" class="flex-1 border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
                 <option value="">— Chọn người —</option>
+                <option value="__ALL__">Tất cả</option>
               </select>
               <button id="f7-search" class="px-3 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Tra cứu</button>
             </div>
             <p class="text-gray-500 text-xs mt-1">Chọn tên và nhấn Tra cứu để hiển thị tác vụ cần trả CE/4M.</p>
           </div>
         </div>
-        <div class="mt-2 flex items-center gap-3 flex-wrap">
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-700">Lọc theo tháng hoàn thành</label>
-            <input id="f7-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
-            <button id="f7-clear-month" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Xóa lọc</button>
+        <div class="mt-2 flex flex-col gap-2">
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-700">Lọc theo tháng hoàn thành</label>
+              <input id="f7-month" type="month" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+              <button id="f7-clear-month" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Xóa lọc</button>
+            </div>
+            <p class="text-gray-500 text-xs">Để trống để hiển thị tất cả. Lọc theo cột "Ngày hoàn thành thực tế"</p>
           </div>
-          <p class="text-gray-500 text-xs">Để trống để hiển thị tất cả. Lọc theo cột "Ngày hoàn thành thực tế"</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <label class="text-sm text-gray-700">Tìm kiếm theo</label>
+            <select id="f7-search-type" class="border border-blue-300 rounded-lg bg-slate-100 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+              <option value="code">Mã linh kiện/máy</option>
+              <option value="taskName">Task Name</option>
+            </select>
+            <input id="f7-search-text" type="text" class="border border-blue-300 rounded-lg bg-slate-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white min-w-[200px]" placeholder="Nhập từ khóa..."/>
+            <button id="f7-search-advanced" class="px-3 py-1.5 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100 text-sm">Lọc</button>
+            <button id="f7-search-clear" class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm">Xóa tìm kiếm</button>
+          </div>
         </div>
         
-        <!-- Removed stray Form 9 controls from Form 7 -->
+        <!-- Bảng Form 7 có thêm cột "Người thực hiện" lấy theo trường Assignee -->
         <div class="mt-4 border border-gray-200 rounded-lg shadow-md overflow-x-auto">
           <table class="min-w-[1600px] w-full text-sm border-collapse">
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
+                <th class="px-3 py-3 min-w-[160px] border border-gray-300">Người thực hiện</th>
                 <th class="px-3 py-3 min-w-[120px] border border-gray-300">Mã tác vụ</th>
                 <th class="px-3 py-3 min-w-[140px] border border-gray-300">Ngày hoàn thành thực tế</th>
                 <th class="px-3 py-3 min-w-[120px] border border-gray-300">Mã linh kiện/máy</th>
@@ -992,7 +1006,7 @@
               </tr>
             </thead>
             <tbody id="f7-body" class="divide-y divide-gray-200">
-              <tr><td class="px-3 py-4 text-center text-gray-500" colspan="13">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-4 text-center text-gray-500" colspan="15">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -2553,11 +2567,29 @@
             return parsedDate === monthFilter;
           });
         }
+
+        // Lọc theo tìm kiếm nâng cao (Mã linh kiện/máy hoặc Task Name)
+        try {
+          const searchInput = document.getElementById('f7-search-text');
+          const searchTypeSelect = document.getElementById('f7-search-type');
+          const keyword = (searchInput?.value || '').trim().toLowerCase();
+          const searchType = (searchTypeSelect?.value || 'code');
+          if (keyword) {
+            filteredData = filteredData.filter(item => {
+              const value = String(
+                searchType === 'taskName'
+                  ? (item.taskName || '')
+                  : (item.code || '')
+              ).toLowerCase();
+              return value.includes(keyword);
+            });
+          }
+        } catch (_) {}
         
         body.innerHTML = '';
         
         if (!filteredData.length) {
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có tác vụ'+ (monthFilter ? ' trong tháng đã chọn' : '') +'.</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="15">Không có tác vụ'+ (monthFilter ? ' trong tháng đã chọn' : '') +'.</td></tr>';
           return;
         }
         
@@ -2565,7 +2597,8 @@
           const tr = document.createElement('tr');
           const name = f7CurrentName;
           
-          // Render theo cấu trúc Form 7 (chỉ CE): Mã tác vụ, Ngày hoàn thành thực tế, Mã linh kiện/máy, Task Name, Mã Báo cáo, Kết quả đánh giá, Ghi chú, Khai báo CE, Tình trạng rà soát, Ngày khai báo gần nhất
+          // Render theo cấu trúc Form 7 (chỉ CE): Người thực hiện, Mã tác vụ, Ngày hoàn thành thực tế, Mã linh kiện/máy, Task Name, Mã Báo cáo, Kết quả đánh giá, Ghi chú, Khai báo CE, Tình trạng rà soát, Ngày khai báo gần nhất
+          addTd(tr, rowData.assignee || name || '');
           addTd(tr, rowData.taskId);
           addTd(tr, formatDdMmYyyy(rowData.actualCompletionDate));
           addTd(tr, rowData.code);
@@ -2694,10 +2727,12 @@
       }
       
       async function renderForm7(){
-        const name = (document.getElementById('f7-name').value || '').trim();
+        const rawName = (document.getElementById('f7-name').value || '').trim();
+        const isAll = rawName === '__ALL__';
+        const name = isAll ? '' : rawName;
         const body = document.getElementById('f7-body');
-          if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Vui lòng chọn tên</td></tr>'; return; }
-        body.innerHTML = "<tr><td colspan='14' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+          if(!rawName){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="15">Vui lòng chọn tên</td></tr>'; return; }
+        body.innerHTML = "<tr><td colspan='15' class='px-3 py-3 text-center text-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
         try{
           const headerMapF7 = {
             header_taskId: 'Mã tác vụ',
@@ -2743,7 +2778,7 @@
           if(!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
           let data = null; try{ data = JSON.parse(text);}catch{ data = null; }
           const rows = pickRows(data);
-          if(!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="13">Không có tác vụ.</td></tr>'; f7AllData=[]; return; }
+          if(!rows.length){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="15">Không có tác vụ.</td></tr>'; f7AllData=[]; return; }
           const getV = (obj, keys)=>{
             // Chuẩn hoá key: bỏ dấu, loại emoji/ký tự đặc biệt, gộp khoảng trắng
             const sanitize = (s)=>{
@@ -2788,20 +2823,24 @@
           // Parse tất cả dữ liệu
           f7AllData = [];
           f7CurrentName = name;
-          rows.forEach(item=>{
-            // Khớp theo tên "Assignee" từ server với lựa chọn trong ô tên Form 8
+            rows.forEach(item=>{
+            // Khớp theo tên "Assignee" từ server với lựa chọn trong ô tên Form 7
+            let assignee = '';
             try{
-              const assignee = getV(item,[
+              assignee = getV(item,[
                 'Assignee','assignee','employee','nhân viên','nhan vien','nhanvien',
                 'tên nhân viên','ten nhan vien','tennhanvien','phụ trách','phu trac','phutrac'
               ]);
-              if (assignee && typeof sameName === 'function'){
-                if (!sameName(String(assignee||''), String(name||''))) return; // bỏ nếu không trùng tên chọn
-              } else {
-                // Fallback: so sánh không dấu/không phân biệt hoa thường
-                const a = String(assignee||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-                const b = String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-                if (a && b && a !== b) return;
+              // Nếu chọn "Tất cả" thì không lọc theo tên, giữ toàn bộ bản ghi
+              if (!isAll) {
+                if (assignee && typeof sameName === 'function'){
+                  if (!sameName(String(assignee||''), String(name||''))) return; // bỏ nếu không trùng tên chọn
+                } else {
+                  // Fallback: so sánh không dấu/không phân biệt hoa thường
+                  const a = String(assignee||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+                  const b = String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+                  if (a && b && a !== b) return;
+                }
               }
             }catch(_){ }
             // Lấy dữ liệu theo cấu trúc mới: Mã tác vụ, Ngày hoàn thành thực tế, Mã linh kiện/máy, Task Name, Mã Báo cáo, Kết quả đánh giá, Ghi chú, CE rà soát, Ngày khai báo CE, 4M rà soát, Ngày khai báo 4M
@@ -2827,7 +2866,7 @@
             const id = getV(item,['Id','id','ID','_id']);
             
             const taskIdBest = pickTaskIdPreferQA(taskId, code);
-            const rowData = { Id: id, taskId: taskIdBest, actualCompletionDate, code, taskName, reportCode, evaluationResult, notes, ceReview, ceDeclarationDate, ceNotes, fourMReview, fourMDeclarationDate, f7emailassignee, sampleHandoverStatus, sampleHandoverNotes };
+            const rowData = { Id: id, assignee, taskId: taskIdBest, actualCompletionDate, code, taskName, reportCode, evaluationResult, notes, ceReview, ceDeclarationDate, ceNotes, fourMReview, fourMDeclarationDate, f7emailassignee, sampleHandoverStatus, sampleHandoverNotes };
             
             f7AllData.push(rowData);
           });
@@ -2846,7 +2885,7 @@
             updateLastUpdatedNote('f7-search','f7.lastUpdated');
           } catch(_) {}
         }catch(err){
-          body.innerHTML = `<tr><td colspan='14' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+          body.innerHTML = `<tr><td colspan='15' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         }
       }
       const f7SearchBtn = document.getElementById('f7-search');
@@ -3813,6 +3852,10 @@
       // Form 7: Event listeners cho lọc tháng
       const f7MonthInput = document.getElementById('f7-month');
       const f7ClearMonthBtn = document.getElementById('f7-clear-month');
+      const f7SearchText = document.getElementById('f7-search-text');
+      const f7SearchType = document.getElementById('f7-search-type');
+      const f7SearchAdvancedBtn = document.getElementById('f7-search-advanced');
+      const f7SearchClearBtn = document.getElementById('f7-search-clear');
       
       // Mặc định set tháng hiện tại
       if (f7MonthInput) {
@@ -3833,6 +3876,39 @@
           const f7MonthInput = document.getElementById('f7-month');
           if (f7MonthInput) {
             f7MonthInput.value = '';
+            if (f7AllData.length > 0) {
+              displayForm7Data();
+            }
+          }
+        });
+      }
+
+      // Form 7: Event listeners cho tìm kiếm nâng cao theo Mã linh kiện/máy hoặc Task Name
+      if (f7SearchAdvancedBtn) {
+        f7SearchAdvancedBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (f7AllData.length > 0) {
+            displayForm7Data();
+          }
+        });
+      }
+
+      if (f7SearchClearBtn) {
+        f7SearchClearBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (f7SearchText) f7SearchText.value = '';
+          if (f7SearchType) f7SearchType.value = 'code';
+          if (f7AllData.length > 0) {
+            displayForm7Data();
+          }
+        });
+      }
+
+      if (f7SearchText) {
+        // Cho phép Enter để tìm nhanh
+        f7SearchText.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
             if (f7AllData.length > 0) {
               displayForm7Data();
             }
@@ -5217,7 +5293,10 @@
       const f1NameEl = document.getElementById('f1-name');
       if(f1NameEl) fillSelect(f1NameEl, FORM1_NAMES);
       const f7NameEl = document.getElementById('f7-name');
-      if(f7NameEl) fillSelect(f7NameEl, FORM7_NAMES);
+      if (f7NameEl) {
+        // Giữ option mặc định và "Tất cả" đã khai báo trong HTML, chỉ fill thêm danh sách tên
+        fillSelect(f7NameEl, FORM7_NAMES);
+      }
       const f9NameSel = document.getElementById('f9-name');
       if (f9NameSel){
         // Thêm mục Tất cả
