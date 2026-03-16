@@ -112,7 +112,7 @@
       .submit-btn:hover{transform:translateY(-1px);box-shadow:0 7px 14px rgba(37,99,235,.12),0 3px 6px rgba(37,99,235,.08);filter:brightness(1.03)}
       .submit-btn:active{transform:translateY(0);opacity:.95}
       .modal.open{display:flex}
-      .toast{position:fixed;right:16px;bottom:16px;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
+      .toast{position:fixed;right:16px;bottom:16px;z-index:9999;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
       .toast.show{opacity:1;transform:translateY(0)}
       /* Form 5: zebra rows & vertical dividers */
       .table-zebra tbody tr:nth-child(even){ background-color:#f8fafc; }
@@ -1548,8 +1548,8 @@
                 <input id="create-deadline" required type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Link KOI <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
-                <input id="create-odoo-jira" required type="text" placeholder="Copy link luồng phê duyệt" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Link KOI <span class="text-gray-400 text-xs">(không bắt buộc nếu không có luồng KOI)</span></label>
+                <input id="create-odoo-jira" type="text" placeholder="VD: https://office.karofi.com/odoo/action-1053/45975" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white"/>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp <span class="text-gray-400 text-xs">(bắt buộc)</span></label>
@@ -8304,7 +8304,7 @@
         if (form) form.reset();
         if (timeEl) timeEl.value = formatYyyyMmDdHHmm(d);
         // Bôi vàng tất cả các ô bắt buộc ngay từ đầu (đang trống)
-        const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'];
+        const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-vendor','create-task-type','create-purpose'];
         requiredIds.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.add('empty-required-warning');
@@ -8561,13 +8561,13 @@
         // Xóa bôi vàng khi người dùng điền vào ô
         createTaskForm.addEventListener('input', (e) => {
           const t = e.target;
-          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
+          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
             t.classList.remove('empty-required-warning');
           }
         });
         createTaskForm.addEventListener('change', (e) => {
           const t = e.target;
-          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
+          if (t && t.id && ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-vendor','create-task-type','create-purpose'].includes(t.id)) {
             t.classList.remove('empty-required-warning');
           }
         });
@@ -8587,11 +8587,11 @@
           const purpose = (document.getElementById('create-purpose')?.value || '').trim();
 
           const componentCode = (document.getElementById('create-component-code')?.value || '').trim();
-          if(!requester || !taskName || !componentCode || !output || !manHourRaw || !assignee || !deadline || !odooJira || !vendor || !taskType || !purpose){ 
+          if(!requester || !taskName || !componentCode || !output || !manHourRaw || !assignee || !deadline || !vendor || !taskType || !purpose){ 
             showToast('Vui lòng điền đủ tất cả các trường bắt buộc.','error'); 
             // Bôi vàng các ô trống để cảnh báo
-            const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-odoo-jira','create-vendor','create-task-type','create-purpose'];
-            const requiredValues = [requester, taskName, componentCode, assignee, manHourRaw, output, deadline, odooJira, vendor, taskType, purpose];
+            const requiredIds = ['create-rq-by','create-task-name','create-component-code','create-f3-assignee','create-man-hour','create-output','create-deadline','create-vendor','create-task-type','create-purpose'];
+            const requiredValues = [requester, taskName, componentCode, assignee, manHourRaw, output, deadline, vendor, taskType, purpose];
             requiredIds.forEach((id, i) => {
               const el = document.getElementById(id);
               if (el) {
@@ -8600,6 +8600,14 @@
               }
             });
             return; 
+          }
+          
+          // Kiểm tra định dạng Link KOI (nếu có điền): phải bắt đầu bằng https://office.karofi.com/
+          if (odooJira && !/^https:\/\/office\.karofi\.com\/.+/.test(odooJira)) {
+            showToast('Link KOI phải có định dạng https://office.karofi.com/... (VD: https://office.karofi.com/odoo/action-1053/45975)','error');
+            const odooEl = document.getElementById('create-odoo-jira');
+            if (odooEl) odooEl.classList.add('empty-required-warning');
+            return;
           }
           
           // Tự động chuyển đổi dấu chấm thành dấu phẩy cho số thập phân
