@@ -18386,9 +18386,32 @@
         }
 
         function renderTable(rows, filterValue) {
-          const filtered = filterValue === 'all' ? rows : rows.filter((row) => row.assignee === filterValue);
+          const FIXED_ASSIGNEES = ['Hà Mỹ Linh'];
+          const baseRows = Array.isArray(rows) ? rows : [];
+          const filtered = filterValue === 'all'
+            ? baseRows
+            : baseRows.filter((row) => row.assignee === filterValue);
+
+          // Đảm bảo tên cố định vẫn xuất hiện trong bảng dù chưa có dữ liệu
+          const ensured = filtered.slice();
+          const shouldEnsure = filterValue === 'all'
+            ? FIXED_ASSIGNEES
+            : (FIXED_ASSIGNEES.includes(filterValue) ? [filterValue] : []);
+          shouldEnsure.forEach((name) => {
+            const exists = ensured.some((r) => String(r.assignee || '').trim() === name);
+            if (!exists) {
+              ensured.push({
+                order: '—',
+                assignee: name,
+                start: null,
+                end: null,
+                points: 0,
+              });
+            }
+          });
+
           tableBody.innerHTML = '';
-          filtered.forEach((row) => {
+          ensured.forEach((row) => {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-brand-50/60 transition';
             tr.innerHTML = `
@@ -18403,7 +18426,16 @@
         }
 
         function populateFilterOptions(rows) {
-          const names = Array.from(new Set(rows.map((row) => row.assignee)));
+          const FIXED_ASSIGNEES = ['Hà Mỹ Linh'];
+          const namesSet = new Set(
+            (rows || [])
+              .map((row) => (row ? String(row.assignee || '').trim() : ''))
+              .filter(Boolean)
+          );
+          FIXED_ASSIGNEES.forEach((n) => namesSet.add(String(n).trim()));
+
+          const names = Array.from(namesSet).sort((a, b) => a.localeCompare(b, 'vi'));
+
           assigneeFilter.innerHTML = '<option value="all">Tất cả nhân sự</option>';
           names.forEach((name) => {
             const option = document.createElement('option');
