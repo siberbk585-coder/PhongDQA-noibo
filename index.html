@@ -16649,6 +16649,35 @@
         } catch (_) { showToast('Form 12: Xuất XLSX thất bại.', 'error'); }
       }
 
+      /** Lấy cột Đánh giá Form 11 — webhook/Excel có thể dùng tên khác hoặc khoảng trắng thừa trong key */
+      function getForm11DanhGia(row) {
+        if (!row || typeof row !== 'object') return '';
+        const keys = [
+          'Đánh giá', 'đánh giá', 'Danh gia', 'danh gia', 'Danh_gia', 'danh_gia', 'DANH_GIA',
+          'DanhGia', 'danhGia', 'Evaluation', 'evaluation', 'Rating', 'rating',
+          'Kết quả hạng mục', 'ket_qua_hang_muc', 'Ket_qua_hang_muc', 'KQ đánh giá', 'kq_danh_gia'
+        ];
+        let v = getV(row, keys);
+        if (v !== '' && v != null) return String(v).trim();
+        const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        for (const k of Object.keys(row)) {
+          const nk = norm(k);
+          if (nk === 'đánh giá' || nk === 'danh gia' || nk === 'danh_gia' || nk === 'evaluation' || nk === 'rating') {
+            const val = row[k];
+            if (val != null && val !== '') return String(val).trim();
+          }
+        }
+        return '';
+      }
+
+      function form11DanhGiaStyle(danhGia) {
+        const du = String(danhGia || '').trim().toUpperCase();
+        if (du === 'OK') return 'text-green-700 font-semibold';
+        if (du === 'NG') return 'text-red-700 font-semibold';
+        if (du === 'KDG' || du === 'KĐG' || du === 'KKL') return 'text-orange-700 font-semibold';
+        return 'text-gray-700';
+      }
+
       // Hàm hiển thị dữ liệu từ file JSON/TXT (format Dữ liệu báo cáo.txt)
       function renderForm11FromDataFile(parsed) {
         const resultsContainer = document.getElementById('f11-results');
@@ -16745,7 +16774,7 @@
             const total = rows.length;
             let ok = 0, ng = 0, kkl = 0, kdg = 0;
             rows.forEach(r => {
-              const d = String(r['Đánh giá'] || '').trim();
+              const d = String(getForm11DanhGia(r) || '').trim();
               const du = d.toUpperCase();
               if (du === 'OK') ok++;
               else if (du === 'NG') ng++;
@@ -16853,7 +16882,6 @@
           } else {
             const congChuanKey = 'Công chuẩn';
             const congChuanQuyDoiKey = 'Công chuẩn quy đổi';
-            const danhGiaKey = 'Đánh giá';
             const ghiChuKey = 'Ghi chú';
             const sampleKeyOrder = ['Mẫu 1','Mẫu 2','Mẫu cũ 1','Mẫu cũ 2','Mẫu cũ 3','M1','M2'];
 
@@ -16923,14 +16951,12 @@
                         const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
                         const congChuan = row[congChuanKey] ?? '';
                         const congChuanQuyDoi = row[congChuanQuyDoiKey] ?? '';
-                        const danhGia = row[danhGiaKey] || '';
+                        const danhGia = getForm11DanhGia(row);
                         const ghiChu = row[ghiChuKey] || '';
                         const tool = row['Công cụ (Tool)'] || row['Công cụ\n(Tool)'] || '';
                         const type = row['Type'] || '';
                         const noMaDanhMuc = !maDanhMuc || String(maDanhMuc).trim() === '';
-                        let dgColor = 'text-gray-700';
-                        if (danhGia === 'OK') dgColor = 'text-green-700 font-semibold';
-                        else if (danhGia === 'NG') dgColor = 'text-red-700 font-semibold';
+                        const dgColor = form11DanhGiaStyle(danhGia);
                         const rowBg = noMaDanhMuc ? 'bg-yellow-100' : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50');
                         return `<tr class="${rowBg}">
                           <td class="px-3 py-2 border border-gray-300">${row.STT ?? idx + 1}</td>
@@ -17258,15 +17284,12 @@
           const tbody = itemSection.querySelector('#f11-tckt-tbody');
           if (tbody) {
             tcktDataArray.forEach((row, idx) => {
-              const danhGia = row['Đánh giá'] || '';
+              const danhGia = getForm11DanhGia(row);
               const maDanhMucVal = row['Mã danh mục'] || row['Ma_danh_muc'] || '';
               const noMaDanhMuc = !maDanhMucVal || String(maDanhMucVal).trim() === '';
               let rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
               if (noMaDanhMuc) rowBg = 'bg-yellow-100';
-              let danhGiaColor = 'text-gray-700';
-              if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
-              else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
-              else if (danhGia === 'KDG' || danhGia === 'KKL') danhGiaColor = 'text-orange-700 font-semibold';
+              const danhGiaColor = form11DanhGiaStyle(danhGia);
 
               const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
               const tieuChuan = row['Tiêu chuẩn (Standard)'] || row['Tiêu chuẩn\n(Standard)'] || '';
@@ -17345,15 +17368,12 @@
           const tbody = rowsSection.querySelector('#f11-rows-tbody');
           if (tbody) {
             rowsDataArray.forEach((row, rowIndex) => {
-              const danhGia = row['Đánh giá'] || '';
+              const danhGia = getForm11DanhGia(row);
               const maDanhMuc = row['Mã danh mục'] || row['Ma_danh_muc'] || '';
               const noMaDanhMuc = !maDanhMuc || String(maDanhMuc).trim() === '';
               let rowBg = rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
               if (noMaDanhMuc) rowBg = 'bg-yellow-100';
-              let danhGiaColor = 'text-gray-700';
-              if (danhGia === 'OK') danhGiaColor = 'text-green-700 font-semibold';
-              else if (danhGia === 'NG') danhGiaColor = 'text-red-700 font-semibold';
-              else if (danhGia === 'KDG' || danhGia === 'KKL') danhGiaColor = 'text-orange-700 font-semibold';
+              const danhGiaColor = form11DanhGiaStyle(danhGia);
 
               // Xử lý các key có thể có \n trong tên
               const hangMuc = row['Hạng mục kiểm tra (Index)'] || row['Hạng mục kiểm tra \n(Index)'] || '';
