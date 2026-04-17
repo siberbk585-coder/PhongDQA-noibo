@@ -408,7 +408,8 @@
           <div class="group-items hidden ml-8 mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
             <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form1">1: Trả báo cáo & form</button>
             <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form11">11 - Kiểm tra trước khi gửi báo cáo</button>
-            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form12">12 - Mã danh mục</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form12">12 - Mã danh mục (mới)</button>
+            <button class="nav-btn block px-2 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded w-full text-left transition-colors" data-target="form14">14 - Tự điền mã CAT</button>
           </div>
         </div>
         <div class="rounded-md pt-4 pb-2">
@@ -510,7 +511,6 @@
             <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
               <tr class="text-left text-gray-700">
                 <th class="px-3 py-2 min-w-[160px] border border-gray-500">Trả báo cáo</th>
-                <th class="px-3 py-2 min-w-[120px] border border-gray-500">Nút Trả form</th>
                 <th class="px-3 py-2 min-w-[120px] border border-gray-500">Tải form</th>
                 <th class="px-3 py-2 min-w-[140px] border border-gray-500">Tình trạng</th>
                 <th class="px-3 py-2 min-w-[140px] border border-gray-500">Mã tác vụ</th>
@@ -532,7 +532,7 @@
               </tr>
             </thead>
             <tbody id="f1-body" class="divide-y divide-gray-100">
-              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="20">Chưa có dữ liệu</td></tr>
+              <tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="19">Chưa có dữ liệu</td></tr>
             </tbody>
           </table>
         </div>
@@ -1285,17 +1285,17 @@
           </div>
         </div>
         <div class="flex items-center gap-4 mb-4 flex-wrap">
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">Lọc Hạng mục kiểm tra:</label>
-            <button id="f12-filter-hangmuc-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-300 bg-white hover:bg-blue-50 text-gray-700 text-sm font-medium shadow-sm transition min-w-[200px] justify-between">
-              <span id="f12-filter-hangmuc-label">Tất cả</span>
-              <span class="material-symbols-outlined text-lg text-blue-600">filter_list</span>
-            </button>
+          <div class="flex items-center gap-2 flex-1 min-w-[220px] max-w-lg">
+            <label for="f12-index-search" class="text-sm font-medium text-gray-700 whitespace-nowrap shrink-0">Tìm Index</label>
+            <div class="relative flex-1 min-w-0">
+              <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+              <input id="f12-index-search" type="search" enterkeyhint="search" placeholder="Gõ để lọc theo cột Index…" autocomplete="off" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white" />
+            </div>
           </div>
           <div class="flex items-center gap-2 hidden">
-            <label class="text-sm font-medium text-gray-700">Tick theo Tên linh kiện:</label>
+            <label class="text-sm font-medium text-gray-700">Tick theo Name 1:</label>
             <button id="f12-filter-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-300 bg-white hover:bg-blue-50 text-gray-700 text-sm font-medium shadow-sm transition min-w-[200px] justify-between">
-              <span id="f12-filter-label">Chọn linh kiện để tick</span>
+              <span id="f12-filter-label">Chọn Name 1 để tick</span>
               <span class="material-symbols-outlined text-lg text-blue-600">checklist</span>
             </button>
           </div>
@@ -1310,36 +1310,76 @@
         </div>
         <div id="f12-results" class="mt-4 -mx-6">
           <div class="overflow-auto max-h-[70vh] border border-gray-200 rounded-lg bg-white">
-            <table class="min-w-[1200px] w-full text-sm table-zebra">
+            <table class="min-w-[1600px] w-full text-sm table-zebra">
               <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
                 <tr class="text-left text-gray-700">
                   <th class="px-3 py-2 w-10"><input id="f12-select-all" type="checkbox" class="rounded border-gray-400" title="Chọn/bỏ chọn tất cả" /></th>
                   <th class="px-3 py-2">Id</th>
-                  <th class="px-3 py-2">Mã danh mục</th>
-                  <th class="px-3 py-2">Hạng mục kiểm tra</th>
-                  <th class="px-3 py-2">Tiêu chuẩn</th>
-                  <th class="px-3 py-2">Công cụ</th>
-                  <th class="px-3 py-2">Type</th>
-                  <th class="px-3 py-2">Hướng dẫn</th>
-                  <th class="px-3 py-2">Available</th>
                   <th class="px-3 py-2">Công chuẩn</th>
+                  <th class="px-3 py-2">Mã CAT</th>
+                  <th class="px-3 py-2">Code</th>
+                  <th class="px-3 py-2">Name 1</th>
+                  <th class="px-3 py-2">Index</th>
+                  <th class="px-3 py-2">Standard</th>
+                  <th class="px-3 py-2">Unit</th>
+                  <th class="px-3 py-2">Tool</th>
+                  <th class="px-3 py-2">Type</th>
+                  <th class="px-3 py-2">Document</th>
+                  <th class="px-3 py-2">Available</th>
                   <th class="px-3 py-2">Test bền</th>
                 </tr>
               </thead>
               <tbody id="f12-body" class="divide-y divide-gray-100">
-                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Nhấn "Tra cứu" để tải dữ liệu</td></tr>
+                <tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Nhấn "Tra cứu" để tải dữ liệu</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
+
+      <!-- Form 14 - Tự điền mã CAT -->
+      <section id="form14" class="w-full max-w-none bg-white p-6 rounded-lg shadow-md hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-blue-800">Form 14 - Tự điền mã CAT</h2>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-700 mb-3">Vui lòng tải file để tự điền mã CAT.</p>
+          <div class="flex items-center gap-6 mb-3">
+            <span class="text-sm font-medium text-gray-700">Loại:</span>
+            <label class="inline-flex items-center gap-2 cursor-pointer hidden">
+              <input type="radio" name="f14-type" value="Sản phẩm" checked class="rounded border-gray-400 text-primary-blue focus:ring-primary-blue"/>
+              <span class="text-sm text-gray-700">Sản phẩm</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="f14-type" value="Linh kiện" class="rounded border-gray-400 text-primary-blue focus:ring-primary-blue"/>
+              <span class="text-sm text-gray-700">Linh kiện</span>
+            </label>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <input id="f14-file" type="file" accept=".xlsx,.json,.txt" class="hidden"/>
+            <button id="f14-upload-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Chọn file XLSX</button>
+            <span id="f14-file-name" class="text-sm text-gray-600">Không có file nào được chọn</span>
+            <button id="f14-submit-btn" class="px-4 py-2 rounded-lg text-white font-semibold bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Gửi</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">Chấp nhận file .xlsx, .json, .txt. Mỗi lần chỉ được tải 1 file.</p>
+        </div>
+        <div id="f14-results" class="hidden mt-4 space-y-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <p id="f14-results-meta" class="text-sm text-slate-700">Kết quả sẽ hiển thị dạng bảng sau khi webhook trả dữ liệu.</p>
+            <div class="flex items-center gap-2">
+              <button id="f14-export-xlsx" type="button" class="px-3 py-1.5 rounded-lg border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100 text-sm">Xuất XLSX</button>
+            </div>
+          </div>
+          <div id="f14-tables-container" class="space-y-5"></div>
+        </div>
+      </section>
     </main>
 
-    <!-- Form 12: Modal lọc Tên linh kiện -->
+    <!-- Form 12: Modal tick theo Name 1 -->
     <div id="f12-filter-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f12-filter-modal-title">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         <div class="px-5 py-4 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
-          <h3 id="f12-filter-modal-title" class="text-lg font-semibold text-gray-800">Tick theo Tên linh kiện</h3>
+          <h3 id="f12-filter-modal-title" class="text-lg font-semibold text-gray-800">Tick theo Name 1</h3>
           <button id="f12-filter-modal-close" type="button" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">&times;</button>
         </div>
         <div class="p-4">
@@ -1353,29 +1393,6 @@
         </div>
         <div class="px-4 py-3 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
           <button id="f12-filter-apply" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Đóng</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Form 12: Modal lọc Hạng mục kiểm tra -->
-    <div id="f12-filter-hangmuc-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="f12-filter-hangmuc-title">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-        <div class="px-5 py-4 bg-gradient-to-b from-blue-50 to-white border-b border-gray-200 flex items-center justify-between">
-          <h3 id="f12-filter-hangmuc-title" class="text-lg font-semibold text-gray-800">Lọc theo Hạng mục kiểm tra</h3>
-          <button id="f12-filter-hangmuc-close" type="button" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">&times;</button>
-        </div>
-        <div class="p-4">
-          <div class="relative mb-4">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
-            <input id="f12-filter-hangmuc-search" type="text" placeholder="Tìm kiếm theo từ khóa..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" />
-          </div>
-          <div id="f12-filter-hangmuc-list" class="max-h-[320px] overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
-            <div class="p-3 text-center text-gray-500 text-sm">Nhấn "Tra cứu" để tải dữ liệu</div>
-          </div>
-        </div>
-        <div class="px-4 py-3 border-t border-gray-200 bg-slate-50 flex justify-end gap-2">
-          <button id="f12-filter-hangmuc-apply" type="button" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Áp dụng</button>
-          <button id="f12-filter-hangmuc-reset" type="button" class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Xóa lọc</button>
         </div>
       </div>
     </div>
@@ -1832,6 +1849,35 @@
         <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
           <button id="btn-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
           <button id="btn-send" class="px-4 py-2 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Gửi báo cáo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Return Form Modal (Form 1 - Trả form báo cáo) -->
+    <div id="return-form-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="return-form-title">
+      <div class="w-full max-w-xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+        <div class="px-4 py-3 bg-gradient-to-b from-emerald-50 to-white border-b border-gray-200 flex items-center justify-between">
+          <h3 id="return-form-title" class="text-base font-semibold text-gray-800">Trả form báo cáo</h3>
+          <button id="return-form-close-x" class="px-3 py-1 rounded-lg bg-slate-100 text-gray-800">Đóng</button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="flex flex-wrap gap-2 text-sm">
+            <span class="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200">Người nộp: <b class="ml-1" id="return-form-name"></b></span>
+            <span class="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200">Mã: <b class="ml-1" id="return-form-code"></b></span>
+            <span class="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200">Tác vụ: <b class="ml-1" id="return-form-task"></b></span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Chọn nội dung <span class="text-red-500">*</span></label>
+            <div class="border border-gray-200 rounded-lg p-3 bg-slate-50">
+              <input id="return-form-content-search" type="text" placeholder="Tìm nội dung..." class="w-full border border-blue-300 rounded-lg bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white text-sm mb-2"/>
+              <div id="return-form-content-list" class="max-h-44 overflow-y-auto bg-white rounded border border-gray-200 divide-y divide-gray-100"></div>
+              <p id="return-form-content-selected" class="text-xs text-gray-600 mt-2">Đã chọn: 0 mục</p>
+            </div>
+          </div>
+        </div>
+        <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+          <button id="return-form-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-gray-800">Huỷ</button>
+          <button id="return-form-submit" class="px-4 py-2 rounded-lg text-white font-semibold bg-emerald-600 hover:bg-emerald-700">Tải form xuống</button>
         </div>
       </div>
     </div>
@@ -2429,9 +2475,11 @@
       const FORM7_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dc3b968a-2f2d-4746-98ac-48247555b9c9";
       // Riêng bảng phụ (subpanel) - Modal khai báo CE
       const FORM7_SUBPANEL_URL = "https://iatzhxxuk.tino.page/webhook/khaibaoce";
-      const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/congguiformbaocao";
+      const FORM2_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/Taiformbaocaotudong";
       // Form 11 - Kiểm tra trước báo cáo
       const FORM11_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/Docbaocaothunghiem2";
+      // Form 14 - Cổng tải file
+      const FORM14_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dienmadanhmuc";
       // Form 12 - Mã danh mục (tra cứu)
       const FORM12_LOOKUP_URL = "https://iatzhxxuk.tino.page/webhook/tracuumadanhmuc";
       // Endpoint for Form 3 submission (single webhook; send form-data with optional files)
@@ -4800,7 +4848,7 @@
       // Global helper: parse various date/time formats robustly (ISO/TZ, DD/MM/YYYY, YYYY-MM-DD, with optional time & AM/PM)
       // Sidebar navigation
       const navBtns = document.querySelectorAll('.nav-btn');
-      const sections = ['form1','form11','form12','form4','form5','form6','form7','form8','form9','form13'].map(id=>document.getElementById(id));
+      const sections = ['form1','form11','form12','form14','form4','form5','form6','form7','form8','form9','form13'].map(id=>document.getElementById(id));
       function showSection(id){ sections.forEach(s=>s.classList.toggle('hidden', s.id!==id)); }
       navBtns.forEach((btn)=>{
         btn.onclick=()=>{
@@ -6400,6 +6448,199 @@
       let uploadContext = null;
       let isModalSubmitting = false;
       let lastOpenTrigger = null;
+      const returnFormModal = document.getElementById('return-form-modal');
+      const returnFormFileInput = document.getElementById('return-form-file');
+      const returnFormFileBtn = document.getElementById('return-form-file-btn');
+      const returnFormFileName = document.getElementById('return-form-file-name');
+      const returnFormName = document.getElementById('return-form-name');
+      const returnFormCode = document.getElementById('return-form-code');
+      const returnFormTask = document.getElementById('return-form-task');
+      const returnFormContentSearch = document.getElementById('return-form-content-search');
+      const returnFormContentList = document.getElementById('return-form-content-list');
+      const returnFormContentSelected = document.getElementById('return-form-content-selected');
+      let returnFormContext = null;
+      let isReturnFormSubmitting = false;
+      const RETURN_FORM_CONTENT_OPTIONS = [
+        'Block Danfu PW2.0VK /DC',
+        'Bình nóng 1L/430W [TCCS]',
+        'Bông',
+        'Bơm 24 8369T [TCCS]',
+        'Bộ cốc 2G Hydrogen GK XANH v2',
+        'Bộ dây điện 220V KAD-D66 [TCCS]/DC',
+        'Bộ kính viền nhôm',
+        'Bộ điện phân Alkaline',
+        'Công tắc KCD1-A đen 0.6mm /DC [TCCS]',
+        'Cút',
+        'Dàn lạnh',
+        'Dàn nóng HC300-W [TCCS]',
+        'Dây RO 1/4',
+        'Dây RO 1/4',
+        'Dây RO 3/8',
+        'Dây RO 3/8',
+        'Dây TDS',
+        'Dây nguồn 220V /DC [TCCS]',
+        'Flow 300 RT [TCCS]',
+        'Gioăng chỉ',
+        'Hạt CaCO3 v2',
+        'Hạt Cation',
+        'Hạt Corosex',
+        'Hạt ORP',
+        'Hạt hồng ngoại nâu (2000022)',
+        'Khóa vòi nhựa',
+        'Kính tôi đình IQ [TCCS]',
+        'Lõi Alkaline V xanh D2',
+        'Lõi Hồng ngoại EZ270 trắng KoriHome',
+        'Lõi Nano EZ /DC [TCCS]',
+        'Lõi OCB 10" trắng KAROFI /DC [TCCS]',
+        'Lõi PP 10" G120 [TCCS]',
+        'Lõi Post Carbon EZ270 KORIHOME [TCCS]',
+        'Lõi T33 K KAROFI (MCPP) [TCCS]',
+        'Lõi T33-6HP [TCCS]',
+        'Lõi hydrogen EZ270 trắng KoriHome',
+        'Lõi khoáng EZ270 trắng KoriHome',
+        'Lõi khoáng V vàng KAROFI MIV',
+        'Lõi lọc thô KAROFI Smax Pro 2',
+        'Màng RO EZ /DC [TCCS]',
+        'Màng cao su',
+        'Mỡ',
+        'Mực In',
+        'Nguồn xung 24V 1.2A /DC [TCCS]',
+        'Nắp cốc',
+        'Phao điện [TCCS]',
+        'Phin lọc',
+        'Rơ le nhiệt lạnh [TCCS]',
+        'Tem',
+        'Tem',
+        'Than hoạt tính',
+        'Thân cốc',
+        'Thân vỏ màng',
+        'Thùng carton T33 AQUAREDD [TCCS]/DC',
+        'Túi PE',
+        'Van 1C xanh [TCCS]',
+        'Van 4 cửa EZ (1000585) /DC [TCCS]',
+        'Van bình áp EZ 3/8 (1014905)',
+        'Van khóa nước 1/4" [TCCS]',
+        'Van áp cao đen 1/4" MIV [TCCS]',
+        'Van áp thấp EZ DZ đen [TCCS]',
+        'Van điện từ 24/4U FPD-360L83 [TCCS]/DC',
+        'Viền nhôm kính',
+        'Vòi HCV',
+        'Vòi gạt',
+        'Xốp',
+        'Xốp bảo ôn',
+        'Đồng sunfat',
+        'Ống Silicone D16xd12 /DC [TCCS]'
+      ];
+      let RETURN_FORM_SELECTED_CONTENTS = new Set();
+
+      function normalizeForSearch(text){
+        return String(text || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim();
+      }
+
+      function renderReturnFormContentOptions(keyword){
+        if (!returnFormContentList) return;
+        const q = normalizeForSearch(keyword || '');
+        const filtered = RETURN_FORM_CONTENT_OPTIONS.filter((item) => {
+          if (!q) return true;
+          return normalizeForSearch(item).indexOf(q) >= 0;
+        });
+        if (!filtered.length) {
+          returnFormContentList.innerHTML = '<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy nội dung phù hợp</div>';
+        } else {
+          returnFormContentList.innerHTML = filtered.map((item, idx) => {
+            const checked = RETURN_FORM_SELECTED_CONTENTS.has(item) ? ' checked' : '';
+            const id = `return-form-content-opt-${idx}`;
+            return `<label class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer" for="${id}">
+              <input id="${id}" type="checkbox" data-return-form-content="${item.replace(/"/g, '&quot;')}" class="h-4 w-4 text-emerald-600 border-gray-300 rounded"${checked}/>
+              <span>${item}</span>
+            </label>`;
+          }).join('');
+        }
+        returnFormContentList.querySelectorAll('input[data-return-form-content]').forEach((el) => {
+          el.addEventListener('change', function(){
+            const value = this.getAttribute('data-return-form-content') || '';
+            if (!value) return;
+            if (this.checked) RETURN_FORM_SELECTED_CONTENTS.add(value);
+            else RETURN_FORM_SELECTED_CONTENTS.delete(value);
+            if (returnFormContentSelected) returnFormContentSelected.textContent = `Đã chọn: ${RETURN_FORM_SELECTED_CONTENTS.size} mục`;
+          });
+        });
+        if (returnFormContentSelected) returnFormContentSelected.textContent = `Đã chọn: ${RETURN_FORM_SELECTED_CONTENTS.size} mục`;
+      }
+
+      function openReturnFormModal(ctx){
+        returnFormContext = ctx || {};
+        if (returnFormName) returnFormName.textContent = ctx?.name || '';
+        if (returnFormCode) returnFormCode.textContent = ctx?.code || '';
+        if (returnFormTask) returnFormTask.textContent = ctx?.taskName || '';
+        if (returnFormFileInput) returnFormFileInput.value = '';
+        if (returnFormFileName) {
+          returnFormFileName.textContent = 'Không có tệp nào được chọn';
+          returnFormFileName.className = 'text-sm text-gray-600';
+        }
+        RETURN_FORM_SELECTED_CONTENTS = new Set();
+        if (returnFormContentSearch) returnFormContentSearch.value = '';
+        renderReturnFormContentOptions('');
+        if (!returnFormModal) return;
+        returnFormModal.classList.add('open');
+        returnFormModal.setAttribute('aria-hidden','false');
+      }
+
+      function closeReturnFormModal(){
+        if (returnFormModal) {
+          returnFormModal.classList.remove('open');
+          returnFormModal.setAttribute('aria-hidden','true');
+        }
+        if (lastOpenTrigger) {
+          try {
+            lastOpenTrigger.disabled = false;
+            if (lastOpenTrigger.classList) lastOpenTrigger.classList.remove('opacity-50','pointer-events-none');
+          } catch(_) {}
+          lastOpenTrigger = null;
+        }
+        const submitBtn = document.getElementById('return-form-submit');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Tải form xuống';
+        }
+        isReturnFormSubmitting = false;
+      }
+
+      if (returnFormFileBtn && returnFormFileInput) {
+        returnFormFileBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          returnFormFileInput.click();
+        });
+      }
+      if (returnFormFileInput && returnFormFileName) {
+        returnFormFileInput.addEventListener('change', function(e){
+          const f = e.target && e.target.files ? e.target.files[0] : null;
+          if (f) {
+            returnFormFileName.textContent = f.name;
+            returnFormFileName.className = 'text-sm text-green-600 font-medium';
+          } else {
+            returnFormFileName.textContent = 'Không có tệp nào được chọn';
+            returnFormFileName.className = 'text-sm text-gray-600';
+          }
+        });
+      }
+      const returnFormCloseX = document.getElementById('return-form-close-x');
+      if (returnFormCloseX) returnFormCloseX.addEventListener('click', closeReturnFormModal);
+      const returnFormCancel = document.getElementById('return-form-cancel');
+      if (returnFormCancel) returnFormCancel.addEventListener('click', closeReturnFormModal);
+      if (returnFormModal) {
+        returnFormModal.addEventListener('click', (e)=>{ if (e.target === returnFormModal) closeReturnFormModal(); });
+      }
+      if (returnFormContentSearch) {
+        returnFormContentSearch.addEventListener('input', function(){
+          renderReturnFormContentOptions(this.value || '');
+        });
+      }
+
       function openUploadModal(ctx){
         uploadContext = ctx || {};
         uploaderName.textContent = ctx?.name || '';
@@ -6705,7 +6946,11 @@
       }
       document.getElementById('btn-cancel').onclick = closeUploadModal;
       modal.addEventListener('click', (e)=>{ if(e.target===modal) closeUploadModal(); });
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeUploadModal(); });
+      document.addEventListener('keydown', (e)=>{
+        if (e.key !== 'Escape') return;
+        if (modal && modal.classList.contains('open')) closeUploadModal();
+        if (returnFormModal && returnFormModal.classList.contains('open')) closeReturnFormModal();
+      });
       // Tabs: Gate 1 / Gate 2 / Gate 3
       (function initUploadTabs(){
         try{
@@ -7308,6 +7553,150 @@
         }
       };
 
+      const returnFormSubmitBtn = document.getElementById('return-form-submit');
+      if (returnFormSubmitBtn) {
+        returnFormSubmitBtn.onclick = async function(){
+          if (isReturnFormSubmitting) return;
+          const selectedContents = Array.from(RETURN_FORM_SELECTED_CONTENTS);
+          if (!selectedContents.length) {
+            showToast('Vui lòng chọn ít nhất 1 nội dung.','error');
+            return;
+          }
+          const fd = new FormData();
+          const now = new Date();
+          const tsDisplay = formatDdMmYyyyHHmm(now);
+          const tsSql = formatYyyyMmDdHHmm(now);
+          let assigneeValue = '';
+          let requesterValue = '';
+          let purposeValue = '';
+          let requestDateValue = '';
+          let wishDueValue = '';
+          let receiverSampleValue = '';
+          let manHourValue = '';
+          let noteValue = '';
+          let specialTestValue = '';
+          if (returnFormContext?.rowData && typeof returnFormContext.rowData === 'object') {
+            const assigneeKey = Object.keys(returnFormContext.rowData).find(k => k.toLowerCase() === 'assignee');
+            if (assigneeKey) assigneeValue = String(returnFormContext.rowData[assigneeKey] || '');
+            requesterValue = String(getV(returnFormContext.rowData,['Người yêu cầu','requester','nguoiyeucau','nguoi_yeu_cau','assigner']) || '');
+            purposeValue = String(getV(returnFormContext.rowData,['Mục đích đánh giá','purpose','mucdich','muc_dich','muc dich danh gia']) || '');
+            requestDateValue = String(getV(returnFormContext.rowData,['Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui']) || '');
+            wishDueValue = String(getV(returnFormContext.rowData,['Hạn mong muốn','wishdue','hanmongmuon','han_mong_muon','desireddue']) || '');
+            receiverSampleValue = String(getV(returnFormContext.rowData,['Người nhận mẫu','receiver','receivername','nguoinhanmau','nguoi_nhan_mau','recipient']) || '');
+            manHourValue = String(getV(returnFormContext.rowData,['Công chuẩn','manhour','man_hour','congchuan','cong_chuan','workload']) || '');
+            noteValue = String(getV(returnFormContext.rowData,['Note','note','ghi_chu','ghichu']) || '');
+            specialTestValue = String(getV(returnFormContext.rowData,['Yêu cầu test đặc biệt','specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']) || '');
+          }
+          const payload = {
+            action: 'form2_upload',
+            form: 'Form 2',
+            person_name: returnFormContext?.name || '',
+            taskId: (returnFormContext?.taskId || returnFormContext?.code || ''),
+            code: returnFormContext?.code || '',
+            taskName: returnFormContext?.taskName || '',
+            id: String(returnFormContext?.id || ''),
+            assignee: assigneeValue,
+            requester: requesterValue,
+            purpose: purposeValue,
+            requestDate: requestDateValue,
+            wishDue: wishDueValue,
+            receiverSample: receiverSampleValue,
+            manHour: manHourValue,
+            note: noteValue,
+            specialTest: specialTestValue,
+            is_bps: '0',
+            noi_dung: selectedContents,
+            timestamp: tsDisplay,
+            timestamp_yyyy_mm_dd: tsSql,
+            timestamp_iso: now.toISOString(),
+            rowData: (returnFormContext?.rowData && typeof returnFormContext.rowData === 'object') ? returnFormContext.rowData : {}
+          };
+
+          // Gửi 1 bộ dữ liệu tối giản để tránh trùng lặp trường.
+          fd.append('action', payload.action);
+          fd.append('form', payload.form);
+          fd.append('person_name', payload.person_name);
+          fd.append('taskId', payload.taskId);
+          fd.append('code', payload.code);
+          fd.append('taskName', payload.taskName);
+          fd.append('id', payload.id);
+          fd.append('assignee', payload.assignee);
+          fd.append('requester', payload.requester);
+          fd.append('purpose', payload.purpose);
+          fd.append('requestDate', payload.requestDate);
+          fd.append('wishDue', payload.wishDue);
+          fd.append('receiverSample', payload.receiverSample);
+          fd.append('manHour', payload.manHour);
+          fd.append('note', payload.note);
+          fd.append('specialTest', payload.specialTest);
+          // Giữ thêm key tiếng Việt để tương thích webhook cũ.
+          fd.append('Người yêu cầu', payload.requester);
+          fd.append('Mục đích đánh giá', payload.purpose);
+          fd.append('Ngày yêu cầu', payload.requestDate);
+          fd.append('Hạn mong muốn', payload.wishDue);
+          fd.append('is_bps', payload.is_bps);
+          fd.append('noi_dung', selectedContents.join(', '));
+          fd.append('noi_dung_json', JSON.stringify(selectedContents));
+          fd.append('timestamp', payload.timestamp);
+          fd.append('timestamp_yyyy_mm_dd', payload.timestamp_yyyy_mm_dd);
+          fd.append('timestamp_iso', payload.timestamp_iso);
+          fd.append('row_data_json', JSON.stringify(payload.rowData || {}));
+          fd.append('body', JSON.stringify(payload));
+
+          isReturnFormSubmitting = true;
+          returnFormSubmitBtn.disabled = true;
+          returnFormSubmitBtn.innerHTML = "<span class='spinner mr-2'></span>Đang tải...";
+          try {
+            const response = await fetch(FORM2_UPLOAD_URL, {
+              method: 'POST',
+              body: fd,
+              mode: 'cors',
+              credentials: 'omit'
+            });
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+            const hasBinaryFile = blob && blob.size > 0;
+            const looksLikeXlsx = contentType.indexOf('spreadsheetml') >= 0 || contentType.indexOf('application/octet-stream') >= 0;
+            const contentDisposition = response.headers.get('content-disposition') || '';
+            const matchFileName = contentDisposition.match(/filename\*?=(?:UTF-8''|")?([^\";]+)/i);
+            const fileNameFromHeader = matchFileName && matchFileName[1] ? decodeURIComponent(matchFileName[1].replace(/"/g, '').trim()) : '';
+            const fallbackName = `TraForm_${new Date().toISOString().slice(0,10)}.xlsx`;
+            const downloadName = fileNameFromHeader || fallbackName;
+            const nameSuggestsXlsx = /\.xlsx$/i.test(downloadName);
+            if (!hasBinaryFile || (!looksLikeXlsx && !nameSuggestsXlsx)) {
+              showToast('Không có file XLSX trả về từ webhook.', 'warning');
+              isReturnFormSubmitting = false;
+              returnFormSubmitBtn.disabled = false;
+              returnFormSubmitBtn.textContent = 'Tải form xuống';
+              return;
+            }
+
+            const objectUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = downloadName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+
+            showToast('Đã gửi thông tin và tải file XLSX.','success');
+            closeReturnFormModal();
+            try { if (typeof renderForm1 === 'function') await renderForm1(); } catch(_) {}
+          } catch (e) {
+            console.error(e);
+            showToast('Không nhận được file từ server. Vui lòng kiểm tra webhook.', 'error');
+            isReturnFormSubmitting = false;
+            returnFormSubmitBtn.disabled = false;
+            returnFormSubmitBtn.textContent = 'Tải form xuống';
+          }
+        };
+      }
+
       
 
       // Helpers for tables - Cập nhật cho Form 7 mở rộng
@@ -7410,7 +7799,7 @@
         const pager = document.getElementById('f1-pager');
         const total = F1_ALL_ROWS.length;
         if(total === 0){
-          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="20">Không có tác vụ</td></tr>';
+          body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="19">Không có tác vụ</td></tr>';
           pager.style.display = 'none';
           return;
         }
@@ -7458,7 +7847,7 @@
           const body = document.getElementById('f1-body');
           const pager = document.getElementById('f1-pager');
           if (!filtered.length){
-            if (body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="20">Không có tác vụ</td></tr>';
+            if (body) body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="19">Không có tác vụ</td></tr>';
             if (pager) pager.style.display = 'none';
             F1_ALL_ROWS = [];
             return;
@@ -7472,7 +7861,7 @@
       // Render Form 1 từ mảng rows (dùng cho cache)
       function renderForm1FromRows(rows){
         const body = document.getElementById('f1-body');
-        if(!rows || !rows.length){ body.innerHTML = "<tr><td colspan='20' class='px-3 py-3 text-center text-gray-500 border border-gray-500'>Không có tác vụ</td></tr>"; return; }
+        if(!rows || !rows.length){ body.innerHTML = "<tr><td colspan='19' class='px-3 py-3 text-center text-gray-500 border border-gray-500'>Không có tác vụ</td></tr>"; return; }
         const getV = (obj, keys)=>{
           if (!obj) return '';
           // Tạo map với cả key gốc và lowercase
@@ -7547,11 +7936,12 @@
           // Kiểm tra giá trị "system" để xác định luồng riêng cho system=1
           const systemValue = getV(item,['system','System','SYSTEM']);
           const isSystemTask = String(systemValue) === '1' || Number(systemValue) === 1;
-          // Logic: 
+          // Logic cột "Trả báo cáo":
           // - Nếu tác vụ đã Done: luôn cho phép cập nhật báo cáo (bất kể form đã sent hay chưa)
           // - Nếu system=1: cho phép "Trả báo cáo" theo luồng riêng (không phụ thuộc vào isFormSent)
-          // - Nếu Form báo cáo đánh giá = "Sent": bật nút "Trả báo cáo", khóa nút "Trả form"
-          // - Ngược lại: bật nút "Trả form", khóa nút "Trả báo cáo"
+          // - Nếu Form báo cáo đánh giá = "Sent": bật nút "Trả báo cáo", khóa "Chưa gửi form"
+          // - Ngược lại: khóa "Trả báo cáo", hiện "Chưa gửi form"
+          // Cột "Tải form": vẫn bấm được khi đã Sent (tải lại / mở modal nhiều lần), trừ khi khóa hàng hoặc Done.
           const labelBtn = document.createElement('button');
           if (isLocked) {
             labelBtn.disabled = true;
@@ -7591,10 +7981,6 @@
           }
           tdBtn.appendChild(labelBtn);
           tr.appendChild(tdBtn);
-          // Thêm cột "Nút Trả form" giống Form 2 (vị trí thứ 2)
-          const tdReturnForm = document.createElement('td');
-          tdReturnForm.className = 'px-3 py-2 border border-gray-500';
-          const returnFormBtn = document.createElement('button');
           const taskIdBest = pickTaskIdPreferQA(taskId, code);
           const requestDateStr = getV(item,['Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
           // Lưu toàn bộ dữ liệu từ item gốc vào rowData để gửi kèm khi upload (giống Form 2)
@@ -7602,110 +7988,36 @@
           
           // Kiểm tra "Nút tải form" (isSystemTask đã được định nghĩa ở trên)
           const downloadFormUrl = getV(item,['Nút tải form','nuttaiform','nut_tai_form','download_form','downloadForm','Download Form','Nút Tải Form']);
-          
-          if (isLocked) {
-            // Tác vụ bị khóa (Cancel, chờ phê duyệt, hoặc trạng thái rỗng): khóa nút "Trả form báo cáo"
-            returnFormBtn.disabled = true;
-            returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
-            returnFormBtn.textContent = isCancelled ? 'Đã hủy' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi');
-            returnFormBtn.title = returnFormBtn.textContent;
-          } else if (isDone) {
-            // Tác vụ đã Done: khóa nút "Trả form báo cáo", chỉ cho phép cập nhật báo cáo
-            returnFormBtn.disabled = true;
-            returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
-            returnFormBtn.textContent = 'Đã hoàn thành';
-            returnFormBtn.title = 'Tác vụ đã hoàn thành, chỉ có thể cập nhật báo cáo';
-          } else if (isFormSent) {
-            // Form đã Sent: khóa nút "Trả form báo cáo"
-            returnFormBtn.disabled = true;
-            returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
-            returnFormBtn.textContent = 'Đã gửi form';
-            returnFormBtn.title = 'Form đã được gửi';
-          } else if (isSystemTask) {
-            // system=1: khóa nút "Trả form báo cáo", sử dụng nút "Tải form" thay thế
-            returnFormBtn.disabled = true;
-            returnFormBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
-            returnFormBtn.textContent = 'Không dùng';
-            returnFormBtn.title = 'Tác vụ hệ thống, vui lòng sử dụng nút Tải form';
-          } else {
-            // Form chưa Sent và chưa Done: bật nút "Trả form báo cáo"
-            returnFormBtn.className = 'px-3 py-1 rounded-lg text-white bg-green-500 hover:bg-green-600';
-            returnFormBtn.textContent = 'Trả form báo cáo';
-            returnFormBtn.disabled = false;
-            returnFormBtn.onclick = (e) => {
-              e.preventDefault();
-              if (returnFormBtn.disabled) return;
-              returnFormBtn.disabled = true;
-              returnFormBtn.classList.add('opacity-50', 'pointer-events-none');
-              lastOpenTrigger = returnFormBtn;
-              const name = (document.getElementById('f1-name')?.value || '').trim();
-              openUploadModal({ form: 'Form 2', name, code, taskId: taskIdBest, taskName: tname, rowData, id: itemId });
-            };
-          }
-          tdReturnForm.appendChild(returnFormBtn);
-          tr.appendChild(tdReturnForm);
-          
-          // Thêm cột "Tải form" (vị trí thứ 3) - chỉ hiển thị khi system=1
+
+          // Thêm cột "Tải form" — mở modal Trả form (kể cả khi Form báo cáo đánh giá = Sent)
           const tdDownloadForm = document.createElement('td');
           tdDownloadForm.className = 'px-3 py-2 border border-gray-500';
-          if (isSystemTask && downloadFormUrl && downloadFormUrl.trim()) {
+          if (isLocked) {
+            const disabledBtn = document.createElement('button');
+            disabledBtn.disabled = true;
+            disabledBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
+            disabledBtn.textContent = isCancelled ? 'Đã hủy' : (isPendingApproval ? 'Chờ phê duyệt' : 'Không thể gửi');
+            tdDownloadForm.appendChild(disabledBtn);
+          } else if (isDone) {
+            const disabledBtn = document.createElement('button');
+            disabledBtn.disabled = true;
+            disabledBtn.className = 'px-3 py-1 rounded-lg bg-gray-300 text-gray-500 cursor-not-allowed opacity-60';
+            disabledBtn.textContent = 'Đã hoàn thành';
+            disabledBtn.title = 'Tác vụ đã hoàn thành, chỉ có thể cập nhật báo cáo';
+            tdDownloadForm.appendChild(disabledBtn);
+          } else {
             const downloadFormBtn = document.createElement('button');
-            downloadFormBtn.className = 'px-3 py-1 rounded-lg text-white bg-purple-500 hover:bg-purple-600';
-            downloadFormBtn.textContent = 'Tải form';
+            downloadFormBtn.className = isSystemTask
+              ? 'px-3 py-1 rounded-lg text-white bg-purple-500 hover:bg-purple-600'
+              : 'px-3 py-1 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700';
+            downloadFormBtn.textContent = isSystemTask ? 'Tải form' : 'Tải form SOP';
             downloadFormBtn.disabled = false;
-            downloadFormBtn.onclick = async (e) => {
+            downloadFormBtn.onclick = (e) => {
               e.preventDefault();
-              if (downloadFormBtn.disabled) return;
-              
-              // Hiển thị cảnh báo
-              const confirmed = confirm('Khi tải về sẽ bắt đầu tính thời gian thực hiện tác vụ. Bạn có muốn tải?');
-              if (!confirmed) return;
-              
-              downloadFormBtn.disabled = true;
-              downloadFormBtn.classList.add('opacity-50', 'pointer-events-none');
-              downloadFormBtn.textContent = 'Đang tải...';
-              
-              // Chuẩn bị thông tin tác vụ để gửi webhook - lấy các trường riêng biệt
-              const submitTimeRaw = getV(item,['Tgian nộp form','submittime','submit_time','submitTime','tgian nop form','thoi_gian_nop_form','thời gian nộp form']);
-              const reportDueDateRaw = getV(item,['Ngày cần trả BC','reportduedate','report_due_date','reportDueDate','ngay can tra bc','ngay_can_tra_bc','ngày cần trả bc']);
-              const taskData = {
-                taskId: taskIdBest,
-                code: code,
-                taskName: tname,
-                name: (document.getElementById('f1-name')?.value || '').trim(),
-                requestDate: requestDateStr,
-                wishDue: wishDue,
-                status: statusText,
-                itemId: itemId,
-                requester: getV(item,['Người yêu cầu','requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']),
-                receiverSample: getV(item,['Người nhận mẫu','receiver','receivername','nguoinhanmau','nguoi_nhan_mau','người nhận mẫu','recipient','assignee','người nhận']),
-                manHour: getV(item,['Công chuẩn','manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn']),
-                purpose: getV(item,['Mục đích đánh giá','purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']),
-                note: getV(item,['Note','note','ghi_chu','ghichu']),
-                specialTest: getV(item,['Yêu cầu test đặc biệt','specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']),
-                reportForm: getV(item,['Form báo cáo đánh giá','reportform','form_bao_cao','form_bao_cao_danh_gia']),
-                submitTime: submitTimeRaw,
-                reportDueDate: reportDueDateRaw,
-                attachmentFileName: getV(item,['Tên file đính kèm','attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file']),
-                attachmentUrl: getV(item,['Tải đính kèm','Tài đính kèm','attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url'])
-              };
-              
-              try {
-                await handleForm1DownloadForm(downloadFormUrl, taskData);
-              } catch (error) {
-                console.error('Lỗi khi xử lý tải form:', error);
-                showToast('Có lỗi xảy ra khi tải form', 'error');
-              } finally {
-                downloadFormBtn.disabled = false;
-                downloadFormBtn.classList.remove('opacity-50', 'pointer-events-none');
-                downloadFormBtn.textContent = 'Tải form';
-              }
+              const name = (document.getElementById('f1-name')?.value || '').trim();
+              openReturnFormModal({ form: 'Form 2', name, code, taskId: taskIdBest, taskName: tname, rowData, id: itemId, downloadFormUrl });
             };
             tdDownloadForm.appendChild(downloadFormBtn);
-          } else {
-            // Không phải system task hoặc không có URL: để trống hoặc hiển thị "-"
-            tdDownloadForm.textContent = '-';
-            tdDownloadForm.className += ' text-gray-400';
           }
           tr.appendChild(tdDownloadForm);
           const tdStatus=document.createElement('td'); tdStatus.className='px-3 py-2 border border-gray-500';
@@ -8125,8 +8437,8 @@
       async function renderForm1(){
         const name = (document.getElementById('f1-name').value || '').trim();
         const body = document.getElementById('f1-body');
-        if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="20">Vui lòng chọn tên</td></tr>'; return; }
-        body.innerHTML = "<tr><td colspan='20' class='px-3 py-3 text-center text-gray-500 border border-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
+        if(!name){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500 border border-gray-500" colspan="19">Vui lòng chọn tên</td></tr>'; return; }
+        body.innerHTML = "<tr><td colspan='19' class='px-3 py-3 text-center text-gray-500 border border-gray-500'><span class='spinner mr-2'></span>Đang tải...</td></tr>";
         try{
             const headerMapF1 = {
             header_btn: 'Nút nhập gửi báo cáo',
@@ -8197,12 +8509,12 @@
           }
           const rows = pickRows(data);
           try{ LS.setJSON('f1.raw', { name, rows, ts: Date.now() }); }catch(_){ }
-          if(!rows.length){ body.innerHTML = "<tr><td colspan='17' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
+          if(!rows.length){ body.innerHTML = "<tr><td colspan='19' class='px-3 py-3 text-center text-gray-500'>Không có tác vụ</td></tr>"; return; }
           // Cache và timestamp
           try{ LS.setJSON('f1.cache', { name, rows }); LS.set('f1.lastUpdated', String(Date.now())); updateLastUpdatedNote('f1-search','f1.lastUpdated'); }catch(_){ }
           renderForm1FromRows(rows);
         }catch(err){
-          body.innerHTML = `<tr><td colspan='17' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
+          body.innerHTML = `<tr><td colspan='19' class='px-3 py-3 text-center text-red-600'>Lỗi tải dữ liệu: ${String(err.message||err)}</td></tr>`;
         }
       }
       document.getElementById('f1-name').onchange = ()=>{};
@@ -16255,6 +16567,79 @@
           });
         }
 
+        // Form 14 - Tự điền mã CAT
+        const f14UploadBtn = document.getElementById('f14-upload-btn');
+        const f14FileInput = document.getElementById('f14-file');
+        const f14FileName = document.getElementById('f14-file-name');
+        const f14SubmitBtn = document.getElementById('f14-submit-btn');
+
+        if (f14UploadBtn && f14FileInput && f14FileName && f14SubmitBtn) {
+          f14UploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            f14FileInput.click();
+          });
+
+          f14FileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+              const fileName = file.name.toLowerCase();
+              const isXlsx = fileName.endsWith('.xlsx');
+              const isJson = fileName.endsWith('.json');
+              const isTxt = fileName.endsWith('.txt');
+              if (!isXlsx && !isJson && !isTxt) {
+                showToast('Chỉ chấp nhận file .xlsx, .json, .txt', 'error');
+                f14FileInput.value = '';
+                f14FileName.textContent = 'Không có file nào được chọn';
+                f14FileName.className = 'text-sm text-gray-600';
+                f14SubmitBtn.disabled = true;
+                return;
+              }
+              f14FileName.textContent = file.name;
+              f14FileName.className = 'text-sm text-green-600 font-medium';
+              f14SubmitBtn.disabled = false;
+            } else {
+              f14FileName.textContent = 'Không có file nào được chọn';
+              f14FileName.className = 'text-sm text-gray-600';
+              f14SubmitBtn.disabled = true;
+            }
+          });
+
+          f14SubmitBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const file = f14FileInput.files[0];
+            if (!file) {
+              showToast('Vui lòng chọn file trước', 'error');
+              return;
+            }
+            await handleForm14Upload(file);
+          });
+        }
+        const f14ExportXlsxBtn = document.getElementById('f14-export-xlsx');
+        if (f14ExportXlsxBtn) {
+          f14ExportXlsxBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            f14DownloadXLSX();
+          });
+        }
+        const f14TablesContainer = document.getElementById('f14-tables-container');
+        if (f14TablesContainer) {
+          f14TablesContainer.addEventListener('click', async function(e) {
+            const t = e.target;
+            if (!t) return;
+            const copyTableBtn = t.closest ? t.closest('[data-f14-copy-table]') : null;
+            if (copyTableBtn) {
+              const idx = Number(copyTableBtn.getAttribute('data-f14-copy-table'));
+              await copyForm14TableAsTsv(idx);
+              return;
+            }
+            const copyCell = t.closest ? t.closest('[data-f14-copy-cell]') : null;
+            if (copyCell) {
+              const val = copyCell.getAttribute('data-f14-copy-cell') || '';
+              await copyTextToClipboard(val, 'Đã copy ô dữ liệu');
+            }
+          });
+        }
+
         // Form 12 - Mã danh mục
         const f12SearchBtn = document.getElementById('f12-search');
         if (f12SearchBtn) {
@@ -16276,17 +16661,13 @@
         const f12FilterSearch = document.getElementById('f12-filter-search');
         if (f12FilterSearch) f12FilterSearch.addEventListener('input', function(){ f12RenderFilterList(this.value); });
         document.getElementById('f12-filter-modal') && document.getElementById('f12-filter-modal').addEventListener('click', function(e){ if (e.target === this) f12CloseFilterModal(); });
-        var f12HangMucBtn = document.getElementById('f12-filter-hangmuc-btn');
-        if (f12HangMucBtn) f12HangMucBtn.addEventListener('click', f12OpenFilterHangMucModal);
-        var f12HangMucClose = document.getElementById('f12-filter-hangmuc-close');
-        if (f12HangMucClose) f12HangMucClose.addEventListener('click', f12CloseFilterHangMucModal);
-        var f12HangMucApply = document.getElementById('f12-filter-hangmuc-apply');
-        if (f12HangMucApply) f12HangMucApply.addEventListener('click', f12CloseFilterHangMucModal);
-        var f12HangMucReset = document.getElementById('f12-filter-hangmuc-reset');
-        if (f12HangMucReset) f12HangMucReset.addEventListener('click', function(){ F12_FILTER_HANG_MUC = ''; f12UpdateFilterHangMucLabel(); f12CloseFilterHangMucModal(); renderForm12Table(f12GetDisplayedRows()); });
-        var f12HangMucSearch = document.getElementById('f12-filter-hangmuc-search');
-        if (f12HangMucSearch) f12HangMucSearch.addEventListener('input', function(){ f12RenderFilterHangMucList(this.value); });
-        document.getElementById('f12-filter-hangmuc-modal') && document.getElementById('f12-filter-hangmuc-modal').addEventListener('click', function(e){ if (e.target === this) f12CloseFilterHangMucModal(); });
+        var f12IndexSearch = document.getElementById('f12-index-search');
+        if (f12IndexSearch) {
+          f12IndexSearch.addEventListener('input', function(){
+            F12_INDEX_SEARCH = String(this.value || '').trim();
+            renderForm12Table(f12GetDisplayedRows());
+          });
+        }
         var f12SelectAll = document.getElementById('f12-select-all');
         var f12ShowTickedBtn = document.getElementById('f12-show-ticked-only-btn');
         if (f12ShowTickedBtn) f12ShowTickedBtn.addEventListener('click', function(){
@@ -16448,15 +16829,328 @@
         }
       }
 
+      let F14_LAST_RESPONSE_RAW = null;
+      let F14_LAST_TABLES = [];
+
+      async function handleForm14Upload(file) {
+        if (!file) {
+          showToast('Vui lòng chọn file', 'error');
+          return;
+        }
+
+        const fileName = file.name.toLowerCase();
+        const isXlsx = fileName.endsWith('.xlsx');
+        const isJson = fileName.endsWith('.json');
+        const isTxt = fileName.endsWith('.txt');
+        if (!isXlsx && !isJson && !isTxt) {
+          showToast('Chỉ chấp nhận file .xlsx, .json, .txt', 'error');
+          return;
+        }
+
+        const submitBtn = document.getElementById('f14-submit-btn');
+        const resultsContainer = document.getElementById('f14-results');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (resultsContainer) resultsContainer.classList.add('hidden');
+
+        try {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+          }
+
+          const fd = new FormData();
+          fd.append('data0', file, file.name);
+          fd.append('file_name', file.name || '');
+          fd.append('timestamp', formatDdMmYyyyHHmm(new Date()));
+          fd.append('timestamp_yyyy_mm_dd', formatYyyyMmDdHHmm(new Date()));
+          fd.append('action', 'form14_upload');
+          const f14Type = document.querySelector('input[name="f14-type"]:checked');
+          fd.append('Loai', f14Type ? f14Type.value : 'Sản phẩm');
+
+          let response = null;
+          let responseData = null;
+          try {
+            response = await fetch(FORM14_UPLOAD_URL, {
+              method: 'POST',
+              body: fd,
+              mode: 'cors',
+              credentials: 'omit'
+            });
+            if (response && response.ok) {
+              const responseText = await response.text();
+              if (responseText && responseText.trim()) {
+                try { responseData = JSON.parse(responseText); } catch (_) {}
+              }
+            }
+          } catch (_) {
+            await fetch(FORM14_UPLOAD_URL, {
+              method: 'POST',
+              body: fd,
+              mode: 'no-cors'
+            });
+          }
+
+          if (responseData) {
+            renderForm14Results(responseData);
+            showToast('Đã gửi file và nhận dữ liệu Tự điền mã CAT', 'success');
+          } else {
+            showToast(response && response.ok ? 'Đã gửi file. Webhook chưa trả dữ liệu hiển thị.' : 'Đã gửi file Tự điền mã CAT thành công', 'success');
+          }
+        } catch (e) {
+          console.error('[Form 14] Upload error:', e);
+          showToast('Gửi file Tự điền mã CAT thất bại: ' + (e.message || 'Lỗi không xác định'), 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        }
+      }
+
+      async function copyTextToClipboard(text, successMessage) {
+        const str = String(text == null ? '' : text);
+        try {
+          if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(str);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = str;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
+          if (successMessage) showToast(successMessage, 'success');
+        } catch (e) {
+          showToast('Copy thất bại', 'error');
+        }
+      }
+
+      function f14EscapeHtml(v) {
+        return String(v == null ? '' : v)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function f14NormalizeKey(k) {
+        return String(k == null ? '' : k).replace(/\s*\n+\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+      }
+
+      function f14CanonicalKey(k) {
+        const key = f14NormalizeKey(k);
+        const lower = key.toLowerCase();
+        if (lower === 'stt') return 'STT';
+        if (lower === 'công chuẩn' || lower === 'cong chuan') return 'Công chuẩn';
+        if (lower === 'mã cat' || lower === 'ma cat' || lower === 'mã danh mục' || lower === 'ma danh muc') return 'Mã danh mục';
+        if (lower.indexOf('hạng mục kiểm tra') >= 0 || lower.indexOf('hang muc kiem tra') >= 0) return 'Hạng mục kiểm tra (Index)';
+        if (lower.indexOf('tiêu chuẩn') >= 0 || lower.indexOf('tieu chuan') >= 0) return 'Tiêu chuẩn (Standard)';
+        if (lower.indexOf('công cụ') >= 0 || lower.indexOf('cong cu') >= 0) return 'Công cụ (Tool)';
+        if (lower === 'type') return 'Type';
+        if (lower.indexOf('hướng dẫn') >= 0 || lower.indexOf('huong dan') >= 0) return 'Hướng dẫn / Phương pháp (Document)';
+        if (lower === 'available') return 'Available';
+        if (/^m[1-5]$/i.test(key)) return key.toUpperCase();
+        return key;
+      }
+
+      function f14NormalizeTables(payload) {
+        if (!payload) return [];
+        if (Array.isArray(payload)) {
+          return payload.map((tbl, idx) => {
+            if (tbl && typeof tbl === 'object' && Array.isArray(tbl.data)) {
+              return { ten_bang: tbl.ten_bang || ('Bảng ' + (idx + 1)), data: tbl.data };
+            }
+            if (tbl && typeof tbl === 'object') {
+              return { ten_bang: 'Bảng ' + (idx + 1), data: [tbl] };
+            }
+            return { ten_bang: 'Bảng ' + (idx + 1), data: [] };
+          });
+        }
+        if (payload && typeof payload === 'object' && Array.isArray(payload.data)) {
+          return [{ ten_bang: payload.ten_bang || 'Bảng 1', data: payload.data }];
+        }
+        if (payload && typeof payload === 'object') {
+          return [{ ten_bang: payload.ten_bang || 'Bảng 1', data: [payload] }];
+        }
+        return [];
+      }
+
+      function f14CollectColumns(rows) {
+        const ordered = [];
+        const seen = new Set();
+        (rows || []).forEach((r) => {
+          if (!r || typeof r !== 'object') return;
+          Object.keys(r).forEach((k) => {
+            const kk = f14CanonicalKey(k);
+            if (!seen.has(kk)) { seen.add(kk); ordered.push(kk); }
+          });
+        });
+        const preferred = [
+          'STT',
+          'Công chuẩn',
+          'Mã danh mục',
+          'Hạng mục kiểm tra (Index)',
+          'Tiêu chuẩn (Standard)',
+          'Công cụ (Tool)',
+          'Type',
+          'Hướng dẫn / Phương pháp (Document)',
+          'Available',
+          'M1',
+          'M2',
+          'M3',
+          'M4',
+          'M5'
+        ];
+        const sorted = [];
+        preferred.forEach((p) => { if (seen.has(p)) sorted.push(p); });
+        ordered.forEach((c) => { if (sorted.indexOf(c) === -1) sorted.push(c); });
+        return sorted;
+      }
+
+      function f14ToTsvFromTable(tableObj) {
+        const rows = Array.isArray(tableObj && tableObj.data) ? tableObj.data : [];
+        const cols = f14CollectColumns(rows);
+        const lines = [cols.join('\t')];
+        rows.forEach((r) => {
+          const line = cols.map((c) => String((r && typeof r === 'object') ? (r[c] ?? r[Object.keys(r).find(k => f14CanonicalKey(k) === c)] ?? '') : '').replace(/\t/g, ' ').replace(/\r?\n/g, ' '));
+          lines.push(line.join('\t'));
+        });
+        return lines.join('\n');
+      }
+
+      async function copyForm14TableAsTsv(tableIndex) {
+        const table = F14_LAST_TABLES[tableIndex];
+        if (!table) {
+          showToast('Không tìm thấy bảng để copy', 'error');
+          return;
+        }
+        await copyTextToClipboard(f14ToTsvFromTable(table), `Đã copy bảng: ${table.ten_bang || ('Bảng ' + (tableIndex + 1))}`);
+      }
+
+      async function copyForm14AllAsTsv() {
+        if (!Array.isArray(F14_LAST_TABLES) || F14_LAST_TABLES.length === 0) {
+          showToast('Chưa có dữ liệu để copy', 'error');
+          return;
+        }
+        const merged = F14_LAST_TABLES.map((tbl, idx) => {
+          const name = tbl.ten_bang || ('Bảng ' + (idx + 1));
+          return `### ${name}\n${f14ToTsvFromTable(tbl)}`;
+        }).join('\n\n');
+        await copyTextToClipboard(merged, 'Đã copy toàn bộ dữ liệu (TSV)');
+      }
+
+      function f14DownloadXLSX() {
+        if (!Array.isArray(F14_LAST_TABLES) || F14_LAST_TABLES.length === 0) {
+          showToast('Tự điền mã CAT: Chưa có dữ liệu để xuất XLSX.', 'error');
+          return;
+        }
+        try {
+          const wb = XLSX.utils.book_new();
+          F14_LAST_TABLES.forEach((tbl, idx) => {
+            const rows = Array.isArray(tbl && tbl.data) ? tbl.data : [];
+            const cols = f14CollectColumns(rows);
+            const aoa = [cols];
+            rows.forEach((r) => {
+              aoa.push(cols.map((c) => {
+                const rawKey = Object.keys(r || {}).find(k => f14CanonicalKey(k) === c);
+                return rawKey ? (r[rawKey] ?? '') : '';
+              }));
+            });
+            const rawName = (tbl && tbl.ten_bang) ? String(tbl.ten_bang) : ('Bang_' + (idx + 1));
+            const sheetName = rawName.replace(/[\\\/\?\*\[\]:]/g, ' ').trim().slice(0, 31) || ('Bang_' + (idx + 1));
+            const ws = XLSX.utils.aoa_to_sheet(aoa.length ? aoa : [['Không có dữ liệu']]);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+          });
+          const dateStr = new Date().toISOString().slice(0, 10);
+          XLSX.writeFile(wb, `Form14_${dateStr}.xlsx`);
+          showToast('Tự điền mã CAT: Đã xuất XLSX.', 'success');
+        } catch (_) {
+          showToast('Tự điền mã CAT: Xuất XLSX thất bại.', 'error');
+        }
+      }
+
+      function renderForm14Results(payload) {
+        F14_LAST_RESPONSE_RAW = payload;
+        F14_LAST_TABLES = f14NormalizeTables(payload);
+        const resultsContainer = document.getElementById('f14-results');
+        const metaEl = document.getElementById('f14-results-meta');
+        const tablesContainer = document.getElementById('f14-tables-container');
+        if (!resultsContainer || !tablesContainer) return;
+
+        if (!F14_LAST_TABLES.length) {
+          tablesContainer.innerHTML = '<div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Webhook không trả dữ liệu bảng để hiển thị.</div>';
+          if (metaEl) metaEl.textContent = 'Không có dữ liệu bảng.';
+          resultsContainer.classList.remove('hidden');
+          return;
+        }
+
+        let totalRows = 0;
+        tablesContainer.innerHTML = F14_LAST_TABLES.map((tbl, idx) => {
+          const rows = Array.isArray(tbl.data) ? tbl.data : [];
+          totalRows += rows.length;
+          const cols = f14CollectColumns(rows);
+          const title = f14EscapeHtml(tbl.ten_bang || ('Bảng ' + (idx + 1)));
+          if (!rows.length || !cols.length) {
+            return `<div class="border border-slate-200 rounded-lg bg-white">
+              <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between gap-2">
+                <h3 class="font-semibold text-slate-800">${title}</h3>
+                <button type="button" data-f14-copy-table="${idx}" class="px-3 py-1 text-xs rounded border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Copy bảng</button>
+              </div>
+              <div class="px-4 py-6 text-center text-sm text-slate-500">Bảng không có dữ liệu.</div>
+            </div>`;
+          }
+          const thead = cols.map(c => `<th class="px-3 py-2 border border-slate-300 bg-slate-100 text-left font-semibold whitespace-nowrap">${f14EscapeHtml(c)}</th>`).join('');
+          const tbody = rows.map((r) => {
+            return `<tr class="hover:bg-blue-50/40">${cols.map((c) => {
+              const rawKey = Object.keys(r || {}).find(k => f14CanonicalKey(k) === c);
+              const val = rawKey ? (r[rawKey] ?? '') : '';
+              const printable = String(val == null ? '' : val);
+              return `<td class="px-3 py-2 border border-slate-200 align-top cursor-copy" title="Bấm để copy ô này" data-f14-copy-cell="${f14EscapeHtml(printable)}">${f14EscapeHtml(printable).replace(/\n/g, '<br/>')}</td>`;
+            }).join('')}</tr>`;
+          }).join('');
+          return `<div class="border border-slate-200 rounded-lg bg-white">
+            <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between gap-2">
+              <h3 class="font-semibold text-slate-800">${title}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500">${rows.length} dòng</span>
+                <button type="button" data-f14-copy-table="${idx}" class="px-3 py-1 text-xs rounded border border-blue-300 text-primary-blue bg-blue-50 hover:bg-blue-100">Copy bảng</button>
+              </div>
+            </div>
+            <div class="overflow-auto max-h-[60vh]">
+              <table class="min-w-full text-sm border-collapse">
+                <thead><tr>${thead}</tr></thead>
+                <tbody>${tbody}</tbody>
+              </table>
+            </div>
+          </div>`;
+        }).join('');
+
+        if (metaEl) metaEl.textContent = `Đã nhận ${F14_LAST_TABLES.length} bảng, tổng ${totalRows} dòng. Bấm vào từng ô để copy nhanh.`;
+        resultsContainer.classList.remove('hidden');
+      }
+
       // Form 12 - Cache dữ liệu để lọc và xuất
       let F12_LAST_ROWS = [];
-      let F12_FILTER_HANG_MUC = '';
-      let F12_HANG_MUC_OPTIONS = [];
+      /** Chuỗi tìm trong cột Index (không phân biệt hoa thường); rỗng = hiện tất cả */
+      let F12_INDEX_SEARCH = '';
       let F12_FILTER_OPTIONS = [];
       let F12_TICKED_IDS = {};
       let F12_SHOW_ONLY_TICKED = false;
-      const F12_COLS = ['Id','Tên linh kiện','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn','Test bền'];
-      const F12_DISPLAY_COLS = ['Id','Mã danh mục','Hạng mục kiểm tra','Tiêu chuẩn','Công cụ','Type','Hướng dẫn','Available','Công chuẩn','Test bền'];
+      /** Cột khớp mẫu JSON (Untitled-1.txt): Id, Công chuẩn, Mã CAT, Code, Name 1, Index, Standard, Unit, Tool, Type, Document, Available, Test bền */
+      const F12_DISPLAY_COLS = ['Id','Công chuẩn','Mã CAT','Code','Name 1','Index','Standard','Unit','Tool','Type','Document','Available','Test bền'];
+
+      function f12NormalizeRow(r) {
+        if (!r || typeof r !== 'object') return r;
+        var o = Object.assign({}, r);
+        if (o['Mã CAT'] == null && o['Mã danh mục'] != null) o['Mã CAT'] = o['Mã danh mục'];
+        if (o['Name 1'] == null && o['Tên linh kiện'] != null) o['Name 1'] = o['Tên linh kiện'];
+        if (o['Index'] == null && o['Hạng mục kiểm tra'] != null) o['Index'] = o['Hạng mục kiểm tra'];
+        if (o['Standard'] == null && o['Tiêu chuẩn'] != null) o['Standard'] = o['Tiêu chuẩn'];
+        if (o['Tool'] == null && o['Công cụ'] != null) o['Tool'] = o['Công cụ'];
+        if (o['Document'] == null && o['Hướng dẫn'] != null) o['Document'] = o['Hướng dẫn'];
+        return o;
+      }
 
       function f12RowKey(idx) { return 'idx_' + idx; }
 
@@ -16465,7 +17159,7 @@
         if (!bodyEl) return;
         const escape = (v) => (v == null || v === '') ? '' : String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         if (!rows.length) {
-          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11">Không có dữ liệu</td></tr>';
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="14">Không có dữ liệu</td></tr>';
         } else {
           bodyEl.innerHTML = rows.map(function(row){
             var globalIdx = F12_LAST_ROWS.indexOf(row);
@@ -16499,7 +17193,13 @@
       }
 
       function f12GetDisplayedRows() {
-        var base = !F12_FILTER_HANG_MUC ? F12_LAST_ROWS : F12_LAST_ROWS.filter(function(r){ return String(r['Hạng mục kiểm tra'] || '').trim() === F12_FILTER_HANG_MUC; });
+        var base = F12_LAST_ROWS;
+        var q = (F12_INDEX_SEARCH || '').toLowerCase().trim();
+        if (q) {
+          base = base.filter(function(r){
+            return String(r['Index'] == null ? '' : r['Index']).toLowerCase().indexOf(q) >= 0;
+          });
+        }
         if (!F12_SHOW_ONLY_TICKED) return base;
         return base.filter(function(r, i){ var idx = F12_LAST_ROWS.indexOf(r); return idx >= 0 && F12_TICKED_IDS[f12RowKey(idx)]; });
       }
@@ -16533,7 +17233,7 @@
             F12_LAST_ROWS.forEach(function(r, i){
               var k = f12RowKey(i);
               if (!val) { F12_TICKED_IDS[k] = true; }
-              else if (String(r['Tên linh kiện'] || '').trim() === val) { F12_TICKED_IDS[k] = true; }
+              else if (String(r['Name 1'] || '').trim() === val) { F12_TICKED_IDS[k] = true; }
             });
             f12UpdateTickedCount();
             f12CloseFilterModal();
@@ -16551,54 +17251,13 @@
         if (m) { m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
       }
 
-      function f12UpdateFilterHangMucLabel() {
-        var lbl = document.getElementById('f12-filter-hangmuc-label');
-        if (lbl) lbl.textContent = F12_FILTER_HANG_MUC || 'Tất cả';
-      }
-
-      function f12RenderFilterHangMucList(keyword) {
-        var listEl = document.getElementById('f12-filter-hangmuc-list');
-        if (!listEl) return;
-        if (F12_HANG_MUC_OPTIONS.length === 0) {
-          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Chưa có dữ liệu. Nhấn "Tra cứu" để tải.</div>';
-          return;
-        }
-        var kw = (keyword || '').toLowerCase().trim();
-        var filtered = kw ? F12_HANG_MUC_OPTIONS.filter(function(v){ return String(v).toLowerCase().indexOf(kw) >= 0; }) : F12_HANG_MUC_OPTIONS;
-        if (filtered.length === 0) {
-          listEl.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Không tìm thấy kết quả</div>';
-          return;
-        }
-        var sel = F12_FILTER_HANG_MUC;
-        var html = '<div class="f12-hangmuc-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm' + (sel === '' ? ' bg-blue-100 font-medium' : '') + '" data-value="">Tất cả</div>';
-        filtered.forEach(function(v){
-          var esc = String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-          html += '<div class="f12-hangmuc-item cursor-pointer px-4 py-2.5 hover:bg-blue-50 text-gray-800 text-sm' + (sel === v ? ' bg-blue-100 font-medium' : '') + '" data-value="' + esc + '">' + esc + '</div>';
-        });
-        listEl.innerHTML = html;
-        listEl.querySelectorAll('.f12-hangmuc-item').forEach(function(el){
-          el.addEventListener('click', function(){ F12_FILTER_HANG_MUC = (el.getAttribute('data-value') || ''); f12UpdateFilterHangMucLabel(); f12CloseFilterHangMucModal(); renderForm12Table(f12GetDisplayedRows()); });
-        });
-      }
-
-      function f12OpenFilterHangMucModal() {
-        var m = document.getElementById('f12-filter-hangmuc-modal');
-        if (m) { m.classList.add('open'); m.setAttribute('aria-hidden','false'); document.getElementById('f12-filter-hangmuc-search').value = ''; f12RenderFilterHangMucList(''); }
-      }
-      function f12CloseFilterHangMucModal() {
-        var m = document.getElementById('f12-filter-hangmuc-modal');
-        if (m) { m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
-      }
-
       function f12PopulateFilter(rows) {
-        var arrTen = rows.map(function(r){ return String(r['Tên linh kiện'] || '').trim(); }).filter(Boolean);
-        var arrHangMuc = rows.map(function(r){ return String(r['Hạng mục kiểm tra'] || '').trim(); }).filter(Boolean);
+        var arrTen = rows.map(function(r){ return String(r['Name 1'] || '').trim(); }).filter(Boolean);
         F12_FILTER_OPTIONS = [...new Set(arrTen)].sort();
-        F12_HANG_MUC_OPTIONS = [...new Set(arrHangMuc)].sort();
-        F12_FILTER_HANG_MUC = '';
-        f12UpdateFilterHangMucLabel();
+        F12_INDEX_SEARCH = '';
+        var idxIn = document.getElementById('f12-index-search');
+        if (idxIn) idxIn.value = '';
         f12RenderFilterList('');
-        f12RenderFilterHangMucList('');
       }
 
       async function renderForm12Data() {
@@ -16607,7 +17266,7 @@
         if (!bodyEl) return;
         try {
           if (loadingEl) loadingEl.classList.remove('hidden');
-          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="11"><span class="spinner mr-2"></span>Đang tải...</td></tr>';
+          bodyEl.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="14"><span class="spinner mr-2"></span>Đang tải...</td></tr>';
           const url = `${FORM12_LOOKUP_URL}?_ts=${Date.now()}`;
           const r = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -16619,19 +17278,19 @@
             else if (data.json && Array.isArray(data.json.data)) rows = data.json.data;
             else if (data.json && Array.isArray(data.json)) rows = data.json;
           }
-          F12_LAST_ROWS = rows;
+          F12_LAST_ROWS = rows.map(f12NormalizeRow);
           F12_TICKED_IDS = {};
           F12_SHOW_ONLY_TICKED = false;
           var stBtn = document.getElementById('f12-show-ticked-only-btn');
           if (stBtn) { stBtn.classList.remove('bg-blue-100','border-blue-500'); var stLbl = document.getElementById('f12-show-ticked-only-label'); if (stLbl) stLbl.textContent = 'Chỉ hiện đã tick'; }
-          f12PopulateFilter(rows);
+          f12PopulateFilter(F12_LAST_ROWS);
           const displayed = f12GetDisplayedRows();
           renderForm12Table(displayed);
           showToast(`Đã tải ${rows.length} bản ghi`, 'success');
         } catch (e) {
           console.error('[Form 12] Fetch error:', e);
           const errMsg = String(e.message || 'Không tải được dữ liệu').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          bodyEl.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="11">Lỗi: ${errMsg}</td></tr>`;
+          bodyEl.innerHTML = `<tr><td class="px-3 py-3 text-center text-red-600" colspan="14">Lỗi: ${errMsg}</td></tr>`;
           showToast('Tải dữ liệu thất bại', 'error');
         } finally {
           if (loadingEl) loadingEl.classList.add('hidden');
@@ -16645,8 +17304,8 @@
           const aoa = [F12_DISPLAY_COLS].concat(rows.map(r => F12_DISPLAY_COLS.map(k => r[k] ?? '')));
           const ws = XLSX.utils.aoa_to_sheet(aoa);
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, 'Mã danh mục');
-          XLSX.writeFile(wb, `Form12_MaDanhMuc_${new Date().toISOString().slice(0,10)}.xlsx`);
+          XLSX.utils.book_append_sheet(wb, ws, 'Ma_CAT');
+          XLSX.writeFile(wb, `Form12_MaCAT_${new Date().toISOString().slice(0,10)}.xlsx`);
           showToast(`Đã xuất ${rows.length} bản ghi`, 'success');
         } catch (_) { showToast('Form 12: Xuất XLSX thất bại.', 'error'); }
       }
