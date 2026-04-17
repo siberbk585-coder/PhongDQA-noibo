@@ -2470,6 +2470,8 @@
       const FORM1_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/TrabaocaoDQA";
       // Form 1 - Webhook tải form (khi system=1)
       const FORM1_DOWNLOAD_FORM_URL = "https://iatzhxxuk.tino.page/webhook/nuttaiform";
+      // Form 1 - Webhook bắt đầu triển khai cho tác vụ khác
+      const FORM1_OTHER_TASK_START_URL = "https://iatzhxxuk.tino.page/webhook/Nutbatdautrienkhai";
       // Form 1 - Webhook gửi báo cáo cho system task (khi system=1)
       const FORM1_SYSTEM_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/SOPguibaocaoSPM";
       const FORM7_UPLOAD_URL = "https://iatzhxxuk.tino.page/webhook/dc3b968a-2f2d-4746-98ac-48247555b9c9";
@@ -6461,7 +6463,6 @@
       let returnFormContext = null;
       let isReturnFormSubmitting = false;
       const RETURN_FORM_CONTENT_OPTIONS = [
-        'Nhựa keo nến lõi CTO',
         'Block Danfu PW2.0VK /DC',
         'Bình nóng 1L/430W [TCCS]',
         'Bông',
@@ -6506,6 +6507,7 @@
         'Mỡ',
         'Mực In',
         'Nguồn xung 24V 1.2A /DC [TCCS]',
+        'Nhựa keo nến lõi CTO',
         'Nắp cốc',
         'Phao điện [TCCS]',
         'Phin lọc',
@@ -7794,6 +7796,59 @@
           showToast('Đã tải form nhưng có lỗi khi gửi thông tin lên server', 'warning');
         }
       }
+
+      // Form 1: tác vụ khác - gửi webhook bắt đầu triển khai sau khi người dùng xác nhận
+      async function handleForm1OtherTaskStartWebhook(taskData) {
+        try {
+          const shouldSend = window.confirm('Bạn có muốn gửi thông tin bắt đầu triển khai cho tác vụ này không?');
+          if (!shouldSend) {
+            showToast('Đã hủy gửi thông tin bắt đầu triển khai', 'info');
+            return false;
+          }
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          const timestamp = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+          const formData = new FormData();
+          formData.append('timestamp', timestamp);
+          formData.append('taskId', taskData.taskId || '');
+          formData.append('code', taskData.code || '');
+          formData.append('taskName', taskData.taskName || '');
+          formData.append('name', taskData.name || '');
+          formData.append('requestDate', taskData.requestDate || '');
+          formData.append('wishDue', taskData.wishDue || '');
+          formData.append('status', taskData.status || '');
+          formData.append('itemId', taskData.itemId || '');
+          formData.append('requester', taskData.requester || '');
+          formData.append('receiverSample', taskData.receiverSample || '');
+          formData.append('manHour', taskData.manHour || '');
+          formData.append('purpose', taskData.purpose || '');
+          formData.append('note', taskData.note || '');
+          formData.append('specialTest', taskData.specialTest || '');
+          formData.append('reportForm', taskData.reportForm || '');
+          formData.append('submitTime', taskData.submitTime || '');
+          formData.append('reportDueDate', taskData.reportDueDate || '');
+          formData.append('attachmentFileName', taskData.attachmentFileName || '');
+          formData.append('attachmentUrl', taskData.attachmentUrl || '');
+          formData.append('downloadFormUrl', taskData.downloadFormUrl || '');
+
+          await fetch(FORM1_OTHER_TASK_START_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+          });
+          showToast('Đã gửi thông tin bắt đầu triển khai', 'success');
+          return true;
+        } catch (error) {
+          console.error('Lỗi gửi webhook bắt đầu triển khai tác vụ khác:', error);
+          showToast('Có lỗi khi gửi thông tin bắt đầu triển khai', 'warning');
+          return false;
+        }
+      }
       
       function applyForm1Paging(){
         const body = document.getElementById('f1-body');
@@ -7934,9 +7989,12 @@
           // Kiểm tra giá trị "Form báo cáo đánh giá"
           const reportFormValue = getV(item,['Form báo cáo đánh giá','reportform','form_bao_cao','form_bao_cao_danh_gia']);
           const isFormSent = String(reportFormValue || '').trim().toLowerCase() === 'sent';
-          // Kiểm tra giá trị "system" để xác định luồng riêng cho system=1
+          // Kiểm tra giá trị "system" để xác định luồng riêng cho system=1 / system=2
           const systemValue = getV(item,['system','System','SYSTEM']);
-          const isSystemTask = String(systemValue) === '1' || Number(systemValue) === 1;
+          // Strict: chỉ nhận đúng "1" hoặc "2" từ trường system sau khi trim.
+          const systemNorm = String(systemValue == null ? '' : systemValue).trim();
+          const isSystemTask = systemNorm === '1';
+          const isSystem2Task = systemNorm === '2';
           // Logic cột "Trả báo cáo":
           // - Nếu tác vụ đã Done: luôn cho phép cập nhật báo cáo (bất kể form đã sent hay chưa)
           // - Nếu system=1: cho phép "Trả báo cáo" theo luồng riêng (không phụ thuộc vào isFormSent)
@@ -7984,6 +8042,7 @@
           tr.appendChild(tdBtn);
           const taskIdBest = pickTaskIdPreferQA(taskId, code);
           const requestDateStr = getV(item,['Ngày yêu cầu','requestdate','ngayyeucau','ngay_yeu_cau','submissiondate','ngaygui','ngày yêu cầu']);
+          const purposeValue = getV(item,['Mục đích đánh giá','purpose','mucdich','muc_dich','mục đích đánh giá','muc dich danh gia','mucdichdanhgia']);
           // Lưu toàn bộ dữ liệu từ item gốc vào rowData để gửi kèm khi upload (giống Form 2)
           const rowData = { ...item, taskId: taskIdBest, requestDate: requestDateStr, wishDue, code, taskName: tname };
           
@@ -8008,14 +8067,95 @@
             tdDownloadForm.appendChild(disabledBtn);
           } else {
             const downloadFormBtn = document.createElement('button');
-            downloadFormBtn.className = isSystemTask
-              ? 'px-3 py-1 rounded-lg text-white bg-purple-500 hover:bg-purple-600'
-              : 'px-3 py-1 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700';
-            downloadFormBtn.textContent = isSystemTask ? 'Tải form' : 'Tải form SOP';
+            if (isSystem2Task) {
+              downloadFormBtn.className = 'px-3 py-1 rounded-lg text-white bg-teal-600 hover:bg-teal-700';
+              downloadFormBtn.textContent = 'Bắt đầu triển khai';
+            } else if (isSystemTask) {
+              downloadFormBtn.className = 'px-3 py-1 rounded-lg text-white bg-purple-500 hover:bg-purple-600';
+              downloadFormBtn.textContent = 'Tải form (System)';
+            } else {
+              downloadFormBtn.className = 'px-3 py-1 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700';
+              downloadFormBtn.textContent = 'Tải form (SOP)';
+            }
             downloadFormBtn.disabled = false;
-            downloadFormBtn.onclick = (e) => {
+            downloadFormBtn.onclick = async (e) => {
               e.preventDefault();
               const name = (document.getElementById('f1-name')?.value || '').trim();
+              if (downloadFormBtn.disabled) return;
+              // system=2: xác nhận và chỉ gửi webhook bắt đầu triển khai
+              if (isSystem2Task) {
+                downloadFormBtn.disabled = true;
+                downloadFormBtn.classList.add('opacity-50', 'pointer-events-none');
+                try {
+                  await handleForm1OtherTaskStartWebhook({
+                    taskId: taskIdBest || taskId || '',
+                    code: code || '',
+                    taskName: tname || '',
+                    name,
+                    requestDate: requestDateStr || '',
+                    wishDue: wishDue || '',
+                    status: statusText || '',
+                    itemId: itemId || '',
+                    requester: getV(item,['Người yêu cầu','requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']) || '',
+                    receiverSample: getV(item,['Người nhận mẫu','receiver','receivername','nguoinhanmau','nguoi_nhan_mau','người nhận mẫu','recipient','assignee','người nhận']) || '',
+                    manHour: getV(item,[ 'Công chuẩn','manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn' ]) || '',
+                    purpose: purposeValue || '',
+                    note: getV(item,['Note','note','ghi_chu','ghichu']) || '',
+                    specialTest: getV(item,['Yêu cầu test đặc biệt','specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']) || '',
+                    reportForm: getV(item,['Form báo cáo đánh giá','reportform','form_bao_cao','form_bao_cao_danh_gia']) || '',
+                    submitTime: getV(item,['Tgian nộp form','submittime','submit_time','submitTime','tgian nop form','thoi_gian_nop_form','thời gian nộp form']) || '',
+                    reportDueDate: getV(item,['Ngày cần trả BC','reportduedate','report_due_date','reportDueDate','ngay can tra bc','ngay_can_tra_bc','ngày cần trả bc']) || '',
+                    attachmentFileName: getV(item,[ 'Tên file đính kèm','attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file' ]) || '',
+                    attachmentUrl: getV(item,[ 'Tải đính kèm','Tài đính kèm','attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url' ]) || '',
+                    downloadFormUrl: downloadFormUrl || ''
+                  });
+                } finally {
+                  setTimeout(() => {
+                    downloadFormBtn.disabled = false;
+                    downloadFormBtn.classList.remove('opacity-50', 'pointer-events-none');
+                  }, 500);
+                }
+                return;
+              }
+              // system=1: tải form + ghi nhận webhook riêng, không mở modal SOP
+              if (isSystemTask) {
+                if (!downloadFormUrl) {
+                  showToast('Không có link tải form cho tác vụ system=1', 'warning');
+                  return;
+                }
+                downloadFormBtn.disabled = true;
+                downloadFormBtn.classList.add('opacity-50', 'pointer-events-none');
+                try {
+                  await handleForm1DownloadForm(downloadFormUrl, {
+                    taskId: taskIdBest || taskId || '',
+                    code: code || '',
+                    taskName: tname || '',
+                    name,
+                    requestDate: requestDateStr || '',
+                    wishDue: wishDue || '',
+                    status: statusText || '',
+                    itemId: itemId || '',
+                    requester: getV(item,['Người yêu cầu','requester','nguoiyeucau','nguoi_yeu_cau','assigner','người yêu cầu']) || '',
+                    receiverSample: getV(item,['Người nhận mẫu','receiver','receivername','nguoinhanmau','nguoi_nhan_mau','người nhận mẫu','recipient','assignee','người nhận']) || '',
+                    manHour: getV(item,[ 'Công chuẩn','manhour','man_hour','congchuan','cong_chuan','workload','sogio','sogiocong','công chuẩn' ]) || '',
+                    purpose: purposeValue || '',
+                    note: getV(item,['Note','note','ghi_chu','ghichu']) || '',
+                    specialTest: getV(item,['Yêu cầu test đặc biệt','specialtest','yeucau_test_dac_biet','yeu_cau_test_dac_biet']) || '',
+                    reportForm: getV(item,['Form báo cáo đánh giá','reportform','form_bao_cao','form_bao_cao_danh_gia']) || '',
+                    submitTime: getV(item,['Tgian nộp form','submittime','submit_time','submitTime','tgian nop form','thoi_gian_nop_form','thời gian nộp form']) || '',
+                    reportDueDate: getV(item,['Ngày cần trả BC','reportduedate','report_due_date','reportDueDate','ngay can tra bc','ngay_can_tra_bc','ngày cần trả bc']) || '',
+                    attachmentFileName: getV(item,[ 'Tên file đính kèm','attachmentfilename','file_name','filename','tenfile','ten_file','tên file','tên file đính kèm','attachment','file' ]) || '',
+                    attachmentUrl: getV(item,[ 'Tải đính kèm','Tài đính kèm','attachmenturl','attachment_url','fileurl','file_url','downloadurl','download_url','link','url' ]) || ''
+                  });
+                } finally {
+                  setTimeout(() => {
+                    downloadFormBtn.disabled = false;
+                    downloadFormBtn.classList.remove('opacity-50', 'pointer-events-none');
+                  }, 500);
+                }
+                return;
+              }
+              // Mặc định: xử lý qua modal SOP
               openReturnFormModal({ form: 'Form 2', name, code, taskId: taskIdBest, taskName: tname, rowData, id: itemId, downloadFormUrl });
             };
             tdDownloadForm.appendChild(downloadFormBtn);
